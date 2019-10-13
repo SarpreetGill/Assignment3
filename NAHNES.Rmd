@@ -56,7 +56,7 @@ The first business problem involves using “health condition” features and fi
 
 The second business problem involves finding commonality between subjects.  This is a clustering problem and we will need a model using a clustering algorithm.   We need to determine whether business’s presumption is accurate:  Can subjects be divided into discrete groups according to their health conditions, which could then provide meaningful data for the drug researchers?  If yes, we need to find these clusters of subjects that can be used to segregate the data by health conditions, then we can report these findings to the business.  Or is there too much commonality between “health condition” features and other features?  If we cannot find clusters that could be divided by health conditions, then we will also report this finding to the company as well and note that clusters that we did find.  We’re comparing the columns/attributes of the dataset.   
 
-
+<Describe what needs to happen to the data files> 
 
 
 # Loading R packages
