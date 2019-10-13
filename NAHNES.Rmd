@@ -52,9 +52,20 @@ They have approached our Machine Learning group for help on these problems.
 
 # Analytical Reframing for the Business Case.  
 
-The first business problem involves using “health condition” features and finding related features.  This is an association problem and we will need a model using an association algorithm.  What features are associated with “health condition” features? We’re comparing the rows of the dataset.  
+The first business problem involves using “health condition” features and finding related features.  This is an association problem and we will need a model using an association algorithm.  
 
-The second business problem involves finding commonality between subjects.  This is a clustering problem and we will need a model using a clustering algorithm.   We need to determine whether business’s presumption is accurate:  Can subjects be divided into discrete groups according to their health conditions, which could then provide meaningful data for the drug researchers?  If yes, we need to find these clusters of subjects that can be used to segregate the data by health conditions, then we can report these findings to the business.  Or is there too much commonality between “health condition” features and other features?  If we cannot find clusters that could be divided by health conditions, then we will also report this finding to the company as well and note that clusters that we did find.  We’re comparing the columns/attributes of the dataset.   
+
+* What features are associated with “health condition” features? 
+
+* We’re comparing the rows of the dataset.  
+
+The second business problem involves finding commonality between subjects.  This is a clustering problem and we will need a model using a clustering algorithm.   We need to determine whether business’s presumption is accurate:  
+
+* Can subjects be divided into discrete groups according to their health conditions, which could then provide meaningful data for the drug researchers?  If yes, we need to find these clusters of subjects that can be used to segregate the data by health conditions, then we can report these findings to the business.  
+
+* Or is there too much commonality between “health condition” features and other features?
+
+* If we cannot find clusters that could be divided by health conditions, then we will also report this finding to the company as well and note that clusters that we did find.  We’re comparing the columns/attributes of the dataset.   
 
 
 
@@ -122,7 +133,7 @@ knitr::include_graphics("Figures/medications_MS.png")
 
 *  **Others spreadsheets **
 
-We did  represent the rest of spreadsheets because the percentage of missing data are very   important. Just for example 
+We didn't  represent the rest of spreadsheets because the percentage of missing data are very   important. Just for example 
 
 ```{r,include=TRUE, fig.align="center", echo=T}
 #library(knitr)
