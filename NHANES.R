@@ -87,12 +87,12 @@ head(freq_xtab)
 Data_processed$RIAGENDR <- with(Data_processed, ifelse(as.integer(RIAGENDR)== 1, 'M', 
                                                        ifelse(as.integer(RIAGENDR)==2,'F',
                                                               RIAGENDR)))
-
+attach(Data_processed)
 str(Data_processed)
 ## GENDER w.r.t. our Target Variable
 freq_xtab=xtabs(~RIAGENDR+Target)
 head(freq_xtab)
-
+prop.table(freq_xtab)
 
 
 
