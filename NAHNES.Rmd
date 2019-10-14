@@ -1,12 +1,22 @@
 ---
 title: 'ML Assignment 2: NHANES data'
-author: Imran Aziz, Conrard G. T. Feugmo, Andre Schardong, Milton Segura, Sarpreet
-  Gill \newline(York University)
-date: "date"
+author:
+  - name: Imran Aziz
+  - name: Conrard G. T. Feugmo
+  - name: Andre Schardong
+  - name: Milton Segura
+  - name: Sarpreet Gill
+    affiliation: York University School of Continuing Studies
+date: "Oct 6, 2019"
 output:
-    html_document:
-        number_sections: true
-        toc: true
+  pdf_document:
+    includes:
+      in_header: preamble.tex
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: true
+      smooth_scroll: true
 ---
 ```{r setup, include=FALSE, warning = F}
 knitr::opts_chunk$set(echo = TRUE)
@@ -14,7 +24,6 @@ knitr::opts_chunk$set(fig.pos = 'H')
 knitr::opts_chunk$set(comment=FALSE)
 knitr::opts_chunk$set(warning=FALSE)
 ```
-
 
 \newpage
 
