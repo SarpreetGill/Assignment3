@@ -6,9 +6,11 @@ library(tidyr)
 #library(tidyverse)
 library(knitr)    # For knitting document and include_graphics function
 library(ggplot2)  # For plotting
+
+
 # Reading files
 
-#mydata <- read.csv(file.choose(), header = TRUE, na.strings = c("NA","","#NA"))
+# mydata <- read.csv(file.choose(), header = TRUE, na.strings = c("NA","","#NA"))
 # Reading files
 demographic   = read.csv("Data/Raw/demographic.csv", header = TRUE, na.strings = c("NA","","#NA"))
 diet          = read.csv("Data/Raw/diet.csv", header = TRUE, na.strings = c("NA","","#NA"))
@@ -16,7 +18,7 @@ examination   = read.csv("Data/Raw/examination.csv", header = TRUE, na.strings =
 labs          = read.csv("Data/Raw/labs.csv", header = TRUE, na.strings = c("NA","","#NA"))
 medications   = read.csv("Data/Raw/medications.csv", header = TRUE, na.strings = c("NA","","#NA"))
 questionnaire = read.csv("Data/Raw/questionnaire.csv", header = TRUE, na.strings = c("NA","","#NA"))
-
+Dictionary    = read.csv("Data/Raw/Dictionary.csv", header = TRUE, na.strings = c("NA","","#NA"))
 
 # Merging files
 data_List = list(demographic,examination,diet,labs,questionnaire,medications)
