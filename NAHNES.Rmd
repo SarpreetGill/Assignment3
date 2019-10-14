@@ -7,11 +7,16 @@ author:
   - name: Milton Segura
   - name: Sarpreet Gill
     affiliation: York University School of Continuing Studies
-date: "date"
+date: "Oct 6, 2019"
 output:
-  rticles::rjournal_article:
+  pdf_document:
     includes:
       in_header: preamble.tex
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: true
+      smooth_scroll: true
 ---
 ```{r setup, include=FALSE, warning = F}
 knitr::opts_chunk$set(echo = TRUE)
@@ -19,7 +24,6 @@ knitr::opts_chunk$set(fig.pos = 'H')
 knitr::opts_chunk$set(comment=FALSE)
 knitr::opts_chunk$set(warning=FALSE)
 ```
-
 
 \newpage
 
