@@ -33,36 +33,41 @@ dir.create("Data/Raw_Joined")
 
 ################################### Data indexing #########################################
 
-Data_indexed <- Data_joined
-colnames(Data_indexed) <- with(Dictionary,
-                               Dictionary$Variable.Description[match(colnames(Data_joined),
-                                                                     Dictionary$Variable.Name,
-                                                                     nomatch = Dictionary$Variable.Name
-                               )])
+###Data_indexed <- Data_joined
+###colnames(Data_indexed) <- with(Dictionary,
+###                               Dictionary$Variable.Description[match(colnames(Data_joined),
+###                                                                     Dictionary$Variable.Name,
+###                                                                     nomatch = Dictionary$Variable.Name
+###                               )])
 
-#clean_index <- c(colnames(Data_indexed))
-#sum(is.na(clean_index))
-#write.csv(Data_indexed,file = "Data/Raw_Joined/Data_indexed.csv")
+###clean_index <- c(colnames(Data_indexed))
+###sum(is.na(clean_index))
+###write.csv(Data_indexed,file = "Data/Raw_Joined/Data_indexed.csv")
+
+######################INDEXING DEMOGRAPHICS##################################
+###demographic_indexed <- demographic
+###colnames(demographic_indexed) <- with(Dictionary,
+###                               Dictionary$Variable.Description[match(colnames(demographic),
+###                                                                     Dictionary$Variable.Name,
+###                                                                     nomatch = Dictionary$Variable.Name
+###                               )])
+###sum(is.na(c(colnames(demographic_indexed))))
+###attach(demographic_indexed)
+###str(demographic_indexed)
+###sapply(demographic_indexed, function(x) sum(is.na(x)))
+###head(demographic_indexed)
+###str(demographic_indexed)
+###summary(demographic_indexed)
+
+### indexeding dropped due to strings length too long in datafields. Works though.### (Sarpreet)
+
+
 
 ################################### Data Exploration#########################################
-####################################Demographics#############################################
-demographic_indexed <- demographic
-colnames(demographic_indexed) <- with(Dictionary,
-                               Dictionary$Variable.Description[match(colnames(demographic),
-                                                                     Dictionary$Variable.Name,
-                                                                     nomatch = Dictionary$Variable.Name
-                               )])
-
-
-sum(is.na(c(colnames(demographic_indexed))))
-attach(demographic_indexed)
-str(demographic_indexed)
-sapply(demographic_indexed, function(x) sum(is.na(x)))
-
 
 # Stats on each of the datasets 
 
-# Demographic data
+####################################Demographics#############################################
 
 nrow(demographic)
 ncol(demographic)
