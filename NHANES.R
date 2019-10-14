@@ -84,8 +84,11 @@ prop.table(freq_tbl)
 
 freq_xtab=xtabs(~RIAGENDR+Target)
 head(freq_xtab)
-Data_processed$RIAGENDR <- with(Data_processed, ifelse(RIAGENDR== 1, 'M', 'F'))
-str(Data_processed$RIAGENDR)
+Data_processed$RIAGENDR <- with(Data_processed, ifelse(as.integer(RIAGENDR)== 1, 'M', 
+                                                       ifelse(as.integer(RIAGENDR)==2,'F',
+                                                              RIAGENDR)))
+
+str(Data_processed)
 ## GENDER w.r.t. our Target Variable
 freq_xtab=xtabs(~RIAGENDR+Target)
 head(freq_xtab)
