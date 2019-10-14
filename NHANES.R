@@ -3,10 +3,11 @@
 library(plyr)
 library(dplyr)
 library(tidyr)
-#library(tidyverse)
+library(tidyverse)
 library(knitr)    # For knitting document and include_graphics function
 library(ggplot2)  # For plotting
 library(mice)
+library(reshape2)
 
 # Reading files
 
@@ -28,36 +29,41 @@ Dictionary    = read.csv("Data/Raw/Dictionary.csv", header = TRUE, na.strings = 
 # Merging files
 data_List = list(demographic,examination,diet,labs,questionnaire,medications)
 Data_joined = join_all(data_List) #require(plyr)
-dir.create("Data/Raw_Joined")
+#dir.create("Data/Raw_Joined")
 #write.csv(Data_joined,file = "Data/Raw_Joined/Data_joined.csv")
 
 ################################### Data indexing #########################################
 
-###Data_indexed <- Data_joined
-###colnames(Data_indexed) <- with(Dictionary,
-###                               Dictionary$Variable.Description[match(colnames(Data_joined),
-###                                                                     Dictionary$Variable.Name,
-###                                                                     nomatch = Dictionary$Variable.Name
-###                               )])
+##Data_indexed <- Data_joined
+##colnames(Data_indexed) <- with(Dictionary,
+##                               Dictionary$Variable.Description[match(colnames(Data_joined),
+##                                                                     Dictionary$Variable.Name,
+##                                                                     nomatch = Dictionary$Variable.Name
+##                               )])
+##
+##clean_index <- c(colnames(Data_indexed))
+##sum(is.na(clean_index))
+##str(Data_indexed)
+##str(Data_Joined)
 
-###clean_index <- c(colnames(Data_indexed))
-###sum(is.na(clean_index))
+
+
+
 ###write.csv(Data_indexed,file = "Data/Raw_Joined/Data_indexed.csv")
 
 ######################INDEXING DEMOGRAPHICS##################################
-###demographic_indexed <- demographic
-###colnames(demographic_indexed) <- with(Dictionary,
-###                               Dictionary$Variable.Description[match(colnames(demographic),
-###                                                                     Dictionary$Variable.Name,
-###                                                                     nomatch = Dictionary$Variable.Name
-###                               )])
-###sum(is.na(c(colnames(demographic_indexed))))
-###attach(demographic_indexed)
-###str(demographic_indexed)
-###sapply(demographic_indexed, function(x) sum(is.na(x)))
-###head(demographic_indexed)
-###str(demographic_indexed)
-###summary(demographic_indexed)
+##demographic_indexed <- demographic
+##colnames(demographic_indexed) <- with(Dictionary,
+##                               Dictionary$Variable.Description[match(colnames(demographic),
+##                                                                     Dictionary$Variable.Name,
+##                                                                     nomatch = Dictionary$Variable.Name
+##                               )])
+##sum(is.na(c(colnames(demographic_indexed))))
+##attach(demographic_indexed)
+##str(demographic_indexed)
+##head(demographic_indexed)
+##summary(demographic_indexed)
+
 
 ### indexeding dropped due to strings length too long in datafields. Works though.### (Sarpreet)
 
