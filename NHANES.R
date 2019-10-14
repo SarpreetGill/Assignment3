@@ -7,7 +7,6 @@ library(tidyr)
 library(knitr)    # For knitting document and include_graphics function
 library(ggplot2)  # For plotting
 
-
 # Reading files
 
 # mydata <- read.csv(file.choose(), header = TRUE, na.strings = c("NA","","#NA"))
@@ -20,14 +19,29 @@ medications   = read.csv("Data/Raw/medications.csv", header = TRUE, na.strings =
 questionnaire = read.csv("Data/Raw/questionnaire.csv", header = TRUE, na.strings = c("NA","","#NA"))
 Dictionary    = read.csv("Data/Raw/Dictionary.csv", header = TRUE, na.strings = c("NA","","#NA"))
 
-# Merging files
+# Merging & Combining files
 data_List = list(demographic,examination,diet,labs,questionnaire,medications)
 Data_joined = join_all(data_List) #require(plyr)
-#dir.create("Data/Raw_Joined")
-#write.csv(Data_joined,file = "Data/Raw_Joined/Data_joined.csv")
+dir.create("Data/Raw_Joined")
+write.csv(Data_joined,file = "Data/Raw_Joined/Data_joined.csv")
 
 
-# Data Exploration
+
+################################### Data Exploration#########################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #Check the data for missing values.
 attach(demographic)
 str(demographic)
