@@ -6,6 +6,7 @@ library(tidyr)
 #library(tidyverse)
 library(knitr)    # For knitting document and include_graphics function
 library(ggplot2)  # For plotting
+library(mice)
 
 # Reading files
 
@@ -23,10 +24,8 @@ Dictionary    = read.csv("Data/Raw/Dictionary.csv", header = TRUE, na.strings = 
 data_List = list(demographic,examination,diet,labs,questionnaire,medications)
 Data_joined = join_all(data_List) #require(plyr)
 dir.create("Data/Raw_Joined")
-write.csv(Data_joined,file = "Data/Raw_Joined/Data_joined.csv")
-head(data_List)
-str(data_List)
-summary(data_List)
+#write.csv(Data_joined,file = "Data/Raw_Joined/Data_joined.csv")
+
 
 ################################### Data indexing #########################################
 
@@ -40,42 +39,22 @@ colnames(Data_indexed) <- with(Dictionary,
 
 #clean_index <- c(colnames(Data_indexed))
 #sum(is.na(clean_index))
-
-nrow(Data_joined)
-ncol(Data_joined)
-ncol(Data_indexed)
-nrow(Data_indexed)
-
-
-
-
-
-
-
-
-write.csv(Data_indexed,file = "Data/Raw_Joined/Data_indexed.csv")
+#write.csv(Data_indexed,file = "Data/Raw_Joined/Data_indexed.csv")
 
 ################################### Data Exploration#########################################
-head(Data_indexed)
-str(Data_indexed)
-summary(Data_indexed)
+####################################Demographics#############################################
+demographic_indexed <- demographic
+colnames(demographic_indexed) <- with(Dictionary,
+                               Dictionary$Variable.Description[match(colnames(demographic),
+                                                                     Dictionary$Variable.Name,
+                                                                     nomatch = Dictionary$Variable.Name
+                               )])
 
 
-
-
-
-
-
-
-
-
-
-
-
-#Check the data for missing values.
-attach(demographic)
-str(demographic)
-sapply(demographic, function(x) sum(is.na(x)))
+sum(is.na(c(colnames(demographic_indexed))))
+attach(demographic_indexed)
+str(demographic_indexed)
+sapply(demographic_indexed, function(x) sum(is.na(x)))
 
 
 ################## demographic_MS : MS stand for missing data ####################
