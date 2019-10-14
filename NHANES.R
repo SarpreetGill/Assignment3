@@ -8,6 +8,7 @@ library(knitr)    # For knitting document and include_graphics function
 library(ggplot2)  # For plotting
 library(mice)
 library(reshape2)
+require(RColorBrewer)
 
 # Reading files
 
@@ -93,7 +94,16 @@ str(Data_processed)
 freq_xtab=xtabs(~RIAGENDR+Target)
 head(freq_xtab)
 prop.table(freq_xtab)
-
+barplot(freq_xtab,
+        legend = rownames(freq_xtab),
+        ylab = "Number", xlab = "Target Variable",
+        col = brewer.pal(3, name = "Dark2"),
+        main = "Difference in Target Variable w.r.t Gender ")
+barplot(prop.table(freq_xtab),
+        legend = rownames(freq_xtab),
+        ylab = "Percent", xlab = "Target Variable",
+        col = brewer.pal(3, name = "Dark2"),
+        main = "Difference in Target Variable w.r.t Gender ")
 
 
 ####################################Demographics#############################################
