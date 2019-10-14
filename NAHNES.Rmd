@@ -67,7 +67,37 @@ The second business problem involves finding commonality between subjects.  This
 
 * If we cannot find clusters that could be divided by health conditions, then we will also report this finding to the company as well and note that clusters that we did find.  We’re comparing the columns/attributes of the dataset.   
 
+## How do we define health conditions within the dataset ? 
 
+How do we know what is considered a health condition within the data? We could use lab data and diagnose whether someone falls under the definition of health condition; however, for the purpose 
+
+Diabetes within Questionnaire dataset: 
+
+We are postulating that the following features/columns indicate that an individual has diabetes
+
+DID040 - "How old {was SP/were you} when a doctor or other health professional first told {you/him/her} that {you/he/she} had diabetes or sugar diabetes?"
+
+DID060 - "For how long {have you/has SP} been taking insulin?"
+
+NA in the above features might indicate the subject does not have diabetes.  
+
+For the association problem, we will need to see which attributes are tied to above features.
+
+Blood Pressure within Questionnaire dataset
+
+BPD035 - How old {were you/was SP} when {you were/he/she was} first told that {you/he/she} had hypertension or high blood pressure?
+
+BPQ020 - {Have you/Has SP} ever been told by a doctor or other health professional that {you/s/he} had hypertension, also called high blood pressure?
+
+Cancer 
+
+MCQ220 - {Have you/Has SP} ever been told by a doctor or other health professional that {you/s/he} had cancer or a malignancy (ma-lig-nan-see) of any kind?  
+
+
+
+
+
+<Describe what needs to happen to the data files> 
 
 
 # Loading R packages
@@ -81,9 +111,9 @@ library(knitr)
 ```
 
 
-# Data Exploration
+# Data cleaning
 
-```{r, eval=FALSE, echo=TRUE}
+```{r, warning = F, message=F}
 # Reading files
 demographic   = read.csv("Data/Raw/demographic.csv", header = TRUE, na.strings = c("NA","","#NA"))
 diet          = read.csv("Data/Raw/diet.csv", header = TRUE, na.strings = c("NA","","#NA"))
@@ -111,34 +141,80 @@ Its always important to check for missing values and consider how to fix them.
 
 * **Demographic**
 
-````{r, eval=FALSE, echo=TRUE}
+````{r, warning = F, message=F}
+library(plotly)
+```
+````{r, eval=TRUE, echo=TRUE, warning = F, message=F}
+demographic_MS <- demographic %>% summarise_all(~(sum(is.na(.))/n()))
+demographic_MS <- gather(demographic_MS, key = "variables", value = "percent_missing")
+demographic_MS <- demographic_MS[demographic_MS$percent_missing > 0.0, ] 
 
+demographic_MS_plot  <- ggplot(demographic_MS, aes(x = reorder(variables, percent_missing), y = percent_missing)) +
+  geom_bar(stat = "identity", fill = "blue", aes(color = I('white')), size = 0.3, alpha = 0.8)+
+  xlab('variables')+
+  coord_flip()+ 
+  #theme_fivethirtyeight() +
+  ggtitle("Demographic Missing Data By Columns")
+
+demographic_MS_plot
 ```
 
-```{r,include=TRUE, fig.align="center", echo=T}
-#library(knitr)
-knitr::include_graphics("Figures/demographic_MS.png")
-```
+
+
+
+<!--```{r,include=TRUE, fig.align="center", echo=T} -->
+<!--#library(knitr)-->
+<!--#knitr::include_graphics("Figures/demographic_MS.png")-->
+<!--```-->
 
 *  **Medications**
 
-````{r, eval=FALSE, echo=TRUE}
 
+```{r, eval=TRUE, echo=TRUE, warning = F, message=F}
+medications_MS <- medications %>% summarise_all(~(sum(is.na(.))/n()))
+medications_MS <- gather(medications_MS, key = "variables", value = "percent_missing")
+medications_MS <- medications_MS[medications_MS$percent_missing > 0.0, ] 
+
+medications_MS_plot <- ggplot(medications_MS, aes(x = reorder(variables, percent_missing), y = percent_missing)) +
+  geom_bar(stat = "identity", fill = "blue", aes(color = I('white')), size = 0.3, alpha = 0.8)+
+  xlab('variables')+
+  coord_flip()+ 
+  #theme_fivethirtyeight() +
+  ggtitle("Medications Missing Data By Columns")
+
+medications_MS_plot
 ```
 
-```{r,include=TRUE, fig.align="center", echo=T}
-#library(knitr)
-knitr::include_graphics("Figures/medications_MS.png")
-```
+<!--```{r,include=TRUE, fig.align="center", echo=T}-->
+<!--#library(knitr)-->
+<!--#knitr::include_graphics("Figures/medications_MS.png")-->
+<!--```-->
 
 *  **Others spreadsheets **
 
 We didn't  represent the rest of spreadsheets because the percentage of missing data are very   important. Just for example 
 
-```{r,include=TRUE, fig.align="center", echo=T}
-#library(knitr)
-knitr::include_graphics("Figures/examination_MS.png")
-```
+```{r, eval=TRUE, echo=TRUE, warning = F, message=F}
+examination_MS <- examination %>% summarise_all(~(sum(is.na(.))/n()))
+examination_MS <- gather(examination_MS, key = "variables", value = "percent_missing")
+examination_MS <- examination_MS[examination_MS$percent_missing > 0.0, ] 
+
+examination_MS_plot <- ggplot(examination_MS, aes(x = reorder(variables, percent_missing), y = percent_missing)) +
+  geom_bar(stat = "identity", fill = "blue", aes(color = I('white')), size = 0.3, alpha = 0.8)+
+  xlab('variables')+
+  coord_flip()+ 
+  #theme_fivethirtyeight() +
+  ggtitle("Examination Missing Data By Columns")
+
+examination_MS_plot
+
+```  
+  
+  
+<!--```{r,include=TRUE, fig.align="center", echo=T}  -->
+<!--#library(knitr) -->
+<!--knitr::include_graphics("Figures/examination_MS.png")-->
+<!--```-->
 
 
 ## Data splitting & imputation
