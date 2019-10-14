@@ -21,6 +21,52 @@ questionnaire = read.csv("Data/Raw/questionnaire.csv", header = TRUE, na.strings
 Dictionary    = read.csv("Data/Raw/Dictionary.csv", header = TRUE, na.strings = c("NA","","#NA"))
 
 # Merging & Combining files
+
+# Stats on each of the datasets 
+# 
+# Demographic data
+
+nrow(demographic)
+ncol(demographic)
+summary(demographic)
+str(demographic)
+
+# Diet
+
+nrow(diet)
+ncol(diet)
+summary(diet)
+str(diet)
+
+# Examination
+
+nrow(examination)
+ncol(examination)
+summary(examination)
+str(examination)
+
+# Labs
+
+nrow(examination)
+ncol(examination)
+summary(examination)
+str(examination)
+
+# Medications
+
+nrow(medications)
+ncol(medications)
+summary(medications)
+str(medications)
+
+# Questionnaire 
+
+nrow(questionnaire)
+ncol(questionnaire)
+summary(questionnaire)
+str(questionnaire)
+
+# Merging files
 data_List = list(demographic,examination,diet,labs,questionnaire,medications)
 Data_joined = join_all(data_List) #require(plyr)
 dir.create("Data/Raw_Joined")
