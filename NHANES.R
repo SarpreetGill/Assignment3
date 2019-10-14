@@ -66,19 +66,31 @@ summary(Data_joined$Diabetes)
 Data_joined = cbind(Data_joined, Target = ifelse(
   Data_joined$Diabetes == "Yes",
   1, 0 ))
+
+
 summary(Data_joined$Target)
 str(Data_joined$Target)
-dir.create("Data/Raw_Joined")
+#dir.create("Data/Raw_Joined")
 #write.csv(Data_joined,file = "Data/Raw_Joined/Data_joined.csv")
 Data_processed<- Data_joined
 str(Data_processed)
+attach(Data_processed)
 
-list_of_numcols = sapply(Data_processed, is.numeric)
-numcols = Data_processed[ , list_of_numcols]
-str(numcols)
-melt_data = melt(numcols, id.vars=c("SEQN"))
-head(melt_data, 10)
-ggplot(data = melt_data, mapping = aes(x = value)) + geom_histogram(bins = 10) + facet_wrap(~variable, scales = 'free_x')
+freq_tbl=table(Diabetes)
+head(freq_tbl)
+prop.table(freq_tbl)
+
+
+
+freq_xtab=xtabs(~RIAGENDR+Target)
+head(freq_xtab)
+Data_processed$RIAGENDR <- with(Data_processed, ifelse(RIAGENDR== 1, 'M', 'F'))
+str(Data_processed$RIAGENDR)
+## GENDER w.r.t. our Target Variable
+freq_xtab=xtabs(~RIAGENDR+Target)
+head(freq_xtab)
+
+
 
 
 ####################################Demographics#############################################
@@ -87,50 +99,6 @@ nrow(demographic)
 ncol(demographic)
 summary(demographic)
 str(demographic)
-
-# Diet
-
-nrow(diet)
-ncol(diet)
-summary(diet)
-str(diet)
-
-# Examination
-
-nrow(examination)
-ncol(examination)
-summary(examination)
-str(examination)
-
-# Labs
-
-nrow(examination)
-ncol(examination)
-summary(examination)
-str(examination)
-
-# Medications
-
-nrow(medications)
-ncol(medications)
-summary(medications)
-str(medications)
-
-# Questionnaire 
-
-nrow(questionnaire)
-ncol(questionnaire)
-summary(questionnaire)
-str(questionnaire)
-
-
-
-# Data Exploration
-#Check the data for missing values.
-attach(demographic)
-str(demographic)
-sapply(demographic, function(x) sum(is.na(x)))
-
 
 ################## demographic_MS : MS stand for missing data ####################
 
@@ -144,6 +112,26 @@ ggplot(demographic_MS, aes(x = reorder(variables, percent_missing), y = percent_
   #theme_fivethirtyeight() +
   ggtitle("Demographic Missing Data By Columns")
 
+md.pattern(demographic)
+
+
+
+# Data Exploration
+#Check the data for missing values.
+attach(demographic)
+str(demographic)
+sapply(demographic, function(x) sum(is.na(x)))
+
+
+
+# Diet
+
+nrow(diet)
+ncol(diet)
+summary(diet)
+str(diet)
+
+
 
 ##################   diet_MS : MS stand for missing data      ####################
 diet_MS <- diet %>% summarise_all(~(sum(is.na(.))/n()))
@@ -155,6 +143,18 @@ ggplot(diet_MS, aes(x = reorder(variables, percent_missing), y = percent_missing
   coord_flip()+ 
   #theme_fivethirtyeight() +
   ggtitle("Diet Missing Data By Columns")
+
+
+
+
+# Examination
+
+nrow(examination)
+ncol(examination)
+summary(examination)
+str(examination)
+
+
 ################## examination_MS : MS stand for missing data ####################
 
 examination_MS <- examination %>% summarise_all(~(sum(is.na(.))/n()))
@@ -166,6 +166,18 @@ ggplot(examination_MS, aes(x = reorder(variables, percent_missing), y = percent_
   coord_flip()+ 
   #theme_fivethirtyeight() +
   ggtitle("Examination Missing Data By Columns")
+
+
+
+# Labs
+
+nrow(examination)
+ncol(examination)
+summary(examination)
+str(examination)
+
+
+
 
 ##################    labs_MS : MS stand for missing data     ####################
 
@@ -181,6 +193,17 @@ ggplot(labs_MS, aes(x = reorder(variables, percent_missing), y = percent_missing
   #theme_fivethirtyeight() +
   ggtitle(" Labs Missing Data By Columns")
 
+
+
+# Medications
+
+nrow(medications)
+ncol(medications)
+summary(medications)
+str(medications)
+
+
+
 ################## medications_MS : MS stand for missing data ####################
 
 medications_MS <- medications %>% summarise_all(~(sum(is.na(.))/n()))
@@ -192,6 +215,17 @@ ggplot(medications_MS, aes(x = reorder(variables, percent_missing), y = percent_
   coord_flip()+ 
   #theme_fivethirtyeight() +
   ggtitle("Medications Missing Data By Columns")
+
+
+
+# Questionnaire 
+
+nrow(questionnaire)
+ncol(questionnaire)
+summary(questionnaire)
+str(questionnaire)
+
+
 
 ################## questionnaire_MS : MS stand for missing data ##################
 
