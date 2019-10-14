@@ -25,14 +25,11 @@ Dictionary    = read.csv("Data/Raw/Dictionary.csv", header = TRUE, na.strings = 
 
 # Merging & Combining files
 
-
-
 # Merging files
 data_List = list(demographic,examination,diet,labs,questionnaire,medications)
 Data_joined = join_all(data_List) #require(plyr)
 dir.create("Data/Raw_Joined")
 #write.csv(Data_joined,file = "Data/Raw_Joined/Data_joined.csv")
-
 
 ################################### Data indexing #########################################
 
@@ -42,7 +39,6 @@ colnames(Data_indexed) <- with(Dictionary,
                                                                      Dictionary$Variable.Name,
                                                                      nomatch = Dictionary$Variable.Name
                                )])
-
 
 #clean_index <- c(colnames(Data_indexed))
 #sum(is.na(clean_index))
@@ -65,7 +61,7 @@ sapply(demographic_indexed, function(x) sum(is.na(x)))
 
 
 # Stats on each of the datasets 
-# 
+
 # Demographic data
 
 nrow(demographic)
