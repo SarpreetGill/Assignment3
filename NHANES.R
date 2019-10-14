@@ -46,9 +46,6 @@ Data_joined = join_all(data_List) #require(plyr)
 ##str(Data_indexed)
 ##str(Data_Joined)
 
-
-
-
 ###write.csv(Data_indexed,file = "Data/Raw_Joined/Data_indexed.csv")
 
 ######################INDEXING DEMOGRAPHICS##################################
@@ -73,6 +70,22 @@ Data_joined = join_all(data_List) #require(plyr)
 
 # Stats on each of the datasets 
 
+nrow(Data_joined)
+ncol(Data_joined)
+str(Data_joined)
+Data_joined = cbind(Data_joined, Diabetes = ifelse(
+  Data_joined$LBXGH >= 5.7,
+  "Yes", "No" ))
+summary(Data_joined$Diabetes)
+Data_joined = cbind(Data_joined, Target = ifelse(
+  Data_joined$Diabetes == "Yes",
+  1, 0 ))
+summary(Data_joined$Target)
+str(Data_joined$Target)
+dir.create("Data/Raw_Joined")
+#write.csv(Data_joined,file = "Data/Raw_Joined/Data_joined.csv")
+Data_processed<- Data_joined
+str(Data_processed)
 ####################################Demographics#############################################
 
 nrow(demographic)
