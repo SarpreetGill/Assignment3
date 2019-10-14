@@ -12,6 +12,9 @@ library(mice)
 
 # mydata <- read.csv(file.choose(), header = TRUE, na.strings = c("NA","","#NA"))
 # Reading files
+
+#mydata <- read.csv(file.choose(), header = TRUE, na.strings = c("NA","","#NA"))
+# Reading files
 demographic   = read.csv("Data/Raw/demographic.csv", header = TRUE, na.strings = c("NA","","#NA"))
 diet          = read.csv("Data/Raw/diet.csv", header = TRUE, na.strings = c("NA","","#NA"))
 examination   = read.csv("Data/Raw/examination.csv", header = TRUE, na.strings = c("NA","","#NA"))
@@ -21,6 +24,7 @@ questionnaire = read.csv("Data/Raw/questionnaire.csv", header = TRUE, na.strings
 Dictionary    = read.csv("Data/Raw/Dictionary.csv", header = TRUE, na.strings = c("NA","","#NA"))
 
 # Merging & Combining files
+
 
 # Stats on each of the datasets 
 # 
@@ -101,6 +105,14 @@ sum(is.na(c(colnames(demographic_indexed))))
 attach(demographic_indexed)
 str(demographic_indexed)
 sapply(demographic_indexed, function(x) sum(is.na(x)))
+
+
+
+# Data Exploration
+#Check the data for missing values.
+attach(demographic)
+str(demographic)
+sapply(demographic, function(x) sum(is.na(x)))
 
 
 ################## demographic_MS : MS stand for missing data ####################
