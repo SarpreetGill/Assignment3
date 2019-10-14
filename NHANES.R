@@ -48,20 +48,6 @@ Data_joined = join_all(data_List) #require(plyr)
 
 ###write.csv(Data_indexed,file = "Data/Raw_Joined/Data_indexed.csv")
 
-######################INDEXING DEMOGRAPHICS##################################
-##demographic_indexed <- demographic
-##colnames(demographic_indexed) <- with(Dictionary,
-##                               Dictionary$Variable.Description[match(colnames(demographic),
-##                                                                     Dictionary$Variable.Name,
-##                                                                     nomatch = Dictionary$Variable.Name
-##                               )])
-##sum(is.na(c(colnames(demographic_indexed))))
-##attach(demographic_indexed)
-##str(demographic_indexed)
-##head(demographic_indexed)
-##summary(demographic_indexed)
-
-
 ### indexeding dropped due to strings length too long in datafields. Works though.### (Sarpreet)
 
 
@@ -86,6 +72,14 @@ dir.create("Data/Raw_Joined")
 #write.csv(Data_joined,file = "Data/Raw_Joined/Data_joined.csv")
 Data_processed<- Data_joined
 str(Data_processed)
+
+list_of_numcols = sapply(Data_processed, is.numeric)
+numcols = Data_processed[ , list_of_numcols]
+str(numcols)
+melt_data = melt(numcols, id.vars=c("SEQN"))
+head(melt_data, 10)
+ggplot(data = melt_data, mapping = aes(x = value)) + geom_histogram(bins = 10) + facet_wrap(~variable, scales = 'free_x')
+
 
 ####################################Demographics#############################################
 
