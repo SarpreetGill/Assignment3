@@ -86,6 +86,7 @@ dir.create("Data/Raw_Joined")
 #write.csv(Data_joined,file = "Data/Raw_Joined/Data_joined.csv")
 Data_processed<- Data_joined
 str(Data_processed)
+
 ####################################Demographics#############################################
 
 nrow(demographic)
