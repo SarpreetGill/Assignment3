@@ -24,11 +24,41 @@ data_List = list(demographic,examination,diet,labs,questionnaire,medications)
 Data_joined = join_all(data_List) #require(plyr)
 dir.create("Data/Raw_Joined")
 write.csv(Data_joined,file = "Data/Raw_Joined/Data_joined.csv")
+head(data_List)
+str(data_List)
+summary(data_List)
+
+################################### Data indexing #########################################
+
+Data_indexed <- Data_joined
+colnames(Data_indexed) <- with(Dictionary,
+                               Dictionary$Variable.Description[match(colnames(Data_joined),
+                                                                     Dictionary$Variable.Name,
+                                                                     nomatch = Dictionary$Variable.Name
+                               )])
 
 
+#clean_index <- c(colnames(Data_indexed))
+#sum(is.na(clean_index))
+
+nrow(Data_joined)
+ncol(Data_joined)
+ncol(Data_indexed)
+nrow(Data_indexed)
+
+
+
+
+
+
+
+
+write.csv(Data_indexed,file = "Data/Raw_Joined/Data_indexed.csv")
 
 ################################### Data Exploration#########################################
-
+head(Data_indexed)
+str(Data_indexed)
+summary(Data_indexed)
 
 
 
