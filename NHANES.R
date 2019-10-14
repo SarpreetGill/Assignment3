@@ -1,4 +1,5 @@
 #setwd("~/Documents/ML-UYork/ML1000/Asignement2")
+#setwd ("c:/Users/sarpr/Desktop/Machine Learning/Assignments/Assignment2")
 library(plyr)
 library(dplyr)
 library(tidyr)
@@ -20,7 +21,8 @@ questionnaire = read.csv("Data/Raw/questionnaire.csv", header = TRUE, na.strings
 # Merging files
 data_List = list(demographic,examination,diet,labs,questionnaire,medications)
 Data_joined = join_all(data_List) #require(plyr)
-
+#dir.create("Data/Raw_Joined")
+#write.csv(Data_joined,file = "Data/Raw_Joined/Data_joined.csv")
 
 
 # Data Exploration
