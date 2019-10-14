@@ -1,12 +1,17 @@
 ---
 title: 'ML Assignment 2: NHANES data'
-author: Imran Aziz, Conrard G. T. Feugmo, Andre Schardong, Milton Segura, Sarpreet
-  Gill \newline(York University)
+author:
+  - name: Imran Aziz
+  - name: Conrard G. T. Feugmo
+  - name: Andre Schardong
+  - name: Milton Segura
+  - name: Sarpreet Gill
+    affiliation: York University School of Continuing Studies
 date: "date"
 output:
-    html_document:
-        number_sections: true
-        toc: true
+  rticles::rjournal_article:
+    includes:
+      in_header: preamble.tex
 ---
 ```{r setup, include=FALSE, warning = F}
 knitr::opts_chunk$set(echo = TRUE)
