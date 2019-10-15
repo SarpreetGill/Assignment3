@@ -108,6 +108,16 @@ nrow(demographic)
 ncol(demographic)
 summary(demographic)
 str(demographic)
+demographic_indexed <- demographic
+colnames(demographic_indexed) <- with(Dictionary,
+                              Dictionary$Variable.Description[match(colnames(demographic),
+                                                                    Dictionary$Variable.Name,
+                                                                    nomatch = Dictionary$Variable.Name
+                                                            )])
+Demogramphic_Col_Labes <- cbind(c(colnames(demographic)), 
+                                c(colnames(demographic_indexed)))
+#dir.create("Data/Labels")
+#write.csv(Demogramphic_Col_Labes,file = "Data/Labels/Demogramphic_Col_Labes.csv")
 
 ################## demographic_MS : MS stand for missing data ####################
 
@@ -215,7 +225,8 @@ ggplot(medications_MS, aes(x = reorder(variables, percent_missing), y = percent_
 
 
 
-# Questionnaire 
+############################ Questionnaire#####################################################
+
 
 nrow(questionnaire)
 ncol(questionnaire)
@@ -253,7 +264,7 @@ if (length(nearZeroVar(Data_processed, freqCut = 100/4, uniqueCut = 10, saveMetr
                                                   names = FALSE, foreach = FALSE, allowParallel = TRUE)] 
 }
 
-
+summarise(Data_processed$RIAGENDR, (count(is.na(.))/n()))
 
 #Define the predictors
 #Train the model
