@@ -13,8 +13,6 @@ library(caret)
 
 # Reading files
 
-# mydata <- read.csv(file.choose(), header = TRUE, na.strings = c("NA","","#NA"))
-# Reading files
 
 demographic   = read.csv("Data/Raw/demographic.csv", header = TRUE, na.strings = c("NA","","#NA"))
 diet          = read.csv("Data/Raw/diet.csv", header = TRUE, na.strings = c("NA","","#NA"))
@@ -29,6 +27,7 @@ Dictionary    = read.csv("Data/Raw/Dictionary.csv", header = TRUE, na.strings = 
 # Merging files
 data_List = list(demographic,examination,diet,labs,questionnaire,medications)
 Data_joined = join_all(data_List) #require(plyr)
+
 #dir.create("Data/Raw_Joined")
 #write.csv(Data_joined,file = "Data/Raw_Joined/Data_joined.csv")
 
@@ -44,9 +43,9 @@ Data_joined = join_all(data_List) #require(plyr)
 ##clean_index <- c(colnames(Data_indexed))
 ##sum(is.na(clean_index))
 ##str(Data_indexed)
-##str(Data_Joined)
+##str(Data_joined)
 
-###write.csv(Data_indexed,file = "Data/Raw_Joined/Data_indexed.csv")
+##write.csv(Data_indexed,file = "Data/Raw_Joined/Data_indexed.csv")
 
 ### indexeding dropped due to strings length too long in datafields. Works though.### (Sarpreet)
 
