@@ -7,8 +7,9 @@ library(tidyverse)
 library(knitr)    # For knitting document and include_graphics function
 library(ggplot2)  # For plotting
 library(mice)
-library(reshape2)
-require(RColorBrewer)
+library(RColorBrewer)
+library(caret)
+
 
 # Reading files
 
@@ -128,15 +129,6 @@ ggplot(demographic_MS, aes(x = reorder(variables, percent_missing), y = percent_
 md.pattern(demographic)
 
 
-
-# Data Exploration
-#Check the data for missing values.
-attach(demographic)
-str(demographic)
-sapply(demographic, function(x) sum(is.na(x)))
-
-
-
 # Diet
 
 nrow(diet)
@@ -252,10 +244,27 @@ ggplot(questionnaire_MS, aes(x = reorder(variables, percent_missing), y = percen
   #theme_fivethirtyeight() +
   ggtitle("Questionnaire Missing Data By Columns")
  
+################## Data_processed_MS : MS stand for missing data ##################
 
+Data_processed_MS <- Data_processed %>% summarise_all(~(sum(is.na(.))/n()))
+Data_processed_MS <- gather(Data_processed_MS, key = "variables", value = "percent_missing")
+Data_processed_MS <- Data_processed_MS[Data_processed_MS$percent_missing > 0.0, ] 
+ggplot(Data_processed_MS, aes(x = reorder(variables, percent_missing), y = percent_missing)) +
+  geom_bar(stat = "identity", fill = "blue", aes(color = I('white')), size = 0.3, alpha = 0.8)+
+  xlab('variables')+
+  coord_flip()+ 
+    ggtitle("Combined Data Missing Data By Columns")
 
+if (length(nearZeroVar(Data_processed, freqCut = 100/4, uniqueCut = 10, saveMetrics = FALSE,
+                       names = FALSE, foreach = FALSE, allowParallel = TRUE)) > 0){
+  Data_processed <- Data_processed[, -nearZeroVar(Data_processed, freqCut = 100/4, uniqueCut = 10, saveMetrics = FALSE,
+                                                  names = FALSE, foreach = FALSE, allowParallel = TRUE)] 
+}
+str(Data_processed)
 
-
+  
+  ##nearZeroVar(Data_processed, freqCut = 100/4, uniqueCut = 10, saveMetrics = FALSE,
+##            names = FALSE, foreach = FALSE, allowParallel = TRUE)
 
 
 
