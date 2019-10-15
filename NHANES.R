@@ -72,7 +72,6 @@ str(Data_joined$Target)
 #dir.create("Data/Raw_Joined")
 #write.csv(Data_joined,file = "Data/Raw_Joined/Data_joined.csv")
 Data_processed<- Data_joined
-str(Data_processed)
 attach(Data_processed)
 
 freq_tbl=table(Diabetes)
@@ -87,7 +86,6 @@ Data_processed$RIAGENDR <- with(Data_processed, ifelse(as.integer(RIAGENDR)== 1,
                                                        ifelse(as.integer(RIAGENDR)==2,'F',
                                                               RIAGENDR)))
 attach(Data_processed)
-str(Data_processed)
 ## GENDER w.r.t. our Target Variable
 freq_xtab=xtabs(~RIAGENDR+Target)
 head(freq_xtab)
@@ -122,9 +120,6 @@ ggplot(demographic_MS, aes(x = reorder(variables, percent_missing), y = percent_
   coord_flip()+ 
   #theme_fivethirtyeight() +
   ggtitle("Demographic Missing Data By Columns")
-
-md.pattern(demographic)
-
 
 # Diet
 
@@ -257,14 +252,6 @@ if (length(nearZeroVar(Data_processed, freqCut = 100/4, uniqueCut = 10, saveMetr
   Data_processed <- Data_processed[, -nearZeroVar(Data_processed, freqCut = 100/4, uniqueCut = 10, saveMetrics = FALSE,
                                                   names = FALSE, foreach = FALSE, allowParallel = TRUE)] 
 }
-
-
-  
-  ##nearZeroVar(Data_processed, freqCut = 100/4, uniqueCut = 10, saveMetrics = FALSE,
-##            names = FALSE, foreach = FALSE, allowParallel = TRUE)
-
-
-
 
 
 
