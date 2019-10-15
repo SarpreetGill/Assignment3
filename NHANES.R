@@ -138,6 +138,16 @@ ncol(diet)
 summary(diet)
 str(diet)
 
+diet_indexed <- diet
+colnames(diet_indexed) <- with(Dictionary,
+                                      Dictionary$Variable.Description[match(colnames(diet),
+                                                                            Dictionary$Variable.Name,
+                                                                            nomatch = Dictionary$Variable.Name)
+                                                                       ])
+diet_Col_Labes <- cbind(c(colnames(diet)), 
+                                c(colnames(diet_indexed)))
+#r.create("Data/Labels")
+#write.csv(diet_Col_Labes,file = "Data/Labels/diet_Col_Labes.csv")
 
 
 ##################   diet_MS : MS stand for missing data      ####################
@@ -160,6 +170,19 @@ nrow(examination)
 ncol(examination)
 summary(examination)
 str(examination)
+
+examination_indexed <- examination
+colnames(examination_indexed) <- with(Dictionary,
+                               Dictionary$Variable.Description[match(colnames(examination),
+                                                                     Dictionary$Variable.Name,
+                                                                     nomatch = Dictionary$Variable.Name)
+                                                               ])
+examination_Col_Labes <- cbind(c(colnames(examination)), 
+                        c(colnames(examination_indexed)))
+#r.create("Data/Labels")
+write.csv(examination_Col_Labes,file = "Data/Labels/examination_Col_Labes.csv")
+
+
 
 
 ################## examination_MS : MS stand for missing data ####################
@@ -232,6 +255,18 @@ nrow(questionnaire)
 ncol(questionnaire)
 summary(questionnaire)
 str(questionnaire)
+
+questionnaire_indexed <- questionnaire
+colnames(questionnaire_indexed) <- with(Dictionary,
+                                      Dictionary$Variable.Description[match(colnames(questionnaire),
+                                                                            Dictionary$Variable.Name,
+                                                                            nomatch = Dictionary$Variable.Name)
+                                                                      ])
+questionnaire_Col_Labes <- cbind(c(colnames(questionnaire)), 
+                               c(colnames(questionnaire_indexed)))
+#r.create("Data/Labels")
+write.csv(questionnaire_Col_Labes,file = "Data/Labels/questionnaire_Col_Labes.csv")
+
 
 
 
