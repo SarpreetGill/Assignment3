@@ -16,8 +16,6 @@ library(caret)
 # mydata <- read.csv(file.choose(), header = TRUE, na.strings = c("NA","","#NA"))
 # Reading files
 
-#mydata <- read.csv(file.choose(), header = TRUE, na.strings = c("NA","","#NA"))
-# Reading files
 demographic   = read.csv("Data/Raw/demographic.csv", header = TRUE, na.strings = c("NA","","#NA"))
 diet          = read.csv("Data/Raw/diet.csv", header = TRUE, na.strings = c("NA","","#NA"))
 examination   = read.csv("Data/Raw/examination.csv", header = TRUE, na.strings = c("NA","","#NA"))
