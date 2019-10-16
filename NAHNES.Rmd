@@ -237,6 +237,28 @@ examination_MS_plot
 
 ** Diet 
 
+diet_MS <- diet %>% summarise_all(~(sum(is.na(.))/n()))
+diet_MS <- gather(diet_MS, key = "variables", value = "percent_missing")
+diet_MS <- diet_MS[diet_MS$percent_missing > 0.0, ] 
+ggplot(diet_MS, aes(x = reorder(variables, percent_missing), y = percent_missing)) +
+  geom_bar(stat = "identity", fill = "blue", aes(color = I('white')), size = 0.3, alpha = 0.8)+
+  xlab('variables')+
+  coord_flip()+ 
+  #theme_fivethirtyeight() +
+  ggtitle("Diet Missing Data By Columns")
+ 
+ Almost all columns/attributes have varying degrees of missing values.  As per our guidelines, we will choose and select "interesting" attributes/columns based on our business/personal judgements.  The NHANES data dictionary/variable list is listed as follows:   
+
+https://wwwn.cdc.gov/Nchs/Nhanes/Search/variablelist.aspx?Component=Dietary&CycleBeginYear=2013
+
+The data is divded into the following sections:  <list sections>
+
+We have inspected the above data dictionary and we have selected the following interesting values for further analysis.   
+
+diet_subset -> Need to impute it.  
+
+These variables/attributes are referring to the one day nutrituion numerical attributes.  
+
 
 ## Data splitting & imputation
 
