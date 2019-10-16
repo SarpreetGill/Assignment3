@@ -186,6 +186,12 @@ ncol(demographic)
 summary(demographic)
 str(demographic)
 
+if (length(nearZeroVar(Data_processed, freqCut = 100/4, uniqueCut = 10, saveMetrics = FALSE,
+                       names = FALSE, foreach = FALSE, allowParallel = TRUE)) > 0){
+  Data_processed <- Data_processed[, -nearZeroVar(Data_processed, freqCut = 100/4, uniqueCut = 10, saveMetrics = FALSE,
+                                                 names = FALSE, foreach = FALSE, allowParallel = TRUE)] 
+                                                                                    }
+
 
 
 ##if (length(nearZeroVar(Data_processed, freqCut = 100/4, uniqueCut = 10, saveMetrics = FALSE,
