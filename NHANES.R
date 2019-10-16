@@ -31,7 +31,6 @@ Data_joined = join_all(data_List)
 #write.csv(Data_joined,file = "Data/Raw_Joined/Data_joined.csv")
 
 
-
 ########################################## Stats on each of the datasets######################
 
 ################## demographic_MS : MS stand for missing data ###############################
@@ -91,9 +90,9 @@ ggplot(medications_MS, aes(x = reorder(variables, percent_missing), y = percent_
 
 
 
-##############################labs_MS : MS stand for missing data ####################
+############################## labs_MS : MS stand for missing data ####################
 
-sapply(labs, function(x) sum(is.na(x)))
+
 
 labs_MS <- labs %>% summarise_all(~(sum(is.na(.))/n()))
 labs_MS <- gather(labs_MS, key = "variables", value = "percent_missing")
@@ -105,7 +104,7 @@ ggplot(labs_MS, aes(x = reorder(variables, percent_missing), y = percent_missing
   #theme_fivethirtyeight() +
   ggtitle(" Labs Missing Data By Columns")
 
-
+sapply(labs, function(x) sum(is.na(x)))
 
 
 
@@ -121,17 +120,6 @@ ggplot(questionnaire_MS, aes(x = reorder(variables, percent_missing), y = percen
   #theme_fivethirtyeight() +
   ggtitle("Questionnaire Missing Data By Columns")
 
-
-################## Data_processed_MS : MS stand for missing data ##################
-
-Data_processed_MS <- Data_processed %>% summarise_all(~(sum(is.na(.))/n()))
-Data_processed_MS <- gather(Data_processed_MS, key = "variables", value = "percent_missing")
-Data_processed_MS <- Data_processed_MS[Data_processed_MS$percent_missing > 0.0, ] 
-ggplot(Data_processed_MS, aes(x = reorder(variables, percent_missing), y = percent_missing)) +
-  geom_bar(stat = "identity", fill = "blue", aes(color = I('white')), size = 0.3, alpha = 0.8)+
-  xlab('variables')+
-  coord_flip()+ 
-  ggtitle("Combined Data Missing Data By Columns")
 
 #############################################################################################
 ################################### Data Exploration#########################################
