@@ -210,7 +210,7 @@ medications_MS_plot
 
 *  **Others spreadsheets **
 
-We didn't  represent the rest of spreadsheets because the percentage of missing data are very   important. Just for example 
+We didn't represent the other spreadsheets because the percentage of missing data is very significant. For example, the following:
 
 ```{r, eval=TRUE, echo=TRUE, warning = F, message=F}
 examination_MS <- examination %>% summarise_all(~(sum(is.na(.))/n()))
