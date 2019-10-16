@@ -106,8 +106,7 @@ MCQ220 - {Have you/Has SP} ever been told by a doctor or other health profession
 
 
 
-<Describe what needs to happen to the data files> 
-
+ 
 
 # Loading R packages
 
@@ -121,6 +120,16 @@ library(knitr)
 
 
 # Data cleaning
+
+<Describe what needs to happen to the data files> 
+
+As indicated eariler, the dataset conists of 6 raw data files: Demographics, Examinations, Dietary, Laboratory, Questionnaire, and Medication.  The largest file (in terms of attributes) is the questionnaire data contains 953 variables; while the smallest data file contains 47 variables.  This is a large amount of data.  Cumatavitely, there are 1000s of attributes, therefore, we have decided need to employ the following guidelines to assist with reducing the complexity of the data: 
+
+- If more than 25% of the values are missing for an attribute(column), we will consider removing the column from further evaluation.
+- If the majority of attributes are missing 25% or more of their values for a given dataset, we will use personal or business judgmement to subjectively select a smaller subset of "interesting" values.  Of these subset of missing values, we will then decide how to impute the values on these attributes.     
+
+Ideally, we would like to analyse and impute every attribute with missing values, but in this situation, it may not be practical due to the large volume of missing data. 
+
 
 ```{r, warning = F, message=F}
 # Reading files
@@ -224,6 +233,9 @@ examination_MS_plot
 <!--#library(knitr) -->
 <!--knitr::include_graphics("Figures/examination_MS.png")-->
 <!--```-->
+
+
+** Diet 
 
 
 ## Data splitting & imputation
