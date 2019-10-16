@@ -223,7 +223,9 @@ examination_MS_plot <- ggplot(examination_MS, aes(x = reorder(variables, percent
   xlab('variables')+
   coord_flip()+ 
   #theme_fivethirtyeight() +
-  ggtitle("Examination Missing Data By Columns")
+  ggtitle("Examination Missing Data By Columns")+
+  theme(axis.text.y=element_text(size=3)) # labels looked messy
+  #theme(axis.text.y=element_blank()) # remove them altogether?
 
 examination_MS_plot
 
@@ -246,7 +248,11 @@ diet_MS_plot <- ggplot(diet_MS, aes(x = reorder(variables, percent_missing), y =
   xlab('variables')+
   coord_flip()+ 
   #theme_fivethirtyeight() +
-  ggtitle("Diet Missing Data By Columns")
+  ggtitle("Diet Missing Data By Columns")+
+  theme(axis.text.y=element_text(size=3))  # labels looked messy
+  #theme(axis.text.y=element_blank()) # remove them altogether?
+
+diet_MS_plot
 
 ```
  
