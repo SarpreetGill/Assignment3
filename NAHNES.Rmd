@@ -212,6 +212,7 @@ medications_MS_plot
 
 We didn't represent the other spreadsheets because the percentage of missing data is very significant. For example, the following:
 
+*  **Examination**
 ```{r, eval=TRUE, echo=TRUE, warning = F, message=F}
 examination_MS <- examination %>% summarise_all(~(sum(is.na(.))/n()))
 examination_MS <- gather(examination_MS, key = "variables", value = "percent_missing")
@@ -235,17 +236,19 @@ examination_MS_plot
 <!--```-->
 
 
-** Diet 
-
+*  **Diet**
+```{r, eval=TRUE, echo=TRUE, warning = F, message=F}
 diet_MS <- diet %>% summarise_all(~(sum(is.na(.))/n()))
 diet_MS <- gather(diet_MS, key = "variables", value = "percent_missing")
 diet_MS <- diet_MS[diet_MS$percent_missing > 0.0, ] 
-ggplot(diet_MS, aes(x = reorder(variables, percent_missing), y = percent_missing)) +
+diet_MS_plot <- ggplot(diet_MS, aes(x = reorder(variables, percent_missing), y = percent_missing)) +
   geom_bar(stat = "identity", fill = "blue", aes(color = I('white')), size = 0.3, alpha = 0.8)+
   xlab('variables')+
   coord_flip()+ 
   #theme_fivethirtyeight() +
   ggtitle("Diet Missing Data By Columns")
+
+```
  
  Almost all columns/attributes have varying degrees of missing values.  As per our guidelines, we will choose and select "interesting" attributes/columns based on our business/personal judgements.  The NHANES data dictionary/variable list is listed as follows:   
 
