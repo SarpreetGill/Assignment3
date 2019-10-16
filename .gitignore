@@ -1,0 +1,7 @@
+# Ignore the files generated the markdown
+*.Rhistory
+*.log
+*.tex
+
+# Ignore the markdown output
+*.pdf
