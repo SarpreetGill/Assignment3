@@ -11,7 +11,7 @@ library(RColorBrewer)
 library(caret)
 
 
-########################################### Reading files
+########################################### Reading files ###########################
 
 
 demographic   = read.csv("Data/Raw/demographic.csv", header = TRUE, na.strings = c("NA","","#NA"))
