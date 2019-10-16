@@ -31,167 +31,6 @@ Data_joined = join_all(data_List)
 #write.csv(Data_joined,file = "Data/Raw_Joined/Data_joined.csv")
 
 
-#############################################################################################
-################################### Data Exploration#########################################
-#############################################################################################
-#############################################################################################
-
-nrow(Data_joined)
-ncol(Data_joined)
-str(Data_joined)
-Data_joined = cbind(Data_joined, Diabetes = ifelse(
-  Data_joined$LBXGH >= 5.7,
-  "Yes", "No" ))
-summary(Data_joined$Diabetes)
-Data_joined = cbind(Data_joined, Target = ifelse(
-  Data_joined$Diabetes == "Yes",
-  1, 0 ))
-summary(Data_joined$Target)
-str(Data_joined$Target)
-#dir.create("Data/Raw_Joined")
-#write.csv(Data_joined,file = "Data/Raw_Joined/Data_joined.csv")
-
-########################DIABETES VS GENDER############################## 
-
-Data_processed<- Data_joined
-attach(Data_processed)
-freq_tbl=table(Diabetes)
-head(freq_tbl)
-prop.table(freq_tbl)
-
-freq_xtab=xtabs(~RIAGENDR+Target)
-head(freq_xtab)
-Data_processed$RIAGENDR <- with(Data_processed, ifelse(as.integer(RIAGENDR)== 1, 'M', 
-                                                       ifelse(as.integer(RIAGENDR)==2,'F',
-                                                              RIAGENDR)))
-
-
-##########################BAR PLOTs FOR DIABETES VS GENDER#####################
-
-attach(Data_processed)
-## GENDER w.r.t. our Target Variable
-freq_xtab=xtabs(~RIAGENDR+Target)
-head(freq_xtab)
-prop.table(freq_xtab)
-barplot(freq_xtab,
-        legend = rownames(freq_xtab),
-        ylab = "Number", xlab = "Target Variable",
-        col = brewer.pal(3, name = "Dark2"),
-        main = "Difference in Target Variable w.r.t Gender ")
-barplot(prop.table(freq_xtab),
-        legend = rownames(freq_xtab),
-        ylab = "Percent", xlab = "Target Variable",
-        col = brewer.pal(3, name = "Dark2"),
-        main = "Difference in Target Variable w.r.t Gender ")
-
-####################################Demographics#############################################
-
-nrow(demographic)
-ncol(demographic)
-summary(demographic)
-str(demographic)
-demographic_indexed <- demographic
-colnames(demographic_indexed) <- with(Dictionary,
-                              Dictionary$Variable.Description[match(colnames(demographic),
-                                                                    Dictionary$Variable.Name,
-                                                                    nomatch = Dictionary$Variable.Name
-                                                            )])
-Demogramphic_Col_Labes <- cbind(c(colnames(demographic)), 
-                                c(colnames(demographic_indexed)))
-#dir.create("Data/Labels")
-#write.csv(Demogramphic_Col_Labes,file = "Data/Labels/Demogramphic_Col_Labes.csv")
-
-if (length(nearZeroVar(Data_processed, freqCut = 100/4, uniqueCut = 10, saveMetrics = FALSE,
-                       names = FALSE, foreach = FALSE, allowParallel = TRUE)) > 0){
-  Data_processed <- Data_processed[, -nearZeroVar(Data_processed, freqCut = 100/4, uniqueCut = 10, saveMetrics = FALSE,
-                                                  names = FALSE, foreach = FALSE, allowParallel = TRUE)] 
-}
-
-summarise(Data_processed$RIAGENDR, (count(is.na(.))/n()))
-
-
-
-
-############################################## Diet####################################
-
-nrow(diet)
-ncol(diet)
-summary(diet)
-str(diet)
-
-diet_indexed <- diet
-colnames(diet_indexed) <- with(Dictionary,
-                                      Dictionary$Variable.Description[match(colnames(diet),
-                                                                            Dictionary$Variable.Name,
-                                                                            nomatch = Dictionary$Variable.Name)
-                                                                       ])
-diet_Col_Labes <- cbind(c(colnames(diet)), 
-                                c(colnames(diet_indexed)))
-#r.create("Data/Labels")
-#write.csv(diet_Col_Labes,file = "Data/Labels/diet_Col_Labes.csv")
-
-
-
-
-########################################### Examination###############################
-
-nrow(examination)
-ncol(examination)
-summary(examination)
-str(examination)
-
-examination_indexed <- examination
-colnames(examination_indexed) <- with(Dictionary,
-                               Dictionary$Variable.Description[match(colnames(examination),
-                                                                     Dictionary$Variable.Name,
-                                                                     nomatch = Dictionary$Variable.Name)
-                                                               ])
-examination_Col_Labes <- cbind(c(colnames(examination)), 
-                        c(colnames(examination_indexed)))
-#dir.create("Data/Labels")
-write.csv(examination_Col_Labes,file = "Data/Labels/examination_Col_Labes.csv")
-
-
-
-############################################ Labs###############################################
-
-nrow(examination)
-ncol(examination)
-summary(examination)
-str(examination)
-
-
-
-############################################### Medications######################################
-
-nrow(medications)
-ncol(medications)
-summary(medications)
-str(medications)
-
-
-
-
-#################################### Questionnaire#############################################
-
-
-nrow(questionnaire)
-ncol(questionnaire)
-summary(questionnaire)
-str(questionnaire)
-
-questionnaire_indexed <- questionnaire
-colnames(questionnaire_indexed) <- with(Dictionary,
-                                      Dictionary$Variable.Description[match(colnames(questionnaire),
-                                                                            Dictionary$Variable.Name,
-                                                                            nomatch = Dictionary$Variable.Name)
-                                                                      ])
-questionnaire_Col_Labes <- cbind(c(colnames(questionnaire)), 
-                               c(colnames(questionnaire_indexed)))
-#r.create("Data/Labels")
-write.csv(questionnaire_Col_Labes,file = "Data/Labels/questionnaire_Col_Labes.csv")
-
-
 
 ########################################## Stats on each of the datasets######################
 
@@ -293,6 +132,167 @@ ggplot(Data_processed_MS, aes(x = reorder(variables, percent_missing), y = perce
   xlab('variables')+
   coord_flip()+ 
   ggtitle("Combined Data Missing Data By Columns")
+
+#############################################################################################
+################################### Data Exploration#########################################
+#############################################################################################
+#############################################################################################
+
+nrow(Data_joined)
+ncol(Data_joined)
+str(Data_joined)
+Data_joined = cbind(Data_joined, Diabetes = ifelse(
+  Data_joined$LBXGH >= 5.7,
+  "Yes", "No" ))
+summary(Data_joined$Diabetes)
+Data_joined = cbind(Data_joined, Target = ifelse(
+  Data_joined$Diabetes == "Yes",
+  1, 0 ))
+summary(Data_joined$Target)
+str(Data_joined$Target)
+#dir.create("Data/Raw_Joined")
+#write.csv(Data_joined,file = "Data/Raw_Joined/Data_joined.csv")
+
+########################DIABETES VS GENDER############################## 
+
+Data_processed<- Data_joined
+attach(Data_processed)
+freq_tbl=table(Diabetes)
+head(freq_tbl)
+prop.table(freq_tbl)
+
+freq_xtab=xtabs(~RIAGENDR+Target)
+head(freq_xtab)
+Data_processed$RIAGENDR <- with(Data_processed, ifelse(as.integer(RIAGENDR)== 1, 'M', 
+                                                       ifelse(as.integer(RIAGENDR)==2,'F',
+                                                              RIAGENDR)))
+
+
+##########################BAR PLOTs FOR DIABETES VS GENDER#####################
+
+attach(Data_processed)
+## GENDER w.r.t. our Target Variable
+freq_xtab=xtabs(~RIAGENDR+Target)
+head(freq_xtab)
+prop.table(freq_xtab)
+barplot(freq_xtab,
+        legend = rownames(freq_xtab),
+        ylab = "Number", xlab = "Target Variable",
+        col = brewer.pal(3, name = "Dark2"),
+        main = "Difference in Target Variable w.r.t Gender ")
+barplot(prop.table(freq_xtab),
+        legend = rownames(freq_xtab),
+        ylab = "Percent", xlab = "Target Variable",
+        col = brewer.pal(3, name = "Dark2"),
+        main = "Difference in Target Variable w.r.t Gender ")
+
+####################################Demographics#############################################
+
+nrow(demographic)
+ncol(demographic)
+summary(demographic)
+str(demographic)
+demographic_indexed <- demographic
+colnames(demographic_indexed) <- with(Dictionary,
+                                      Dictionary$Variable.Description[match(colnames(demographic),
+                                                                            Dictionary$Variable.Name,
+                                                                            nomatch = Dictionary$Variable.Name
+                                      )])
+Demogramphic_Col_Labes <- cbind(c(colnames(demographic)), 
+                                c(colnames(demographic_indexed)))
+#dir.create("Data/Labels")
+#write.csv(Demogramphic_Col_Labes,file = "Data/Labels/Demogramphic_Col_Labes.csv")
+
+if (length(nearZeroVar(Data_processed, freqCut = 100/4, uniqueCut = 10, saveMetrics = FALSE,
+                       names = FALSE, foreach = FALSE, allowParallel = TRUE)) > 0){
+  Data_processed <- Data_processed[, -nearZeroVar(Data_processed, freqCut = 100/4, uniqueCut = 10, saveMetrics = FALSE,
+                                                  names = FALSE, foreach = FALSE, allowParallel = TRUE)] 
+}
+
+summarise(Data_processed$RIAGENDR, (count(is.na(.))/n()))
+
+
+
+
+############################################## Diet####################################
+
+nrow(diet)
+ncol(diet)
+summary(diet)
+str(diet)
+
+diet_indexed <- diet
+colnames(diet_indexed) <- with(Dictionary,
+                               Dictionary$Variable.Description[match(colnames(diet),
+                                                                     Dictionary$Variable.Name,
+                                                                     nomatch = Dictionary$Variable.Name)
+                                                               ])
+diet_Col_Labes <- cbind(c(colnames(diet)), 
+                        c(colnames(diet_indexed)))
+#r.create("Data/Labels")
+#write.csv(diet_Col_Labes,file = "Data/Labels/diet_Col_Labes.csv")
+
+
+
+
+########################################### Examination###############################
+
+nrow(examination)
+ncol(examination)
+summary(examination)
+str(examination)
+
+examination_indexed <- examination
+colnames(examination_indexed) <- with(Dictionary,
+                                      Dictionary$Variable.Description[match(colnames(examination),
+                                                                            Dictionary$Variable.Name,
+                                                                            nomatch = Dictionary$Variable.Name)
+                                                                      ])
+examination_Col_Labes <- cbind(c(colnames(examination)), 
+                               c(colnames(examination_indexed)))
+#dir.create("Data/Labels")
+write.csv(examination_Col_Labes,file = "Data/Labels/examination_Col_Labes.csv")
+
+
+
+############################################ Labs###############################################
+
+nrow(examination)
+ncol(examination)
+summary(examination)
+str(examination)
+
+
+
+############################################### Medications######################################
+
+nrow(medications)
+ncol(medications)
+summary(medications)
+str(medications)
+
+
+
+
+#################################### Questionnaire#############################################
+
+
+nrow(questionnaire)
+ncol(questionnaire)
+summary(questionnaire)
+str(questionnaire)
+
+questionnaire_indexed <- questionnaire
+colnames(questionnaire_indexed) <- with(Dictionary,
+                                        Dictionary$Variable.Description[match(colnames(questionnaire),
+                                                                              Dictionary$Variable.Name,
+                                                                              nomatch = Dictionary$Variable.Name)
+                                                                        ])
+questionnaire_Col_Labes <- cbind(c(colnames(questionnaire)), 
+                                 c(colnames(questionnaire_indexed)))
+#r.create("Data/Labels")
+write.csv(questionnaire_Col_Labes,file = "Data/Labels/questionnaire_Col_Labes.csv")
+
 
 
 
