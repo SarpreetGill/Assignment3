@@ -206,11 +206,6 @@ Demogramphic_Col_Labes <- cbind(c(colnames(demographic_major)),
 dir.create("Data/Labels")
 write.csv(Demogramphic_Col_Labes,file = "Data/Labels/Demogramphic_Col_Labes.csv")
 
-colnames(demographic_indexed) <- with(Demogramphic_Col_Labes,
-                                      Demogramphic_Col_Labes[match(colnames(demographic_major),
-                                                                            Demogramphic_Col_Labes,
-                                                                            nomatch = Demogramphic_Col_Labes
-                                      )])
 
 ############################################## Diet####################################
 
