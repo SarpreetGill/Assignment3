@@ -193,12 +193,24 @@ if (length(nearZeroVar(demographic_major, freqCut = 90/2, uniqueCut = 10, saveMe
   demographic_major <- demographic_major[, -nearZeroVar(demographic_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
                                                  names = FALSE, foreach = FALSE, allowParallel = TRUE)] 
                                                                                     }
+sapply(demographic_major, function(x) sum(is.na(x)))
 
+demographic_indexed <- demographic_major
+colnames(demographic_indexed) <- with(Dictionary,
+                                      Dictionary$Variable.Description[match(colnames(demographic_major),
+                                                                            Dictionary$Variable.Name,
+                                                                            nomatch = Dictionary$Variable.Name
+                                      )])
+Demogramphic_Col_Labes <- cbind(c(colnames(demographic_major)), 
+                                c(colnames(demographic_indexed)))
+dir.create("Data/Labels")
+write.csv(Demogramphic_Col_Labes,file = "Data/Labels/Demogramphic_Col_Labes.csv")
 
-
-
-
-
+colnames(demographic_indexed) <- with(Demogramphic_Col_Labes,
+                                      Demogramphic_Col_Labes[match(colnames(demographic_major),
+                                                                            Demogramphic_Col_Labes,
+                                                                            nomatch = Demogramphic_Col_Labes
+                                      )])
 
 ############################################## Diet####################################
 
