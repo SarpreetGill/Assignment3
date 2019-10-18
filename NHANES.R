@@ -179,6 +179,11 @@ barplot(prop.table(freq_xtab),
         col = brewer.pal(3, name = "Dark2"),
         main = "Difference in Target Variable w.r.t Gender ")
 
+################################################################################
+######################    MISSING VALUES     ##############################
+################################################################################
+
+
 ####################################Demographics#############################################
 
 nrow(demographic)
@@ -186,27 +191,76 @@ ncol(demographic)
 summary(demographic)
 str(demographic)
 
+##################################### ZV/NZV feature remove#########################
+
 demographic_major <- demographic
 
 if (length(nearZeroVar(demographic_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
                        names = FALSE, foreach = FALSE, allowParallel = TRUE)) > 0){
   demographic_major <- demographic_major[, -nearZeroVar(demographic_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
                                                  names = FALSE, foreach = FALSE, allowParallel = TRUE)] 
-                                                                                    }
+
+                                                                                      }
+#Check the data for missing values.
+
+
 sapply(demographic_major, function(x) sum(is.na(x)))
 
 NumColm <- c(4,5,9,27:31,38:44)
 CategColm <- c(1:3,6:8,10:26,32:37)
 WorkingColm <- c(NumColm, CategColm)
 demographic_selected = subset(demographic_major,select=WorkingColm )
-head(demographic_selected)
+demographic_selected[, CategColm] <- sapply(demographic_selected[, CategColm], as.numeric)
+
+#Look the dataset structure.
+str(demographic_selected)
 sapply(demographic_selected, function(x) sum(is.na(x)))
 
-demographic_selected <- demographic_selected %>%
-  mutate(
-    (16:44)  = as.factor(16:44),
-  
-  )
+
+
+#==========================  IMPUTATION( MICE package)   =======================
+#Precisely, the methods used by this package are:
+#1)-PMM (Predictive Mean Matching) — For numeric variables
+#2)-logreg(Logistic Regression) — For Binary Variables( with 2 levels)
+#3)-polyreg(Bayesian polytomous regression) — For Factor Variables (>= 2 levels)
+#4)-Proportional odds model (ordered, >= 2 levels)
+#==============================================================================
+
+init = mice(demographic_selected, maxit=0)
+meth = init$method
+predM = init$predictorMatrix
+
+##remove the variable as a predictor but still will be imputed. Just for illustration purposes,
+
+predM[, c(CategColm)]=0
+
+##If you want to skip a variable from imputation use the code below.
+##This variable will still be used for prediction.
+#++++++++++++++++++++++++++++++++++
+#meth[c("Variable")]=""
+
+
+
+#++++++++++++++++++++++++++++++++++
+
+##Now let specify the methods for imputing the missing values.
+## we impute only the Numerical Variable
+
+meth[c(NumColm)]="pmm"
+
+#meth[c("property_type_name")]="norm"
+#meth[c("loan_type_name")]="logreg"
+#meth[c("loan_purpose_name")]="polyreg"
+
+set.seed(103)
+imputed = mice(demographic_selected, method=meth, predictorMatrix=predM, m=5)
+
+#Create a dataset after imputation.
+demographic_imputed<- complete(imputed)
+
+#Check for missings in the imputed dataset.
+sapply(demographic_imputed, function(x) sum(is.na(x)))
+
 
 
 ############################################## Diet####################################
