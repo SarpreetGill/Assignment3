@@ -261,6 +261,21 @@ demographic_imputed<- complete(imputed)
 #Check for missings in the imputed dataset.
 sapply(demographic_imputed, function(x) sum(is.na(x)))
 
+demographic_major_imputed <-  demographic_major%>%
+  mutate(
+    DMDEDUC3 = demographic_imputed$DMDEDUC3,
+    DMDEDUC2 = demographic_imputed$DMDEDUC2,
+    DMDMARTL = demographic_imputed$DMDMARTL,
+    RIDEXPRG = demographic_imputed$RIDEXPRG,
+    AIALANGA = demographic_imputed$AIALANGA,
+    DMDHRBR4 = demographic_imputed$DMDHRBR4,
+    DMDHREDU = demographic_imputed$DMDHREDU,
+    DMDHRMAR = demographic_imputed$DMDHRMAR,
+    DMDHSEDU = demographic_imputed$DMDHSEDU
+  )
+
+
+write.csv(demographic_major_imputed , "Data/Working/demographic_imputed.csv")
 
 
 ############################################## Diet####################################
