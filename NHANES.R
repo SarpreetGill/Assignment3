@@ -238,7 +238,7 @@ predM[, c(CategColm)]=0
 ##This variable will still be used for prediction.
 #++++++++++++++++++++++++++++++++++
 #meth[c("Variable")]=""
-
+meth[c(CategColm)] = ""
 
 
 #++++++++++++++++++++++++++++++++++
