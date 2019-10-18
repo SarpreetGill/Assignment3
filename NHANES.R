@@ -195,16 +195,18 @@ if (length(nearZeroVar(demographic_major, freqCut = 90/2, uniqueCut = 10, saveMe
                                                                                     }
 sapply(demographic_major, function(x) sum(is.na(x)))
 
-demographic_indexed <- demographic_major
-colnames(demographic_indexed) <- with(Dictionary,
-                                      Dictionary$Variable.Description[match(colnames(demographic_major),
-                                                                            Dictionary$Variable.Name,
-                                                                            nomatch = Dictionary$Variable.Name
-                                      )])
-Demogramphic_Col_Labes <- cbind(c(colnames(demographic_major)), 
-                                c(colnames(demographic_indexed)))
-dir.create("Data/Labels")
-write.csv(Demogramphic_Col_Labes,file = "Data/Labels/Demogramphic_Col_Labes.csv")
+NumColm <- c(4,5,9,27:31,38:44)
+CategColm <- c(1:3,6:8,10:26,32:37)
+WorkingColm <- c(NumColm, CategColm)
+demographic_selected = subset(demographic_major,select=WorkingColm )
+head(demographic_selected)
+sapply(demographic_selected, function(x) sum(is.na(x)))
+
+demographic_selected <- demographic_selected %>%
+  mutate(
+    (16:44)  = as.factor(16:44),
+  
+  )
 
 
 ############################################## Diet####################################
