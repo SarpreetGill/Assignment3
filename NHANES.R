@@ -204,7 +204,42 @@ if (length(nearZeroVar(demographic_major, freqCut = 90/2, uniqueCut = 10, saveMe
 #Check the data for missing values.
 
 
-sapply(demographic_major, function(x) sum(is.na(x)))
+#colSums(is.na(demographic_major))
+#colMeans(is.na(demographic_major))*100
+demographic_major %>% summarise_all(~(sum(is.na(.))/n()*100))
+
+Null_Num <- apply(demographic_major, 2, function(x) length(which(x == "" | is.na(x) | x == "NA" | x == "-999" ))/length(x))
+Null_Colms <- colnames(demographic_major)[Null_Num > 0.25]
+demographic75 <- select(demographic_major, -Null_Colms)
+
+colSums(is.na(demographic75))
+
+
+demographic_indexed <- demographic75
+colnames(demographic_indexed) <- with(Dictionary,
+                                      Dictionary$Variable.Description[match(colnames(demographic75),
+                                                                            Dictionary$Variable.Name,
+                                                                          nomatch = Dictionary$Variable.Name
+                                      )])
+
+
+Demogramphic_Col_Labels <- data.frame(c(colnames(demographic75)), 
+                                      c(colnames(demographic_indexed)))
+#dir.create("Data/Labels")
+#write.csv(Demogramphic_Col_Labels,file = "Data/Labels/Demogramphic_Col_Labels.csv")
+
+NumColm1 <- with(Demogramphic_Col_Labels, ifelse(as.integer(V2)== 1, V1,))
+                                                       
+head(Demogramphic_Col_Labels)
+
+NumColm1<- 
+
+
+
+
+
+
+
 
 NumColm <- c(4,5,9,27:31,38:44)
 CategColm <- c(1:3,6:8,10:26,32:37)
@@ -275,8 +310,8 @@ demographic_major_imputed <-  demographic_major%>%
   )
 
 
-write.csv(demographic_major_imputed , "Data/Working/demographic_imputed.csv")
-
+write.csv(demographic_major_imputed , "Data/Working/demographic_major_imputed.csv")
+write.csv(demographic_imputed , "Data/Working/demographic_imputed.csv")
 
 ############################################## Diet####################################
 
