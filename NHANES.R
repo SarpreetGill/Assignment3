@@ -13,6 +13,8 @@ library(caret)
 library(randomForest)
 library(psych)
 library(factoextra)
+
+
 # Reading files
 
 ########################################### Reading files ###########################
@@ -26,7 +28,7 @@ medications   = read.csv("Data/Raw/medications.csv", header = TRUE, na.strings =
 questionnaire = read.csv("Data/Raw/questionnaire.csv", header = TRUE, na.strings = c("NA","","#NA"))
 Dictionary    = read.csv("Data/Raw/Dictionary.csv", header = TRUE, na.strings = c("NA","","#NA"))
 
-############################################## Merging & Combining files
+############################################## Merging & Combining files###################
 
 data_List = list(demographic,examination,diet,labs,questionnaire,medications)
 Data_joined = join_all(data_List) 
@@ -35,7 +37,7 @@ Data_joined = join_all(data_List)
 #write.csv(Data_joined,file = "Data/Raw_Joined/Data_joined.csv")
 
 
-########################################## Stats on each of the datasets######################
+########################################## Stats on each of the datasets ######################
 
 ################## demographic_MS : MS stand for missing data ###############################
 
@@ -156,6 +158,7 @@ questionnaire_MS_less75
 ################################################################################
 ########################  diabete and demography   #############################
 ################################################################################
+
 demographic_MS <- demographic %>% summarise_all(~(sum(is.na(.))/n()))
 demographic_MS <- gather(demographic_MS, key = "variables", value = "percent_missing")
 demographic_MS_less25 <- demographic_MS[demographic_MS$percent_missing < 0.25, ]
@@ -195,7 +198,7 @@ demo_subset_8<- demo_subset_8 %>%
          "Race"               =     "RIDRETH3",  
          "Country_of_birth"   =     "DMDBORN4",  
          "Citizenship_status" =     "DMDCITZN",   
-         "Family_menbers"     =     "DMDFMSIZ",  
+         "Family_members"     =     "DMDFMSIZ",  
          "Marital_status"     =     "DMDHRMAR",  
          "Family_income"      =     "INDFMIN2"  )
     
@@ -244,7 +247,7 @@ meth[c("Gender")]=""
 meth[c("Age")]=""
 meth[c("Race")]=""
 meth[c("Country_of_birth")]=""
-meth[c("Family_menbers")]=""
+meth[c("Family_members")]=""
 #++++++++++++++++++++++++++++++++++
 
 ##Now let specify the methods for imputing the missing values.
@@ -262,6 +265,7 @@ demo_subset_8_imputed<- complete(imputed)
 #Check for missings in the imputed dataset.
 sapply(demo_subset_8_imputed, function(x) sum(is.na(x)))
 
+write.csv(demo_subset_8_imputed , "Data/Working/demographic_major_imputed.csv")
 
 
 
@@ -338,6 +342,8 @@ demo_subset_8_labaled <- demo_subset_8_labaled %>%
 demo_subset_8_labaled$Family_income <- as.factor(demo_subset_8_labaled$Family_income)
 demo_subset_8_imputed$Family_income <- as.factor(demo_subset_8_imputed$Family_income)
 
+
+write.csv(demo_subset_8_imputed , "Data/Working/demographic_imputed.csv")
 
 
 ##########################  Gender #############
@@ -488,142 +494,12 @@ barplot(prop.table(freq_xtab),
         col = brewer.pal(3, name = "Dark2"),
         main = "Difference in Target Variable w.r.t Gender ")
 
-################################################################################
-######################    MISSING VALUES     ##############################
-################################################################################
 
 
-####################################Demographics#############################################
-
-nrow(demographic)
-ncol(demographic)
-summary(demographic)
-str(demographic)
-
-##################################### ZV/NZV feature remove#########################
-
-demographic_major <- demographic
-
-if (length(nearZeroVar(demographic_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
-                       names = FALSE, foreach = FALSE, allowParallel = TRUE)) > 0){
-  demographic_major <- demographic_major[, -nearZeroVar(demographic_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
-                                                 names = FALSE, foreach = FALSE, allowParallel = TRUE)] 
-
-                                                                                      }
-#Check the data for missing values.
-
-
-#colSums(is.na(demographic_major))
-#colMeans(is.na(demographic_major))*100
-demographic_major %>% summarise_all(~(sum(is.na(.))/n()*100))
-
-Null_Num <- apply(demographic_major, 2, function(x) length(which(x == "" | is.na(x) | x == "NA" | x == "-999" ))/length(x))
-Null_Colms <- colnames(demographic_major)[Null_Num > 0.25]
-demographic75 <- select(demographic_major, -Null_Colms)
-
-colSums(is.na(demographic75))
-
-
-demographic_indexed <- demographic75
-colnames(demographic_indexed) <- with(Dictionary,
-                                      Dictionary$Variable.Description[match(colnames(demographic75),
-                                                                            Dictionary$Variable.Name,
-                                                                          nomatch = Dictionary$Variable.Name
-                                      )])
-
-
-Demogramphic_Col_Labels <- data.frame("Code"=c(colnames(demographic75)), 
-                                      "Desp"=c(colnames(demographic_indexed)),
-                                      stringsAsFactors = FALSE)
-#dir.create("Data/Labels")
-#write.csv(Demogramphic_Col_Labels,file = "Data/Labels/Demogramphic_Col_Labels.csv")
-Demogramphic_Col_Labels   = read.csv("Data/Labels/Demogramphic_Col_Labels.csv", header = TRUE, na.strings = c("NA","","#NA"))
-head(Demogramphic_Col_Labels)
-
-Numcolmn <-  (Demogramphic_Col_Labels %>%
-                filter(Cat == 1) %>%
-                select(Code))
-
-Catcolmn <-  (Demogramphic_Col_Labels %>%
-                filter(Cat == 0) %>%
-                select(Code))
-
-WorkingColm <- Numcolmn%>% Catcolmn
-Numcolmn
-Catcolmn
-WorkingColm
-demographic_selected = subset(demographic75,select= WorkingColm )
-
-demographic_selected[, c(Catcolmn$Code)] <- sapply(demographic_selected[, c(Catcolmn$Code)], as.numeric)
-
-#Look the dataset structure.
-str(demographic_selected)
-sapply(demographic_selected, function(x) sum(is.na(x)))
-
-
-
-#==========================  IMPUTATION( MICE package)   =======================
-#Precisely, the methods used by this package are:
-#1)-PMM (Predictive Mean Matching) — For numeric variables
-#2)-logreg(Logistic Regression) — For Binary Variables( with 2 levels)
-#3)-polyreg(Bayesian polytomous regression) — For Factor Variables (>= 2 levels)
-#4)-Proportional odds model (ordered, >= 2 levels)
-#==============================================================================
-
-init = mice(demographic_selected, maxit=0)
-meth = init$method
-predM = init$predictorMatrix
-
-##remove the variable as a predictor but still will be imputed. Just for illustration purposes,
-
-predM[, (Catcolmn$Code)]=0
-
-##If you want to skip a variable from imputation use the code below.
-##This variable will still be used for prediction.
-#++++++++++++++++++++++++++++++++++
-#meth[c("Variable")]=""
-meth[(Catcolmn$Code)] = ""
-
-
-#++++++++++++++++++++++++++++++++++
-
-##Now let specify the methods for imputing the missing values.
-## we impute only the Numerical Variable
-
-meth[((Numcolmn$Code))]="pmm"
-
-#meth[c("property_type_name")]="norm"
-#meth[c("loan_type_name")]="logreg"
-#meth[c("loan_purpose_name")]="polyreg"
-
-set.seed(103)
-imputed = mice(demographic_selected, method=meth, predictorMatrix=predM, m=5)
-
-#Create a dataset after imputation.
-demographic_imputed<- complete(imputed)
 ################################################################################
 ########################    diabete and diet       #############################
 ################################################################################
 
-#Check for missings in the imputed dataset.
-sapply(demographic_imputed, function(x) sum(is.na(x)))
-
-demographic_major_imputed <-  demographic_major%>%
-  mutate(
-    DMDEDUC3 = demographic_imputed$DMDEDUC3,
-    DMDEDUC2 = demographic_imputed$DMDEDUC2,
-    DMDMARTL = demographic_imputed$DMDMARTL,
-    RIDEXPRG = demographic_imputed$RIDEXPRG,
-    AIALANGA = demographic_imputed$AIALANGA,
-    DMDHRBR4 = demographic_imputed$DMDHRBR4,
-    DMDHREDU = demographic_imputed$DMDHREDU,
-    DMDHRMAR = demographic_imputed$DMDHRMAR,
-    DMDHSEDU = demographic_imputed$DMDHSEDU
-  )
-
-
-write.csv(demographic_major_imputed , "Data/Working/demographic_major_imputed.csv")
-write.csv(demographic_imputed , "Data/Working/demographic_imputed.csv")
 
 ############################################## Diet####################################
 
