@@ -436,64 +436,6 @@ ggplot(Race, aes(x = "", y =  round(100*count/sum(count), 1), fill =  reorder(Ra
 ########################  diabete and medication   #############################
 ################################################################################
 
-#############################################################################################
-################################### Data Exploration 2 #########################################
-#############################################################################################
-#############################################################################################
-
-nrow(Data_joined)
-ncol(Data_joined)
-str(Data_joined)
-Data_joined = cbind(Data_joined, Diabetes = ifelse(
-  Data_joined$LBXGH >= 5.7,
-  "Yes", "No" ))
-summary(Data_joined$Diabetes)
-Data_joined = cbind(Data_joined, Target = ifelse(
-  Data_joined$Diabetes == "Yes",
-  1, 0 ))
-summary(Data_joined$Target)
-str(Data_joined$Target)
-#dir.create("Data/Raw_Joined")
-#write.csv(Data_joined,file = "Data/Raw_Joined/Data_joined.csv")
-
-
-#############################################################################################
-#############################################################################################
-########################  DIABETES VS GENDER  ############################################### 
-#############################################################################################
-#############################################################################################
-
-Data_processed<- Data_joined
-attach(Data_processed)
-freq_tbl=table(Diabetes)
-head(freq_tbl)
-prop.table(freq_tbl)
-
-freq_xtab=xtabs(~RIAGENDR+Target)
-head(freq_xtab)
-Data_processed$RIAGENDR <- with(Data_processed, ifelse(as.integer(RIAGENDR)== 1, 'M', 
-                                                       ifelse(as.integer(RIAGENDR)==2,'F',
-                                                              RIAGENDR)))
-
-
-##########################BAR PLOTs FOR DIABETES VS GENDER#####################
-
-attach(Data_processed)
-## GENDER w.r.t. our Target Variable
-freq_xtab=xtabs(~RIAGENDR+Target)
-head(freq_xtab)
-prop.table(freq_xtab)
-barplot(freq_xtab,
-        legend = rownames(freq_xtab),
-        ylab = "Number", xlab = "Target Variable",
-        col = brewer.pal(3, name = "Dark2"),
-        main = "Difference in Target Variable w.r.t Gender ")
-barplot(prop.table(freq_xtab),
-        legend = rownames(freq_xtab),
-        ylab = "Percent", xlab = "Target Variable",
-        col = brewer.pal(3, name = "Dark2"),
-        main = "Difference in Target Variable w.r.t Gender ")
-
 
 
 ################################################################################
