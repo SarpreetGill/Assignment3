@@ -67,6 +67,25 @@ ggplot(diet_MS, aes(x = reorder(variables, percent_missing), y = percent_missing
   #theme_fivethirtyeight() +
   ggtitle("Diet Missing Data By Columns")
 
+### Use the MICE package to impute missing vales 
+### Select a subset of diet csv for futher evaluation
+
+### Use the "diet_subset_processsed.csv" to skip imputation steps.  These steps take long.  
+#one_day_diet  <- c("SEQN","DR1TNUMF","DR1TKCAL","DR1TPROT","DR1TCARB","DR1TSUGR","DR1TFIBE","DR1TTFAT","DR1TSFAT","DR1TMFAT","DR1TPFAT","DR1TCHOL","DR1TATOC","DR1TATOA","DR1TRET","DR1TVARA","DR1TACAR","DR1TBCAR","DR1TCRYP","DR1TLYCO","DR1TLZ","DR1TVB1","DR1TVB2","DR1TNIAC","DR1TVB6","DR1TFOLA","DR1TFA","DR1TFF","DR1TFDFE","DR1TCHL","DR1TVB12","DR1TB12A","DR1TVC","DR1TVD","DR1TVK","DR1TCALC","DR1TPHOS","DR1TMAGN","DR1TIRON","DR1TZINC","DR1TCOPP","DR1TSODI","DR1TPOTA","DR1TSELE","DR1TCAFF","DR1TTHEO","DR1TALCO","DR1TMOIS","DR1TS040","DR1TS060","DR1TS080","DR1TS100","DR1TS120","DR1TS140","DR1TS160","DR1TS180","DR1TM161","DR1TM181","DR1TM201","DR1TM221","DR1TP182","DR1TP183","DR1TP184","DR1TP204","DR1TP205","DR1TP225","DR1TP226","DR1.300","DR1.320Z")
+#diet_subset = subset(diet,select=one_day_diet )
+#str(diet$DR1TACAR)
+#sapply(diet_subset, function(x) sum(is.na(x)))
+#str(diet_subset)
+
+#imputed_diet_subset <- mice(diet_subset, m=5, maxit= 50, method = 'pmm', seed=501)
+#imputed_diet_subset_complete <- mice::complete(imputed_diet_subset, 2)
+#imputed_diet_subset$method
+
+#str(imputed_diet_subset_complete)
+#sapply(imputed_diet_subset_complete, function(x) sum(is.na(x)))
+#write.csv(imputed_diet_subset_complete, "diet_subset_processed.csv")
+
+
 
 ################## examination_MS : MS stand for missing data#############################
 
