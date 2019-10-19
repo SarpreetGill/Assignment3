@@ -9,17 +9,17 @@ author:
     affiliation: York University School of Continuing Studies
 date: "Oct 6, 2019"
 output:
-  pdf_document:
-    includes:
-      in_header: preamble.tex
   html_document:
     toc: true
     toc_float:
       collapsed: true
       smooth_scroll: true
+  pdf_document:
+    includes:
+      in_header: preamble.tex
 ---
 ```{r setup, include=FALSE, warning = F}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, fig.align="center")
 knitr::opts_chunk$set(fig.pos = 'H')
 knitr::opts_chunk$set(comment=FALSE)
 knitr::opts_chunk$set(warning=FALSE)
@@ -106,8 +106,7 @@ MCQ220 - {Have you/Has SP} ever been told by a doctor or other health profession
 
 
 
-<Describe what needs to happen to the data files> 
-
+ 
 
 # Loading R packages
 
@@ -117,10 +116,27 @@ library(dplyr)
 library(tidyr)
 library(ggplot2)
 library(knitr)
+library(mice)
+library(scales)
+library(randomForest)
+library(psych)
+library(factoextra)
+library(RColorBrewer)
+library(caret)
 ```
 
 
 # Data cleaning
+
+<Describe what needs to happen to the data files> 
+
+As indicated eariler, the dataset conists of 6 raw data files: Demographics, Examinations, Dietary, Laboratory, Questionnaire, and Medication.  The largest file (in terms of attributes) is the questionnaire data contains 953 variables; while the smallest data file contains 47 variables.  This is a large amount of data.  Cumatavitely, there are 1000s of attributes, therefore, we have decided need to employ the following guidelines to assist with reducing the complexity of the data: 
+
+- If more than 25% of the values are missing for an attribute(column), we will consider removing the column from further evaluation.
+- If the majority of attributes are missing 25% or more of their values for a given dataset, we will use personal or business judgmement to subjectively select a smaller subset of "interesting" values.  Of these subset of missing values, we will then decide how to impute the values on these attributes.     
+
+Ideally, we would like to analyse and impute every attribute with missing values, but in this situation, it may not be practical due to the large volume of missing data. 
+
 
 ```{r, warning = F, message=F}
 # Reading files
@@ -150,89 +166,460 @@ Its always important to check for missing values and consider how to fix them.
 
 * **Demographic**
 
-````{r, warning = F, message=F}
+```{r, warning = F, message=F}
 library(plotly)
 ```
-````{r, eval=TRUE, echo=TRUE, warning = F, message=F}
+
+```{r, eval=F, echo=TRUE, warning = F, message=F}
 demographic_MS <- demographic %>% summarise_all(~(sum(is.na(.))/n()))
 demographic_MS <- gather(demographic_MS, key = "variables", value = "percent_missing")
 demographic_MS <- demographic_MS[demographic_MS$percent_missing > 0.0, ] 
 
-demographic_MS_plot  <- ggplot(demographic_MS, aes(x = reorder(variables, percent_missing), y = percent_missing)) +
-  geom_bar(stat = "identity", fill = "blue", aes(color = I('white')), size = 0.3, alpha = 0.8)+
-  xlab('variables')+
-  coord_flip()+ 
+demographic_MS_plot  <- ggplot(demographic_MS, aes(x = reorder(variables,percent_missing), 
+                                                   y = percent_missing)) +
+  geom_bar(stat = "identity", fill = "blue", aes(color = I('white')), 
+           size = 0.3, alpha = 0.8)+
+  xlab('variables')+ coord_flip()+ 
   #theme_fivethirtyeight() +
   ggtitle("Demographic Missing Data By Columns")
 
-demographic_MS_plot
+ggsave(plot = demographic_MS_plot, width = 8, height = 4, dpi = 300, 
+       filename = "Figures/demographic_MS_plot.png")
+
 ```
 
 
+<!--![](Figures/demographic_MS_plot.png){width=75%}.-->
 
 
-<!--```{r,include=TRUE, fig.align="center", echo=T} -->
-<!--#library(knitr)-->
-<!--#knitr::include_graphics("Figures/demographic_MS.png")-->
-<!--```-->
+```{r,echo=F} 
+knitr::include_graphics("Figures/demographic_MS_plot.png")
+```
 
 *  **Medications**
 
 
-```{r, eval=TRUE, echo=TRUE, warning = F, message=F}
+```{r, eval=F, echo=TRUE, warning = F, message=F}
 medications_MS <- medications %>% summarise_all(~(sum(is.na(.))/n()))
 medications_MS <- gather(medications_MS, key = "variables", value = "percent_missing")
 medications_MS <- medications_MS[medications_MS$percent_missing > 0.0, ] 
 
-medications_MS_plot <- ggplot(medications_MS, aes(x = reorder(variables, percent_missing), y = percent_missing)) +
-  geom_bar(stat = "identity", fill = "blue", aes(color = I('white')), size = 0.3, alpha = 0.8)+
-  xlab('variables')+
-  coord_flip()+ 
+medications_MS_plot <- ggplot(medications_MS, aes(x = reorder(variables, percent_missing),
+                                                  y = percent_missing)) +
+  geom_bar(stat = "identity", fill = "blue", aes(color = I('white')),
+           size = 0.3, alpha = 0.8)+
+  xlab('variables')+  coord_flip()+ 
   #theme_fivethirtyeight() +
   ggtitle("Medications Missing Data By Columns")
 
-medications_MS_plot
+ggsave(plot = medications_MS_plot, width = 8, height = 4, dpi = 300, 
+       filename = "Figures/medications_MS_plot.png")
+
 ```
 
-<!--```{r,include=TRUE, fig.align="center", echo=T}-->
-<!--#library(knitr)-->
-<!--#knitr::include_graphics("Figures/medications_MS.png")-->
-<!--```-->
+
+```{r,echo=F} 
+knitr::include_graphics("Figures/medications_MS_plot.png")
+```
 
 *  **Others spreadsheets **
 
-We didn't  represent the rest of spreadsheets because the percentage of missing data are very   important. Just for example 
+We didn't represent the other spreadsheets because the percentage of missing data is very significant. For example, the following:
 
-```{r, eval=TRUE, echo=TRUE, warning = F, message=F}
+*  **Examination**
+```{r, eval=F, echo=TRUE, warning = F, message=F}
 examination_MS <- examination %>% summarise_all(~(sum(is.na(.))/n()))
 examination_MS <- gather(examination_MS, key = "variables", value = "percent_missing")
 examination_MS <- examination_MS[examination_MS$percent_missing > 0.0, ] 
 
-examination_MS_plot <- ggplot(examination_MS, aes(x = reorder(variables, percent_missing), y = percent_missing)) +
-  geom_bar(stat = "identity", fill = "blue", aes(color = I('white')), size = 0.3, alpha = 0.8)+
-  xlab('variables')+
-  coord_flip()+ 
+examination_MS_plot <- ggplot(examination_MS, aes(x = reorder(variables, percent_missing), 
+                                                  y = percent_missing)) +
+  geom_bar(stat = "identity", fill = "blue", aes(color = I('white')),
+           size = 0.3, alpha = 0.8)+
+  xlab('variables')+ coord_flip()+ 
   #theme_fivethirtyeight() +
-  ggtitle("Examination Missing Data By Columns")
+  ggtitle("Examination Missing Data By Columns")+
+  theme(axis.text.y=element_text(size=3)) # labels looked messy
+  #theme(axis.text.y=element_blank()) # remove them altogether?
 
-examination_MS_plot
+ggsave(plot = examination_MS_plot, width = 8, height = 4, dpi = 300, 
+       filename = "Figures/examination_MS_plot.png")
 
 ```  
-  
-  
-<!--```{r,include=TRUE, fig.align="center", echo=T}  -->
-<!--#library(knitr) -->
-<!--knitr::include_graphics("Figures/examination_MS.png")-->
-<!--```-->
 
 
-## Data splitting & imputation
+```{r,echo=F} 
+knitr::include_graphics("Figures/examination_MS_plot.png")
+```
 
-There are many ways to do data imputation, but random forest imputation will be used since it is robust and reliable method.
 
-```{r, eval=FALSE, echo=TRUE}
+*  **Diet**
+```{r, eval=F, echo=TRUE, warning = F, message=F}
+diet_MS <- diet %>% summarise_all(~(sum(is.na(.))/n()))
+diet_MS <- gather(diet_MS, key = "variables", value = "percent_missing")
+diet_MS <- diet_MS[diet_MS$percent_missing > 0.0, ] 
+diet_MS_plot <- ggplot(diet_MS, aes(x = reorder(variables, percent_missing),
+                                    y = percent_missing)) +
+  geom_bar(stat = "identity", fill = "blue", aes(color = I('white')), 
+           size = 0.3, alpha = 0.8)+
+  xlab('variables') + coord_flip()+ 
+  #theme_fivethirtyeight() +
+  ggtitle("Diet Missing Data By Columns")+
+  theme(axis.text.y=element_text(size=3))  # labels looked messy
+  #theme(axis.text.y=element_blank()) # remove them altogether?
+
+
+ggsave(plot = diet_MS_plot, width = 8, height = 4, dpi = 300, 
+       filename = "Figures/diet_MS_plot.png")
+diet_MS_plot
 
 ```
+
+
+```{r,echo=F} 
+knitr::include_graphics("Figures/diet_MS_plot.png")
+```
+
+ Almost all columns/attributes have varying degrees of missing values.  As per our guidelines, we will choose and select "interesting" attributes/columns based on our business/personal judgements.  The NHANES data dictionary/variable list is listed as follows:   
+
+https://wwwn.cdc.gov/Nchs/Nhanes/Search/variablelist.aspx?Component=Dietary&CycleBeginYear=2013
+
+The data is divded into the following sections:  <list sections>
+
+We have inspected the above data dictionary and we have selected the following interesting values for further analysis.   
+
+## Data Imputation and  Vizualization
+
+* **Demographic**
+
+Among the 32 Column with less than 25% of missing value we have selected  
+ 8 interesting columns (4, 5, 8, 13, 14, 30, 39,46)
+
+```{r, eval=TRUE, echo=TRUE, warning = F, message=F}
+
+demo_subset_8_list = c("RIAGENDR", "RIDAGEYR", "RIDRETH3", "DMDBORN4",
+                        "DMDCITZN", "DMDFMSIZ", "DMDHRMAR", "INDFMIN2")
+
+demo_subset_8  <- demographic%>% 
+  select("SEQN",demo_subset_8_list)
+  
+demo_subset_8<- demo_subset_8 %>% 
+  rename("ID"                 =         "SEQN",  
+         "Gender"             =     "RIAGENDR",  
+         "Age"                =     "RIDAGEYR",  
+         "Race"               =     "RIDRETH3",  
+         "Country_of_birth"   =     "DMDBORN4",  
+         "Citizenship_status" =     "DMDCITZN",   
+         "Family_menbers"     =     "DMDFMSIZ",  
+         "Marital_status"     =     "DMDHRMAR",  
+         "Family_income"      =     "INDFMIN2"  )
+    
+sapply(demo_subset_8, function(x) sum(is.na(x)))
+
+
+```
+
+
+```{r, eval=FALSE, echo=TRUE, warning = F, message=F}
+
+## conversion to factors
+demo_subset_8$Gender <- as.factor(demo_subset_8$Gender)
+demo_subset_8$Race  <- as.factor(demo_subset_8$Race )
+demo_subset_8$Country_of_birth <- as.factor(demo_subset_8$Country_of_birth)
+demo_subset_8$Citizenship_status <- as.factor(demo_subset_8$Citizenship_status)
+demo_subset_8$Marital_status <- as.factor(demo_subset_8$Marital_status)
+#demo_subset_8$Family_income <- as.factor(demo_subset_8$Family_income)
+
+require(mice)
+init = mice(demo_subset_8, maxit=0)
+meth = init$method
+predM = init$predictorMatrix
+
+# select the "ID" variable to not be included as predictor during imputation.
+predM[, c("ID")]=0
+
+#Skip a variable from imputation, this variable will still be used for prediction
+meth[c("ID")]=""
+meth[c("Gender")]=""
+meth[c("Age")]=""
+meth[c("Race")]=""
+meth[c("Country_of_birth")]=""
+meth[c("Family_menbers")]=""
+
+
+#Now let specify the methods for imputing the missing values.
+meth[c("Citizenship_status")]="cart"
+meth[c("Marital_status")]="cart"
+meth[c("Family_income")]="rf" # require randomforest 
+
+set.seed(145)
+imputed = mice(demo_subset_8, method=meth, predictorMatrix=predM, m=5)
+
+#Create a dataset after imputation.
+demo_subset_8_imputed<- complete(imputed)
+
+
+```
+
+```{r, eval=TRUE, echo=F, warning = F, message=F}
+demo_subset_8_imputed = read.csv("Data/Working/demo_subset_8_imputed.csv", header = TRUE)
+```
+
+
+```{r, eval=TRUE, echo=TRUE, warning = F, message=F}
+
+
+#demo_subset_8_imputed$Family_income <- as.factor(demo_subset_8_imputed$Family_income)
+
+#Check for missings in the imputed dataset.
+sapply(demo_subset_8_imputed, function(x) sum(is.na(x)))
+
+```
+
+
+```{r, eval=F, echo=TRUE, warning = F, message=F}
+
+require(dplyr)# because Race is a factor of level 6
+demo_subset_8_labeled <- demo_subset_8_labeled %>%
+  mutate(Race = recode(Race, "1" = "Mexican_American",
+                       "2" = "Other_Hispanic",
+                       "3" = "White",
+                       "4" = "Black",
+                       "6" = "Asian",
+                       "7" = "multiracial"))
+
+demo_subset_8_labeled <- demo_subset_8_labeled %>%
+  mutate(Country_of_birth  = recode(Country_of_birth , "1" = "US",
+                       "2" = "Others",
+                       "77" = "Refused",
+                       "99" = "Uknown"))
+
+demo_subset_8_labeled <- demo_subset_8_labeled %>%
+  mutate(Citizenship_status = recode(Citizenship_status, "1" = "US",
+                       "2" = "Other",
+                       "7" = "Refused",
+                       "9" = "Unknown"))
+
+demo_subset_8_labeled <- demo_subset_8_labeled %>%
+  mutate(Marital_status = recode(Marital_status, "1" = "Married",
+                       "2" = "Widowed",
+                       "3" = "Divorced",
+                       "4" = "Separated",
+                       "5" = "Never_married",
+                       "6" = "partner",
+                       "77" = "Refused",
+                       "99" = "Unknown"))
+
+
+
+demo_subset_8_labeled <- demo_subset_8_labeled %>%
+  mutate(Family_income = recode(Family_income, "1" = 	"$0 - $4999",
+                                "2" =	"$5000 - $9999",
+                                "3" =	"$10000 - $14999",
+                                "4" =	"$15000 - $19999",		
+                                "5" =	"$20000 - $24999",		
+                                "6" =	"$25000 - $34999",		
+                                "7" =	"$35000 - $44999",	
+                                "8" =	"$45000 - $54999",		
+                                "9" =	"$55000 - $64999",		
+                                "10" = 	"$65000 - $74999",		
+                                "12" =	"$20000 and Over",	
+                                "13" =	"Under $20000",	
+                                "14" =	"$75000 - $99999",	
+                                "15" = "$100000 and Over",	
+                                "77" =	"Refused",
+                                "99" =	"Unknown"	))
+
+demo_subset_8_labeled$Family_income <- as.factor(demo_subset_8_labeled$Family_income)
+
+#write.csv(demo_subset_8_labeled,file = "Data/Working/demo_subset_8_labeled.csv")
+
+
+```
+
+```{r, eval=TRUE, echo=F, warning = F, message=F}
+demo_subset_8_labeled  = read.csv("Data/Working/demo_subset_8_labeled.csv", header = TRUE)
+```
+
+
+```{r, eval=TRUE, echo=TRUE, warning = F, message=F}
+
+##########################  Gender #############
+Gender  <- demo_subset_8_labeled %>%
+  group_by(Gender) %>%
+  summarize(count=n()) %>%
+  arrange(desc(count))
+
+#Pie plot
+Gender_plot <- ggplot(Gender, aes(x = "", y =  round(100*count/sum(count), 1), 
+                                  fill =  reorder(Gender,count))) +
+  geom_bar(width = 1, stat = "identity", color = "white") +
+  coord_polar("y", start = 0)+
+  geom_text(aes(y = cumsum(100*count/sum(count)) - 0.5*(100*count/sum(count)),
+                label = paste(round(count/sum(count)*100),"%")), color = "black")+
+  ggtitle("Pie plot of Gender")+
+  scale_fill_grey(start = 0.8, end = 0.2,"Gender") + theme_void()
+
+#ggsave(plot = Gender_plot, width = 3, height = 3, dpi = 300, 
+#       filename = "Figures/Gender_plot.png")
+
+
+```
+
+
+```{r,echo=F,out.width = "300px"} 
+knitr::include_graphics("Figures/Gender_plot.png")
+```
+
+```{r, eval=TRUE, echo=TRUE, warning = F, message=F}
+##########################  Country_of_birth #############
+Country_of_birth  <- demo_subset_8_labeled %>%
+  group_by(Country_of_birth) %>%
+  summarize(count=n()) %>%
+  arrange(desc(count))%>%
+  mutate(pct = count / sum(count),
+         pctlabel = paste0(round(pct*100), "%"),
+         lab.ypos = 100*cumsum(pct) - 0.5  *100*pct) 
+
+
+#Bar plot
+
+require(scales)
+Birth_plot <- ggplot(Country_of_birth, aes(x = reorder(Country_of_birth, -pct),y = pct)) + 
+  geom_bar(stat = "identity", fill = "indianred3", color = "black") +
+  geom_text(aes(label = pctlabel), vjust = -0.25) +
+  scale_y_continuous(labels = percent) +
+  labs(x = "Country of birth", y = "percantage", title  = "Bar Chart of Country of birth")  
+
+
+
+#ggsave(plot = Birth_plot, width = 3, height = 3, dpi = 300, 
+ #      filename = "Figures/Birth_plot.png")
+```
+
+
+
+```{r,echo=F,out.width = "400px"} 
+knitr::include_graphics("Figures/Birth_plot.png")
+```
+
+```{r, eval=TRUE, echo=TRUE, warning = F, message=F}
+########################  Marital_status  #######################
+
+Marital_status  <- demo_subset_8_labeled %>%
+  group_by(Marital_status) %>%
+  summarize(count=n()) %>%
+  arrange(desc(count))%>%
+  mutate(pct = count / sum(count),
+         pctlabel = paste0(round(pct*100), "%"),
+         lab.ypos = 100*cumsum(pct) - 0.5  *100*pct) 
+
+#Bar plot
+
+require(scales)
+Marital_plot <- ggplot(Marital_status, aes(x = reorder(Marital_status, -pct),y = pct)) + 
+  geom_bar(stat = "identity", fill = "indianred3", color = "black") +
+  geom_text(aes(label = pctlabel), vjust = -0.25) +
+  scale_y_continuous(labels = percent) +
+  labs(x = "Marital statush", y = "percantage", title  = "Bar Chart of Marital status in US ")  +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+#ggsave(plot = Marital_plot, width = 3, height = 3, dpi = 300, 
+#       filename = "Figures/Marital_plot.png")
+
+```
+
+
+```{r,echo=F,out.width = "400px"} 
+knitr::include_graphics("Figures/Marital_plot.png")
+```
+
+
+```{r, eval=TRUE, echo=TRUE, warning = F, message=F}
+########################  Race  #######################
+
+Race  <- demo_subset_8_labeled %>%
+  group_by(Race) %>%
+  summarize(count=n()) %>%
+  arrange(desc(count))%>%
+  mutate(pct = count / sum(count),
+         pctlabel = paste0(round(pct*100), "%"),
+         lab.ypos = 100*cumsum(pct) - 0.5  *100*pct) 
+
+
+
+
+#Bar plot
+
+require(scales)
+Race_plot <- ggplot(Race, aes(x = reorder(Race, -pct),y = pct)) + 
+  geom_bar(stat = "identity", fill = "indianred3", color = "black") +
+  geom_text(aes(label = pctlabel), vjust = -0.25) +
+  scale_y_continuous(labels = percent) +
+  labs(x = "Race", y = "percantage", title  = "Bar Chart of Race in US ")  +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+#ggsave(plot = Race_plot, width = 3, height = 3, dpi = 300, 
+#       filename = "Figures/Race_plot.png")
+
+
+```
+
+
+```{r,echo=F,out.width = "400px"} 
+knitr::include_graphics("Figures/Race_plot.png")
+```
+
+Our samples is pretty representative of the US population: 
+
+The  US age structure is 20% under 15, 67% between 15 and 64 years old, and 13% over 65 (https://countrymeters.info/en/United_States_of_America_(USA)). 
+
+The Gender ratio is 51% for female and 49% for male (http://statisticstimes.com/demographics/countries-by-sex-ratio.php)
+
+The Race and ethnicity are:  White 	72.4%, Hispanic and Latino Americans  16.3%, Black or African American 	12.6%, Asian 	4.8%, Native 1.1 %, and the others 9.1 %.
+
+* **Dietary**
+
+
+diet_subset -> Need to impute it.  
+
+
+```{r, eval=FALSE, echo=TRUE}
+# Using diet csv, we selected "interesting" values from and impute #
+one_day_diet  <- c("SEQN","DR1TNUMF","DR1TKCAL","DR1TPROT","DR1TCARB","DR1TSUGR","DR1TFIBE","DR1TTFAT","DR1TSFAT","DR1TMFAT","DR1TPFAT","DR1TCHOL","DR1TATOC","DR1TATOA","DR1TRET","DR1TVARA","DR1TACAR","DR1TBCAR","DR1TCRYP","DR1TLYCO","DR1TLZ","DR1TVB1","DR1TVB2","DR1TNIAC","DR1TVB6","DR1TFOLA","DR1TFA","DR1TFF","DR1TFDFE","DR1TCHL","DR1TVB12","DR1TB12A","DR1TVC","DR1TVD","DR1TVK","DR1TCALC","DR1TPHOS","DR1TMAGN","DR1TIRON","DR1TZINC","DR1TCOPP","DR1TSODI","DR1TPOTA","DR1TSELE","DR1TCAFF","DR1TTHEO","DR1TALCO","DR1TMOIS","DR1TS040","DR1TS060","DR1TS080","DR1TS100","DR1TS120","DR1TS140","DR1TS160","DR1TS180","DR1TM161","DR1TM181","DR1TM201","DR1TM221","DR1TP182","DR1TP183","DR1TP184","DR1TP204","DR1TP205","DR1TP225","DR1TP226","DR1.300","DR1.320Z")
+diet_subset = subset(diet,select=one_day_diet )
+sapply(diet_subset, function(x) sum(is.na(x)))
+
+imputed_diet_subset <- mice(diet_subset, m=5, maxit= 50, method = 'pmm', seed=501)
+sapply(diet_subset, function(x) sum(is.na(x)))
+```
+
+Before imputation missing values: 
+> sapply(diet_subset, function(x) sum(is.na(x)))
+    SEQN DR1TNUMF DR1TKCAL DR1TPROT DR1TCARB DR1TSUGR DR1TFIBE DR1TTFAT DR1TSFAT 
+       0     1152     1282     1282     1282     1282     1282     1282     1282 
+DR1TMFAT DR1TPFAT DR1TCHOL DR1TATOC DR1TATOA  DR1TRET DR1TVARA DR1TACAR DR1TBCAR 
+    1282     1282     1282     1282     1282     1282     1282     1282     1282 
+DR1TCRYP DR1TLYCO   DR1TLZ  DR1TVB1  DR1TVB2 DR1TNIAC  DR1TVB6 DR1TFOLA   DR1TFA 
+    1282     1282     1282     1282     1282     1282     1282     1282     1282 
+  DR1TFF DR1TFDFE  DR1TCHL DR1TVB12 DR1TB12A   DR1TVC   DR1TVD   DR1TVK DR1TCALC 
+    1282     1282     1282     1282     1282     1282     1282     1282     1282 
+DR1TPHOS DR1TMAGN DR1TIRON DR1TZINC DR1TCOPP DR1TSODI DR1TPOTA DR1TSELE DR1TCAFF 
+    1282     1282     1282     1282     1282     1282     1282     1282     1282 
+DR1TTHEO DR1TALCO DR1TMOIS DR1TS040 DR1TS060 DR1TS080 DR1TS100 DR1TS120 DR1TS140 
+    1282     1282     1282     1282     1282     1282     1282     1282     1282 
+DR1TS160 DR1TS180 DR1TM161 DR1TM181 DR1TM201 DR1TM221 DR1TP182 DR1TP183 DR1TP184 
+    1282     1282     1282     1282     1282     1282     1282     1282     1282 
+DR1TP204 DR1TP205 DR1TP225 DR1TP226  DR1.300 DR1.320Z 
+
+After imputation missing values: 
+
+These variables/attributes are referring to the one day nutrituion numerical attributes.  
+
+
+
 
 ## Visualising all numeric columns
 

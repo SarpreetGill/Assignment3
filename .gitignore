@@ -1,0 +1,11 @@
+# Ignore the files generated the markdown
+*.RData
+*.Rhistory
+*.log
+*.tex
+
+# Ignore the markdown output
+*.pdf
+
+# Exclusions:
+!preamble.tex
