@@ -548,7 +548,7 @@ Catcolmn <-  (Demogramphic_Col_Labels %>%
                 filter(Cat == 0) %>%
                 select(Code))
 
-WorkingColm <- list((Numcolmn$Code))
+WorkingColm <- Numcolmn%>% Catcolmn
 Numcolmn
 Catcolmn
 WorkingColm
