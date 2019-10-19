@@ -223,29 +223,29 @@ colnames(demographic_indexed) <- with(Dictionary,
                                       )])
 
 
-Demogramphic_Col_Labels <- data.frame(c(colnames(demographic75)), 
-                                      c(colnames(demographic_indexed)))
+Demogramphic_Col_Labels <- data.frame("Code"=c(colnames(demographic75)), 
+                                      "Desp"=c(colnames(demographic_indexed)),
+                                      stringsAsFactors = FALSE)
 #dir.create("Data/Labels")
 #write.csv(Demogramphic_Col_Labels,file = "Data/Labels/Demogramphic_Col_Labels.csv")
-
-NumColm1 <- with(Demogramphic_Col_Labels, ifelse(as.integer(V2)== 1, V1,))
-                                                       
+Demogramphic_Col_Labels   = read.csv("Data/Labels/Demogramphic_Col_Labels.csv", header = TRUE, na.strings = c("NA","","#NA"))
 head(Demogramphic_Col_Labels)
 
-NumColm1<- 
+Numcolmn <-  (Demogramphic_Col_Labels %>%
+                filter(Cat == 1) %>%
+                select(Code))
 
+Catcolmn <-  (Demogramphic_Col_Labels %>%
+                filter(Cat == 0) %>%
+                select(Code))
 
+WorkingColm <- list((Numcolmn$Code))
+Numcolmn
+Catcolmn
+WorkingColm
+demographic_selected = subset(demographic75,select= WorkingColm )
 
-
-
-
-
-
-NumColm <- c(4,5,9,27:31,38:44)
-CategColm <- c(1:3,6:8,10:26,32:37)
-WorkingColm <- c(NumColm, CategColm)
-demographic_selected = subset(demographic_major,select=WorkingColm )
-demographic_selected[, CategColm] <- sapply(demographic_selected[, CategColm], as.numeric)
+demographic_selected[, c(Catcolmn$Code)] <- sapply(demographic_selected[, c(Catcolmn$Code)], as.numeric)
 
 #Look the dataset structure.
 str(demographic_selected)
@@ -267,13 +267,13 @@ predM = init$predictorMatrix
 
 ##remove the variable as a predictor but still will be imputed. Just for illustration purposes,
 
-predM[, c(CategColm)]=0
+predM[, (Catcolmn$Code)]=0
 
 ##If you want to skip a variable from imputation use the code below.
 ##This variable will still be used for prediction.
 #++++++++++++++++++++++++++++++++++
 #meth[c("Variable")]=""
-meth[c(CategColm)] = ""
+meth[(Catcolmn$Code)] = ""
 
 
 #++++++++++++++++++++++++++++++++++
@@ -281,7 +281,7 @@ meth[c(CategColm)] = ""
 ##Now let specify the methods for imputing the missing values.
 ## we impute only the Numerical Variable
 
-meth[c(NumColm)]="pmm"
+meth[((Numcolmn$Code))]="pmm"
 
 #meth[c("property_type_name")]="norm"
 #meth[c("loan_type_name")]="logreg"
