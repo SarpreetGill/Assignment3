@@ -123,6 +123,7 @@ library(psych)
 library(factoextra)
 library(RColorBrewer)
 library(caret)
+library(plotly)
 ```
 
 
@@ -165,10 +166,6 @@ Data_joined = join_all(data_List) #require(plyr)
 Its always important to check for missing values and consider how to fix them.
 
 * **Demographic**
-
-```{r, warning = F, message=F}
-library(plotly)
-```
 
 ```{r, eval=F, echo=TRUE, warning = F, message=F}
 demographic_MS <- demographic %>% summarise_all(~(sum(is.na(.))/n()))
