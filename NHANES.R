@@ -3,19 +3,23 @@
 library(plyr)
 library(dplyr)
 library(tidyr)
-library(tidyverse)
+#library(tidyverse)
 library(knitr)    # For knitting document and include_graphics function
 library(ggplot2)  # For plotting
 library(mice)
-library(RColorBrewer)
-library(caret)
-
+library(scales)
+#<<<<<<< HEAD
 library(randomForest)
 library(psych)
 library(factoextra)
 
 
 # Reading files
+#=======
+library(RColorBrewer)
+library(caret)
+
+#>>>>>>> ffc62e6b80ea63248a4d851391542e470f9e7ed9
 
 ########################################### Reading files ###########################
 
@@ -41,47 +45,63 @@ Data_joined = join_all(data_List)
 
 ################## demographic_MS : MS stand for missing data ###############################
 
+str(demographic)
 demographic_MS <- demographic %>% summarise_all(~(sum(is.na(.))/n()))
 demographic_MS <- gather(demographic_MS, key = "variables", value = "percent_missing")
 demographic_MS <- demographic_MS[demographic_MS$percent_missing > 0.0, ] 
-ggplot(demographic_MS, aes(x = reorder(variables, percent_missing), y = percent_missing)) +
+demographic_MS_plot<- ggplot(demographic_MS, aes(x = reorder(variables, percent_missing), y = percent_missing)) +
   geom_bar(stat = "identity", fill = "blue", aes(color = I('white')), size = 0.3, alpha = 0.8)+
   xlab('variables')+
   coord_flip()+ 
   #theme_fivethirtyeight() +
   ggtitle("Demographic Missing Data By Columns")
 
+ggsave(plot = demographic_MS_plot,width = 8, height =4, dpi = 300, 
+       filename = "Figures/demographic_MS_plot.png")
 
+demographic_MS_plot
+
+#<<<<<<< HEAD
+#library(VIM) 
+#aggr(demographic,only.miss=TRUE,numbers=TRUE,sortVar=TRUE)
+
+##################   diet_MS : MS stand for missing data      ####################
+#=======
 ##################   diet_MS : MS stand for missing data###################################
 
 
-library(VIM) 
-aggr(demographic,only.miss=TRUE,numbers=TRUE,sortVar=TRUE)
-
-##################   diet_MS : MS stand for missing data      ####################
+#>>>>>>> ffc62e6b80ea63248a4d851391542e470f9e7ed9
 diet_MS <- diet %>% summarise_all(~(sum(is.na(.))/n()))
 diet_MS <- gather(diet_MS, key = "variables", value = "percent_missing")
 diet_MS <- diet_MS[diet_MS$percent_missing > 0.0, ] 
-ggplot(diet_MS, aes(x = reorder(variables, percent_missing), y = percent_missing)) +
+diet_MS_plot <- ggplot(diet_MS, aes(x = reorder(variables, percent_missing), y = percent_missing)) +
   geom_bar(stat = "identity", fill = "blue", aes(color = I('white')), size = 0.3, alpha = 0.8)+
   xlab('variables')+
   coord_flip()+ 
   #theme_fivethirtyeight() +
   ggtitle("Diet Missing Data By Columns")
 
+ggsave(plot = diet_MS_plot, width = 8, height = 4, dpi = 300, 
+       filename = "Figures/diet_MS_plot.png")
+
+diet_MS_plot
 
 ################## examination_MS : MS stand for missing data#############################
 
 examination_MS <- examination %>% summarise_all(~(sum(is.na(.))/n()))
 examination_MS <- gather(examination_MS, key = "variables", value = "percent_missing")
 examination_MS <- examination_MS[examination_MS$percent_missing > 0.0, ] 
-ggplot(examination_MS, aes(x = reorder(variables, percent_missing), y = percent_missing)) +
+examination_MS_plot <- ggplot(examination_MS, aes(x = reorder(variables, percent_missing), y = percent_missing)) +
   geom_bar(stat = "identity", fill = "blue", aes(color = I('white')), size = 0.3, alpha = 0.8)+
   xlab('variables')+
   coord_flip()+ 
   #theme_fivethirtyeight() +
   ggtitle("Examination Missing Data By Columns")
 
+ggsave(plot = examination_MS_plot, width = 8, height = 4, dpi = 300, 
+       filename = "Figures/examination_MS_plot.png")
+
+examination_MS_plot
 
 
 ################## medications_MS : MS stand for missing data ##########################
@@ -89,15 +109,17 @@ ggplot(examination_MS, aes(x = reorder(variables, percent_missing), y = percent_
 medications_MS <- medications %>% summarise_all(~(sum(is.na(.))/n()))
 medications_MS <- gather(medications_MS, key = "variables", value = "percent_missing")
 medications_MS <- medications_MS[medications_MS$percent_missing > 0.0, ] 
-ggplot(medications_MS, aes(x = reorder(variables, percent_missing), y = percent_missing)) +
+medications_MS_plot <- ggplot(medications_MS, aes(x = reorder(variables, percent_missing), y = percent_missing)) +
   geom_bar(stat = "identity", fill = "blue", aes(color = I('white')), size = 0.3, alpha = 0.8)+
   xlab('variables')+
   coord_flip()+ 
   #theme_fivethirtyeight() +
   ggtitle("Medications Missing Data By Columns")
 
+ggsave(plot = medications_MS_plot, width = 8, height = 3,  dpi = 300, 
+       filename = "Figures/medications_MS_plot.png")
 
-
+medications_MS_plot
 
 
 ############################## labs_MS : MS stand for missing data ####################
@@ -114,7 +136,7 @@ ggplot(labs_MS, aes(x = reorder(variables, percent_missing), y = percent_missing
   #theme_fivethirtyeight() +
   ggtitle(" Labs Missing Data By Columns")
 
-sapply(labs, function(x) sum(is.na(x)))
+#sapply(labs, function(x) sum(is.na(x)))
 
 
 
@@ -137,7 +159,7 @@ ggplot(questionnaire_MS_less25, aes(x = reorder(variables, percent_missing), y =
   xlab('variables')+ theme(axis.text.y  = element_text(size=8))+
   coord_flip()+ 
   #theme_fivethirtyeight() +
-  ggtitle("Questionnaire Missing Data By Columns")
+#<<<<<<< HEAD
   ggtitle("Questionnaire Missing Data By Columns (< 0.25)")
   
 
@@ -156,7 +178,7 @@ questionnaire_MS_less75
 
 
 ################################################################################
-########################  diabete and demography   #############################
+########################           demographics    #############################
 ################################################################################
 
 demographic_MS <- demographic %>% summarise_all(~(sum(is.na(.))/n()))
@@ -267,7 +289,7 @@ sapply(demo_subset_8_imputed, function(x) sum(is.na(x)))
 
 write.csv(demo_subset_8_imputed , "Data/Working/demographic_major_imputed.csv")
 
-
+#write.csv(demo_subset_8_imputed,file = "Data/Working/demo_subset_8_imputed.csv")
 
 # histogramme
 
@@ -275,12 +297,12 @@ multi.hist(demo_subset_8_imputed[,sapply(demo_subset_8_imputed, is.numeric)])
 
 #Most of the variables  have right skewed distributions.
 
-demo_subset_8_labaled = mutate(demo_subset_8_imputed, Gender= ifelse(
+demo_subset_8_labeled = mutate(demo_subset_8_imputed, Gender= ifelse(
   demo_subset_8_imputed$Gender == "1" , "Male", "Female" ))
 
 
 require(dplyr)# because Race is a factor of level 6
-demo_subset_8_labaled <- demo_subset_8_labaled %>%
+demo_subset_8_labeled <- demo_subset_8_labeled %>%
   mutate(Race = recode(Race, "1" = "Mexican_American",
                        "2" = "Other_Hispanic",
                        "3" = "White",
@@ -297,19 +319,19 @@ demo_subset_8_labaled <- demo_subset_8_labaled %>%
 #  mutate(Race = replace(Race, Race == 7, "multiracial")) 
  
 
-demo_subset_8_labaled <- demo_subset_8_labaled %>%
+demo_subset_8_labeled <- demo_subset_8_labeled %>%
   mutate(Country_of_birth  = recode(Country_of_birth , "1" = "US",
                        "2" = "Others",
                        "77" = "Refused",
                        "99" = "Uknown"))
 
-demo_subset_8_labaled <- demo_subset_8_labaled %>%
+demo_subset_8_labeled <- demo_subset_8_labeled %>%
   mutate(Citizenship_status = recode(Citizenship_status, "1" = "US",
                        "2" = "Other",
                        "7" = "Refused",
                        "9" = "Unknown"))
 
-demo_subset_8_labaled <- demo_subset_8_labaled %>%
+demo_subset_8_labeled <- demo_subset_8_labeled %>%
   mutate(Marital_status = recode(Marital_status, "1" = "Married",
                        "2" = "Widowed",
                        "3" = "Divorced",
@@ -321,7 +343,7 @@ demo_subset_8_labaled <- demo_subset_8_labaled %>%
 
 
 
-demo_subset_8_labaled <- demo_subset_8_labaled %>%
+demo_subset_8_labeled <- demo_subset_8_labeled %>%
   mutate(Family_income = recode(Family_income, "1" = 	"$0 - $4999",
                                 "2" =	"$5000 - $9999",
                                 "3" =	"$10000 - $14999",
@@ -339,97 +361,154 @@ demo_subset_8_labaled <- demo_subset_8_labaled %>%
                                 "77" =	"Refused",
                                 "99" =	"Unknown"	))
 
-demo_subset_8_labaled$Family_income <- as.factor(demo_subset_8_labaled$Family_income)
+demo_subset_8_labeled$Family_income <- as.factor(demo_subset_8_labeled$Family_income)
 demo_subset_8_imputed$Family_income <- as.factor(demo_subset_8_imputed$Family_income)
 
 
-write.csv(demo_subset_8_imputed , "Data/Working/demographic_imputed.csv")
-
+write.csv(demo_subset_8_labeled,file = "Data/Working/demo_subset_8_labeled.csv")
 
 ##########################  Gender #############
-Gender  <- demo_subset_8_labaled %>%
+Gender  <- demo_subset_8_labeled %>%
   group_by(Gender) %>%
   summarize(count=n()) %>%
-  arrange(desc(count))
+  arrange(desc(count))%>%
+  mutate(pct = count / sum(count),
+         pctlabel = paste0(round(pct*100), "%"),
+         lab.ypos = 100*cumsum(pct) - 0.5  *100*pct) 
+
 
 head(Gender)
 
-ggplot(Gender, aes(Gender)) + geom_bar(fill = "blue") + theme_bw() +
-  xlab("Gender") + ylab("Count") + 
-  labs(title = "Bar Chart of Gender") + theme_gray()
 
+require(scales)
+ggplot(Gender, aes(x = reorder(Gender, -pct),y = pct)) + 
+  geom_bar(stat = "identity", fill = "indianred3", color = "black") +
+  geom_text(aes(label = pctlabel), vjust = -0.25) +
+  scale_y_continuous(labels = percent) +
+  labs(x = "Gender", y = "percantage", title  = "Bar Chart of Gender")  
 
-#Pie plot
-ggplot(Gender, aes(x = "", y =  round(100*count/sum(count), 1), fill =  reorder(Gender,count))) +
+#brewer.pal( 2, name = "Dark2")
+
+Gender_plot <- ggplot(Gender, aes(x = "", y =  round(100*pct, 1), fill = reorder(Gender,count))) +
   geom_bar(width = 1, stat = "identity", color = "white") +
-  coord_polar("y", start = 0)+
-  geom_text(aes(y = cumsum(100*count/sum(count)) - 0.5*(100*count/sum(count)), label = paste(round(count/sum(count)*100),"%")), color = "black")+
+  geom_text(aes(y = lab.ypos, label = pctlabel), color = "black")+
+  coord_polar("y", start = 0) +
   ggtitle("Pie plot of Gender")+
   scale_fill_grey(start = 0.8, end = 0.2,"Gender") + theme_void()
 
+Gender_plot
 
+#ggsave(plot = Gender_plot, width = 3, height = 3, dpi = 300, 
+  #     filename = "Figures/Gender_plot.png")
 
-
+ggsave(plot = Gender_plot,dpi = 300, 
+     filename = "Figures/Gender_plot.png")
 ##########################  Country_of_birth #############
-Country_of_birth  <- demo_subset_8_labaled %>%
+Country_of_birth  <- demo_subset_8_labeled %>%
   group_by(Country_of_birth) %>%
   summarize(count=n()) %>%
-  arrange(desc(count))
+  arrange(desc(count))%>%
+  mutate(pct = count / sum(count),
+         pctlabel = paste0(round(pct*100), "%"),
+         lab.ypos = 100*cumsum(pct) - 0.5  *100*pct) 
 
+
+#Bar plot
+
+require(scales)
+Birth_plot <- ggplot(Country_of_birth, aes(x = reorder(Country_of_birth, -pct),y = pct)) + 
+  geom_bar(stat = "identity", fill = "indianred3", color = "black") +
+  geom_text(aes(label = pctlabel), vjust = -0.25) +
+  scale_y_continuous(labels = percent) +
+  labs(x = "Country of birth", y = "percantage", title  = "Bar Chart of Country of birth")  
+
+
+Birth_plot
 
 #Pie plot
-ggplot(Country_of_birth, aes(x = "", y =  round(100*count/sum(count), 1), fill =  reorder(Country_of_birth,count))) +
-  geom_bar(width = 1, stat = "identity", color = "white") +
-  coord_polar("y", start = 0)+
-  geom_text(aes(y = cumsum(100*count/sum(count)) - 0.5*(100*count/sum(count)), label = paste(round(count/sum(count)*100),"%")), color = "black")+
-  ggtitle("Pie plot of Country of birth")+
-  scale_fill_grey(start = 0.8, end = 0.2,"Country_of_birth") + theme_void()
+#Birth_plot <-ggplot(Country_of_birth, aes(x = "", y =  round(100*count/sum(count), 1), fill =  reorder(Country_of_birth,count))) +
+#  geom_bar(width = 1, stat = "identity", color = "white") +
+#  coord_polar("y", start = 0)+
+#  geom_text(aes(y = cumsum(100*count/sum(count)) - 0.5*(100*count/sum(count)), label = paste(round(count/sum(count)*100),"%")), color = "black")+
+#  ggtitle("Pie plot of Country of birth")+
+#  scale_fill_grey(start = 0.8, end = 0.2,"Country_of_birth") + theme_void()
 
+ggsave(plot = Birth_plot, dpi = 300, 
+       filename = "Figures/Birth_plot.png")
 
 
 ########################  Marital_status  #######################
 
-Marital_status  <- demo_subset_8_labaled %>%
+Marital_status  <- demo_subset_8_labeled %>%
   group_by(Marital_status) %>%
   summarize(count=n()) %>%
-  arrange(desc(count))
+  arrange(desc(count))%>%
+  mutate(pct = count / sum(count),
+         pctlabel = paste0(round(pct*100), "%"),
+         lab.ypos = 100*cumsum(pct) - 0.5  *100*pct) 
 
+#Bar plot
+
+require(scales)
+Marital_plot <- ggplot(Marital_status, aes(x = reorder(Marital_status, -pct),y = pct)) + 
+  geom_bar(stat = "identity", fill = "indianred3", color = "black") +
+  geom_text(aes(label = pctlabel), vjust = -0.25) +
+  scale_y_continuous(labels = percent) +
+  labs(x = "Marital status", y = "percantage", title  = "Bar Chart of Marital status in US ")  +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 #Pie plot
-ggplot(Marital_status, aes(x = "", y =  round(100*count/sum(count), 1), fill =  reorder(Marital_status ,count))) +
-  geom_bar(width = 1, stat = "identity", color = "white") +
-  coord_polar("y", start = 0)+
-  geom_text(aes(y = cumsum(100*count/sum(count)) - 0.5*(100*count/sum(count)), label = paste(round(count/sum(count)*100),"%")), color = "black")+
-  ggtitle("Pie plot of Marital status")+
-  scale_fill_grey(start = 0.8, end = 0.2,"Marital_status") + theme_void()
+#Marital_plot <- ggplot(Marital_status, aes(x = "", y =  round(100*count/sum(count), 1), fill =  reorder(Marital_status ,count))) +
+#  geom_bar(width = 1, stat = "identity", color = "white") +
+#  coord_polar("y", start = 0)+
+#  geom_text(aes(y = cumsum(100*count/sum(count)) - 0.5*(100*count/sum(count)), label = paste(round(count/sum(count)*100),"%")), color = "black")+
+#  ggtitle("Pie plot of Marital status")+
+#  scale_fill_grey(start = 0.8, end = 0.2,"Marital_status") + theme_void()
 
 
 
+ggsave(plot = Marital_plot, dpi = 300, 
+       filename = "Figures/Marital_plot.png")
+
+
+Marital_plot
 ########################  Race  #######################
 
-Race  <- demo_subset_8_labaled %>%
+Race  <- demo_subset_8_labeled %>%
   group_by(Race) %>%
   summarize(count=n()) %>%
-  arrange(desc(count))
+  arrange(desc(count))%>%
+  mutate(pct = count / sum(count),
+         pctlabel = paste0(round(pct*100), "%"),
+         lab.ypos = 100*cumsum(pct) - 0.5  *100*pct) 
 
+
+
+
+#Bar plot
+
+require(scales)
+Race_plot <- ggplot(Race, aes(x = reorder(Race, -pct),y = pct)) + 
+  geom_bar(stat = "identity", fill = "indianred3", color = "black") +
+  geom_text(aes(label = pctlabel), vjust = -0.25) +
+  scale_y_continuous(labels = percent) +
+  labs(x = "Race", y = "percantage", title  = "Bar Chart of Race in US ")  +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+Race_plot
 
 #Pie plot
-ggplot(Race, aes(x = "", y =  round(100*count/sum(count), 1), fill =  reorder(Race ,count))) +
-  geom_bar(width = 1, stat = "identity", color = "white") +
-  coord_polar("y", start = 0)+
-  geom_text(aes(y = cumsum(100*count/sum(count)) - 0.5*(100*count/sum(count)), label = paste(round(count/sum(count)*100),"%")), color = "black")+
-  ggtitle("Pie plot of Race")+
-  scale_fill_grey(start = 0.8, end = 0.2,"Races") + theme_void()
+#Race_plot <- ggplot(Race, aes(x = "", y =  round(100*count/sum(count), 1), fill =  reorder(Race ,count))) +
+#  geom_bar(width = 1, stat = "identity", color = "white") +
+#  coord_polar("y", start = 0)+
+#  geom_text(aes(y = cumsum(100*count/sum(count)) - 0.5*(100*count/sum(count)), label = paste(round(count/sum(count)*100),"%")), color = "black")+
+#  ggtitle("Pie plot of Race")+
+#  scale_fill_grey(start = 0.8, end = 0.2,"Races") + theme_void()
 
-#https://en.wikipedia.org/wiki/Race_and_ethnicity_in_the_United_States
-#White 	72.4%
-#Hispanic and Latino Americans (of any race) 	16.3%
-#Black or African American 	12.6%
-#Asian 	4.8%
-#Native Americans and Alaska Natives 	0.9%
-#Native Hawaiians and Other Pacific Islanders 	0.2%
-#Two or more races 	2.9%
-#Other 	6.2%
+ggsave(plot = Race_plot, dpi = 300, 
+       filename = "Figures/Race_plot.png")
+
+
 
 
 ################################################################################
