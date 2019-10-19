@@ -59,53 +59,39 @@ Are there any commonalities between various people with the same health conditio
 \pagebreak
 
 # Analytical Reframing for the Business Case.  
+The **first business problem** involves using “health condition” features and finding related features. This is an association problem and we will need a model using an association algorithm.
 
-The first business problem involves using “health condition” features and finding related features.  This is an association problem and we will need a model using an association algorithm.  
+* What features are associated with “health condition” features?
+* We’re comparing the rows of the dataset.
 
+The **second business problem** involves finding commonality between subjects. This is a clustering problem and we will need a model using a clustering algorithm. We need to determine whether the business’s presumption is accurate:
 
-* What features are associated with “health condition” features? 
+* According to their health conditions, can subjects be divided into discrete groups that could provide meaningful data for the drug researchers?
+* We’re comparing the columns of the dataset.
 
-* We’re comparing the rows of the dataset.  
+If this is the case, we need to find clusters of subjects that segregate the data by health conditions and report these findings to the business.  
 
-The second business problem involves finding commonality between subjects.  This is a clustering problem and we will need a model using a clustering algorithm.   We need to determine whether business’s presumption is accurate:  
+On the contrary, if there is too much commonality between “health condition” features and other features, we will also report this finding and note the clusters we did find.   
 
-* Can subjects be divided into discrete groups according to their health conditions, which could then provide meaningful data for the drug researchers?  If yes, we need to find these clusters of subjects that can be used to segregate the data by health conditions, then we can report these findings to the business.  
+## How do we define "health condition" features within the dataset ? 
+For the association problem, we will need to see which attributes are tied to the "health condition" features. In order to achieve this, we are postulating that the following columns/features of the Questionnaire dataset indicate that an individual has a "health condition":
 
-* Or is there too much commonality between “health condition” features and other features?
+### Diabetes
+* **DID040** - "How old {was SP/were you} when a doctor or other health professional first told {you/him/her} that {you/he/she} had diabetes or sugar diabetes?"
 
-* If we cannot find clusters that could be divided by health conditions, then we will also report this finding to the company as well and note that clusters that we did find.  We’re comparing the columns/attributes of the dataset.   
-
-## How do we define health conditions within the dataset ? 
-
-How do we know what is considered a health condition within the data? We could use lab data and diagnose whether someone falls under the definition of health condition; however, for the purpose 
-
-Diabetes within Questionnaire dataset: 
-
-We are postulating that the following features/columns indicate that an individual has diabetes
-
-DID040 - "How old {was SP/were you} when a doctor or other health professional first told {you/him/her} that {you/he/she} had diabetes or sugar diabetes?"
-
-DID060 - "For how long {have you/has SP} been taking insulin?"
+* **DID060** - "For how long {have you/has SP} been taking insulin?"
 
 NA in the above features might indicate the subject does not have diabetes.  
 
-For the association problem, we will need to see which attributes are tied to above features.
+### Blood Pressure
+* **BPD035** - How old {were you/was SP} when {you were/he/she was} first told that {you/he/she} had hypertension or high blood pressure?
 
-Blood Pressure within Questionnaire dataset
+* **BPQ020** - {Have you/Has SP} ever been told by a doctor or other health professional that {you/s/he} had hypertension, also called high blood pressure?
 
-BPD035 - How old {were you/was SP} when {you were/he/she was} first told that {you/he/she} had hypertension or high blood pressure?
+### Cancer 
+* **MCQ220** - {Have you/Has SP} ever been told by a doctor or other health professional that {you/s/he} had cancer or a malignancy (ma-lig-nan-see) of any kind?  
 
-BPQ020 - {Have you/Has SP} ever been told by a doctor or other health professional that {you/s/he} had hypertension, also called high blood pressure?
-
-Cancer 
-
-MCQ220 - {Have you/Has SP} ever been told by a doctor or other health professional that {you/s/he} had cancer or a malignancy (ma-lig-nan-see) of any kind?  
-
-
-
-
-
- 
+\pagebreak
 
 # Loading R packages
 
