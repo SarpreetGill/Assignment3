@@ -174,6 +174,78 @@ ggsave(plot = demographic_MS_plot, width = 8, height = 4, dpi = 300,
 
 \pagebreak
 
+### Diet
+```{r, eval=F, echo=TRUE, warning = F, message=F}
+diet_MS <- diet %>% summarise_all(~(sum(is.na(.))/n()))
+diet_MS <- gather(diet_MS, key = "variables", value = "percent_missing")
+diet_MS <- diet_MS[diet_MS$percent_missing > 0.0, ] 
+diet_MS_plot <- ggplot(diet_MS, aes(x = reorder(variables, percent_missing),
+                                    y = percent_missing)
+                       ) +
+  geom_bar(stat = "identity", fill = "blue", aes(color = I('blue')), 
+           size = 0.3, alpha = 0.8)+
+  xlab('variables') + coord_flip()+ 
+  #theme_fivethirtyeight() +
+  ggtitle("Diet Missing Data By Columns")+
+  theme(axis.text.y=element_text(size=3))
+
+
+#diet_MS_plot
+ggsave(plot = diet_MS_plot, width = 8, height = 4, dpi = 300, 
+       filename = "Figures/diet_MS_plot.png")
+
+```
+![](Figures/diet_MS_plot.png)
+
+\pagebreak
+
+### Examination
+```{r, eval=F, echo=TRUE, warning = F, message=F}
+examination_MS <- examination %>% summarise_all(~(sum(is.na(.))/n()))
+examination_MS <- gather(examination_MS, key = "variables", value = "percent_missing")
+examination_MS <- examination_MS[examination_MS$percent_missing > 0.0, ] 
+
+examination_MS_plot <- ggplot(examination_MS, aes(x = reorder(variables, percent_missing), 
+                                                  y = percent_missing)) +
+  geom_bar(stat = "identity", fill = "blue", aes(color = I('blue')),
+           size = 0.3, alpha = 0.8)+
+  xlab('variables')+ coord_flip()+ 
+  #theme_fivethirtyeight() +
+  ggtitle("Examination Missing Data By Columns")+
+  theme(axis.text.y=element_text(size=3))
+
+#examination_MS_plot
+ggsave(plot = examination_MS_plot, width = 8, height = 4, dpi = 300, 
+       filename = "Figures/examination_MS_plot.png")
+
+```  
+![](Figures/examination_MS_plot.png)
+
+\pagebreak
+### Labs
+```{r, eval=F, echo=TRUE, warning = F, message=F}
+labs_MS <- labs %>% summarise_all(~(sum(is.na(.))/n()))
+labs_MS <- gather(labs_MS, key = "variables", value = "percent_missing")
+labs_MS <- labs_MS[labs_MS$percent_missing > 0.0, ] 
+labs_MS_plot <- ggplot(labs_MS, aes(x = reorder(variables, percent_missing),
+                                    y = percent_missing)
+                       ) +
+  geom_bar(stat = "identity", fill = "blue", aes(color = I('blue')), 
+           size = 0.3, alpha = 0.8)+
+  xlab('variables') + coord_flip()+ 
+  ggtitle("Labs Missing Data By Columns")+
+  theme(axis.text.y=element_text(size=3))
+
+
+#labs_MS_plot
+ggsave(plot = labs_MS_plot, width = 8, height = 4, dpi = 300, 
+       filename = "Figures/labs_MS_plot.png")
+
+```
+![](Figures/labs_MS_plot.png)
+
+\pagebreak
+
 ### Medications
 ```{r, eval=F, echo=TRUE, warning = F, message=F}
 medications_MS <- medications %>% summarise_all(~(sum(is.na(.))/n()))
@@ -195,52 +267,31 @@ ggsave(plot = medications_MS_plot, width = 8, height = 4, dpi = 300,
 ```
 ![](Figures/medications_MS_plot.png)
 
-### Examination
+\pagebreak
+
+
+### Questionnaire
 ```{r, eval=F, echo=TRUE, warning = F, message=F}
-examination_MS <- examination %>% summarise_all(~(sum(is.na(.))/n()))
-examination_MS <- gather(examination_MS, key = "variables", value = "percent_missing")
-examination_MS <- examination_MS[examination_MS$percent_missing > 0.0, ] 
+questionnaire_MS <- questionnaire %>% summarise_all(~(sum(is.na(.))/n()))
+questionnaire_MS <- gather(questionnaire_MS, key = "variables", value = "percent_missing")
+questionnaire_MS <- questionnaire_MS[questionnaire_MS$percent_missing > 0.0, ] 
 
-examination_MS_plot <- ggplot(examination_MS, aes(x = reorder(variables, percent_missing), 
-                                                  y = percent_missing)) +
-  geom_bar(stat = "identity", fill = "blue", aes(color = I('white')),
+questionnaire_MS_plot <- ggplot(questionnaire_MS, aes(x = reorder(variables, percent_missing),
+                                                      y = percent_missing)) +
+geom_bar(stat = "identity", fill = "blue", aes(color = I('blue')),
            size = 0.3, alpha = 0.8)+
-  xlab('variables')+ coord_flip()+ 
-  #theme_fivethirtyeight() +
-  ggtitle("Examination Missing Data By Columns")+
-  theme(axis.text.y=element_text(size=3)) # labels looked messy
+xlab('variables')+  coord_flip()+ 
+ggtitle("Questionnaire Missing Data By Columns")+
+theme(axis.text.y=element_text(size=3))
 
-#examination_MS_plot
-ggsave(plot = examination_MS_plot, width = 8, height = 4, dpi = 300, 
-       filename = "Figures/examination_MS_plot.png")
-
-```  
-![](Figures/examination_MS_plot.png)
-
-### Diet
-```{r, eval=F, echo=TRUE, warning = F, message=F}
-diet_MS <- diet %>% summarise_all(~(sum(is.na(.))/n()))
-diet_MS <- gather(diet_MS, key = "variables", value = "percent_missing")
-diet_MS <- diet_MS[diet_MS$percent_missing > 0.0, ] 
-diet_MS_plot <- ggplot(diet_MS, aes(x = reorder(variables, percent_missing),
-                                    y = percent_missing)
-                       ) +
-  geom_bar(stat = "identity", fill = "blue", aes(color = I('white')), 
-           size = 0.3, alpha = 0.8)+
-  xlab('variables') + coord_flip()+ 
-  #theme_fivethirtyeight() +
-  ggtitle("Diet Missing Data By Columns")+
-  theme(axis.text.y=element_text(size=3))  # labels looked messy
-  #theme(axis.text.y=element_blank()) # remove them altogether?
-
-
-#diet_MS_plot
-ggsave(plot = diet_MS_plot, width = 8, height = 4, dpi = 300, 
-       filename = "Figures/diet_MS_plot.png")
+#questionnaire_MS_plot
+ggsave(plot = questionnaire_MS_plot, width = 8, height = 4, dpi = 300, 
+       filename = "Figures/questionnaire_MS_plot.png")
 
 ```
-![](Figures/diet_MS_plot.png)
+![](Figures/questionnaire_MS_plot.png)
 
+\pagebreak
 
 ## Data Imputation and  Vizualization
 
@@ -251,19 +302,17 @@ https://wwwn.cdc.gov/nchs/nhanes/continuousnhanes/default.aspx?BeginYear=2013
 We have inspected the above data dictionary and we have selected the following interesting values for further analysis:
 
 ### Demographic
-Among the 32 Column with less than 25% of missing value we have selected eight interesting columns (4, 5, 8, 13, 14, 30, 39,46):
+Among the 32 columns with less than 25% of missing value we have selected eight interesting columns:
 
-* **[1] ID (SEQN)** - Respondent sequence number.
-* **[4] Gender (RIAGENDR)** - Gender of the participant.
-* **[5] Age (RIDAGEYR)** - Age in years of the participant at the time of screening. Individuals 80 and over are topcoded at 80 years of age.
-* **[8] Race (RIDRETH3)** - Recode of reported race and Hispanic origin information, with Non-Hispanic Asian Category.
-* **[13] Country_of_birth (DMDBORN4)** - In what country {were you/was SP} born?
-* **[14] Citizenship_status (DMDCITZN)** - {Are you/Is SP} a citizen of the United States?
-* **[30] Family_members DMDFMSIZ)** - Total number of people in the Family.
-* **[39] Marital_status (DMDHRMAR)** - HH reference person's marital status.
-* **[46] Family_income (INDFMIN2)** - Total family income (reported as a range value in dollars).
-
-
+* **ID (SEQN)** - Respondent sequence number.
+* **Gender (RIAGENDR)** - Gender of the participant.
+* **Age (RIDAGEYR)** - Age in years of the participant at the time of screening. Individuals 80 and over are topcoded at 80 years of age.
+* **Race (RIDRETH3)** - Recode of reported race and Hispanic origin information, with Non-Hispanic Asian Category.
+* **Country_of_birth (DMDBORN4)** - In what country {were you/was SP} born?
+* **Citizenship_status (DMDCITZN)** - {Are you/Is SP} a citizen of the United States?
+* **Family_members DMDFMSIZ)** - Total number of people in the Family.
+* **Marital_status (DMDHRMAR)** - HH reference person's marital status.
+* **Family_income (INDFMIN2)** - Total family income (reported as a range value in dollars).
 
 ```{r, eval=TRUE, echo=TRUE, warning = F, message=F}
 
@@ -380,8 +429,6 @@ demo_subset_8_labeled <- demo_subset_8_labeled %>%
                        "77" = "Refused",
                        "99" = "Unknown"))
 
-
-
 demo_subset_8_labeled <- demo_subset_8_labeled %>%
   mutate(Family_income = recode(Family_income, "1" = 	"$0 - $4999",
                                 "2" =	"$5000 - $9999",
@@ -411,7 +458,9 @@ demo_subset_8_labeled$Family_income <- as.factor(demo_subset_8_labeled$Family_in
 demo_subset_8_labeled  = read.csv("Data/Working/demo_subset_8_labeled.csv", header = TRUE)
 ```
 
+\pagebreak
 
+#### Gender
 ```{r, eval=TRUE, echo=TRUE, warning = F, message=F}
 
 ##########################  Gender #############
@@ -435,12 +484,11 @@ Gender_plot <- ggplot(Gender, aes(x = "", y =  round(100*count/sum(count), 1),
 
 
 ```
+![](Figures/Gender_plot.png){width=300px}
 
+\pagebreak
 
-```{r,echo=F,out.width = "300px"} 
-knitr::include_graphics("Figures/Gender_plot.png")
-```
-
+#### Country of birth
 ```{r, eval=TRUE, echo=TRUE, warning = F, message=F}
 ##########################  Country_of_birth #############
 Country_of_birth  <- demo_subset_8_labeled %>%
@@ -466,13 +514,11 @@ Birth_plot <- ggplot(Country_of_birth, aes(x = reorder(Country_of_birth, -pct),y
 #ggsave(plot = Birth_plot, width = 3, height = 3, dpi = 300, 
  #      filename = "Figures/Birth_plot.png")
 ```
+![](Figures/Birth_plot.png){width=300px}
 
+\pagebreak
 
-
-```{r,echo=F,out.width = "400px"} 
-knitr::include_graphics("Figures/Birth_plot.png")
-```
-
+#### Marital status
 ```{r, eval=TRUE, echo=TRUE, warning = F, message=F}
 ########################  Marital_status  #######################
 
@@ -499,13 +545,11 @@ Marital_plot <- ggplot(Marital_status, aes(x = reorder(Marital_status, -pct),y =
 #       filename = "Figures/Marital_plot.png")
 
 ```
+![](Figures/Marital_plot.png){width=400px}
 
+\pagebreak
 
-```{r,echo=F,out.width = "400px"} 
-knitr::include_graphics("Figures/Marital_plot.png")
-```
-
-
+#### Race
 ```{r, eval=TRUE, echo=TRUE, warning = F, message=F}
 ########################  Race  #######################
 
@@ -536,22 +580,19 @@ Race_plot <- ggplot(Race, aes(x = reorder(Race, -pct),y = pct)) +
 
 
 ```
+![](Figures/Race_plot.png){width=400px}
 
-
-```{r,echo=F,out.width = "400px"} 
-knitr::include_graphics("Figures/Race_plot.png")
-```
-
+#### Conclusion
 Our samples is pretty representative of the US population: 
 
-The  US age structure is 20% under 15, 67% between 15 and 64 years old, and 13% over 65 (https://countrymeters.info/en/United_States_of_America_(USA)). 
+* The  US age structure is 20% under 15, 67% between 15 and 64 years old, and 13% over 65 (https://countrymeters.info/en/United_States_of_America_(USA)). 
+* The Gender ratio is 51% for female and 49% for male (http://statisticstimes.com/demographics/countries-by-sex-ratio.php)
+* The Race and ethnicity are:  White 	72.4%, Hispanic and Latino Americans  16.3%, Black or African American 	12.6%, Asian 	4.8%, Native 1.1 %, and the others 9.1 %.
 
-The Gender ratio is 51% for female and 49% for male (http://statisticstimes.com/demographics/countries-by-sex-ratio.php)
 
-The Race and ethnicity are:  White 	72.4%, Hispanic and Latino Americans  16.3%, Black or African American 	12.6%, Asian 	4.8%, Native 1.1 %, and the others 9.1 %.
-
-* **Dietary**
-
+### Diet
+Among the 88 columns with less than 25% of missing value we have selected sixty-nine interesting columns:
+* **ID (SEQN)** - Respondent sequence number.
 
 diet_subset -> Need to impute it.  
 
