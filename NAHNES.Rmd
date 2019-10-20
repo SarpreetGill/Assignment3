@@ -778,6 +778,8 @@ Among the 79 columns with less than 25% of missing value we have selected thirty
 * **Forgetfulness (DLQ040)** - Because of a physical, mental, or emotional condition, {do you/does he/does she} have serious difficulty concentrating, remembering, or making decisions?.
 * **Food_assistance (FSD151)** - In the last 12 months, did {you/you or any member of your household} ever get emergency food from a church, a food pantry, or a food bank, or eat in a soup kitchen?.
 * **WIC_assistance (FSQ162)** - In the last 12 months, did {you/you or any member of your household} receive benefits from the WIC program, that is, the Women, Infants and Children program?.
+* **Hepatitis_b (HEQ010)** - Has a doctor or other health professional ever told {you/SP} that {you have/s/he/SP has} Hepatitis B? (Hepatitis is a form of liver disease. Hepatitis B is an infection of the liver from the Hepatitis B virus (HBV).).
+* **Hepatitis_c (HEQ030)** - Has a doctor or other health professional ever told {you/SP} that {you have/s/he/SP has} Hepatitis C? (Hepatitis is a form of liver disease. Hepatitis C is an infection of the liver from the Hepatitis C virus (HCV).).
 * **Insurance_current (HIQ011)** - The (first/next) questions are about health insurance. {Are you/Is SP} covered by health insurance or some other kind of health care plan? [Include health insurance obtained through employment or purchased directly as well as government programs like Medicare and Medicaid that provide medical care or help pay medical bills.].
 * **Insurance_lapse_12 (HIQ210)** - In the past 12 months, was there any time when {you/SP} did not have any health insurance coverage?.
 * **House_rooms (HOD050)** - How many rooms are in this home? Count the kitchen but not the bathroom..

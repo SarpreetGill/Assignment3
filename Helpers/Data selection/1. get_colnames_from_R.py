@@ -53,7 +53,7 @@ demo['data'] = '''[1] "SEQN"     "SDDSRVYR" "RIDSTATR" "RIAGENDR" "RIDAGEYR" "RI
 
 ##################
 
-SELECTED = demo
+SELECTED = quest
 
 ##################
 
@@ -183,8 +183,8 @@ quest['selected'] = {0: 'ID',
                      18: 'Forgetfulness',
                      26: 'Food_assistance',
                      28: 'WIC_assistance',
-                     #29: 'Hepatitis_b',
-                     #30: 'Hepatitis_c',
+                     29: 'Hepatitis_b',
+                     30: 'Hepatitis_c',
                      31: 'Insurance_current',
                      33: 'Insurance_lapse_12',
                      34: 'House_rooms',
