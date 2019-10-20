@@ -739,6 +739,7 @@ Among the 46 columns with less than 25% of missing value we have selected nine r
 * **Hepatitis_b (LBXHBC)** - Hepatitis B core antibody.
 * **Cholesterol (LBXTC)** - Total Cholesterol( mg/dL).
 
+Imputation will be completed Sunday October 20 and results will be pasted here
 
 \pagebreak
 
