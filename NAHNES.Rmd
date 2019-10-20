@@ -901,6 +901,126 @@ All of the columns had more than 25% missing values. Among the 8 columns with le
 
 \pagebreak
 
+First we would remove all the Near Zero Variance features from the data set:
+
+```{r, eval=FALSE, echo=TRUE}
+
+
+medsdata_major <- medications
+
+if (length(nearZeroVar(medsdata_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
+                       names = FALSE, foreach = FALSE, allowParallel = TRUE)) > 0){
+  medsdata_major <- medsdata_major[, -nearZeroVar(medsdata_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
+                                                  names = FALSE, foreach = FALSE, allowParallel = TRUE)] 
+  
+}
+```
+
+Now, we will remove the features having a missing values of more that 32% as decided before:
+
+```{r, eval=FALSE, echo=TRUE}
+
+
+
+Null_Num_medsdata <- apply(medsdata_major, 2, function(x) length(which(x == "" | is.na(x) | x == "NA" | x == "-999" ))/length(x))
+Null_Colms_medsdata <- colnames(medsdata_major)[Null_Num_medsdata > 0.32]
+medsdata68 <- select(medsdata_major, -Null_Colms_medsdata)
+
+```
+
+We will now refer to our Dictionary for making a reference dataframe to differentiate between different forms of variables in a fast and effective way:
+
+```{r, eval=FALSE, echo=TRUE}
+
+
+medsdata_indexed <- medsdata68
+colnames(medsdata_indexed) <- with(Dictionary,
+                                   Dictionary$Variable.Description[match(colnames(medsdata68),
+                                                                         Dictionary$Variable.Name,
+                                                                         nomatch = Dictionary$Variable.Name
+                                   )])
+
+medsdata_Col_Labels <- data.frame("Code"=c(colnames(medsdata68)), 
+                                  "Desp"=c(colnames(medsdata_indexed)))
+
+```
+
+
+#######################################  Categorization of variables
+
+############# 
+# We have to now enter categorization of Factor/Numeric/ 'Computation not required' in the excel file generated
+### Only to be done in 3rd column
+## Code is 
+# 0 = Factor requiring no computation
+# 1 = Numeric requiring computation
+# 2 = Factor requiring computation
+
+# Please write Column name for the category as "Cat"
+
+#######################################  Reading Index again
+
+```{r}
+
+Cat_meds <- c(0,2,2,2,2,1,2,1)
+Cat_meds
+medsdata_Col_Labels <- data.frame(medsdata_Col_Labels,Cat = Cat_meds)
+
+write.csv(medsdata_Col_Labels,file = "Data/Labels/medsdata_Col_Labels.csv")
+
+
+
+```
+
+Now we prepare the dataset for impute from all the information.
+
+```{r}
+medsdata_Col_Labels[, 2] <- sapply(medsdata_Col_Labels[, 2], as.character)
+
+
+Catcolmn_medsdata <- medsdata_Col_Labels[medsdata_Col_Labels$Cat ==2 , 2 ] 
+Numcolmn_medsdata <- medsdata_Col_Labels[medsdata_Col_Labels$Cat ==1 , 2 ] 
+Catcolmn_Nul_medsdata <- medsdata_Col_Labels[medsdata_Col_Labels$Cat ==0 , 2 ] 
+WorkingColm_medsdata <- c(Catcolmn_Nul_medsdata, Numcolmn_medsdata, Catcolmn_medsdata)
+```
+
+
+#==========================  IMPUTATION( MICE package)   =======================
+#recisely, the methods used by this package are:
+#1)-PMM (Predictive Mean Matching) â For numeric variables
+#2)-logreg(Logistic Regression) â For Binary Variables( with 2 levels)
+#3)-polyreg(Bayesian polytomous regression) â For Factor Variables (>= 2 levels)
+#4)-Proportional odds model (ordered, >= 2 levels)
+#5)-cart  Classification and regression trees (any) 
+#6)rf Random forest imputations (any)
+#==============================================================================
+
+```{r}
+
+predM_medsdata[, c("SEQN")]=0
+
+meth_medsdata[Catcolmn_Nul_medsdata] = ""
+
+meth_medsdata[Catcolmn_medsdata]="rf"
+
+meth_medsdata[Numcolmn_medsdata]="pmm"
+
+set.seed(256)
+imputed_medsdata = mice(medsdata_selected, method=meth_medsdata, predictorMatrix=predM_medsdata, m=5)
+
+medsdata_imputed<- complete(imputed_medsdata)
+
+#  Saving Impute
+
+write.csv(medsdata_imputed , "Data/Working/medsdata_imputed.csv")
+medsdata_imputed   = read.csv("Data/Working/medsdata_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+
+```
+
+
+
+
 ### Questionnaire
 <!-- https://wwwn.cdc.gov/nchs/nhanes/search/variablelist.aspx?Component=Questionnaire&CycleBeginYear=2013 -->
 We have selected the following 38 relevant columns among the 79 that have less than 25% of missing values:

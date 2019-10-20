@@ -735,9 +735,10 @@ medsdata_Col_Labels <- data.frame("Code"=c(colnames(medsdata68)),
 #dir.create("Data/Labels")
 write.csv(medsdata_Col_Labels,file = "Data/Labels/medsdata_Col_Labels.csv")
 
-#######################################  Categorization of variables
 
-############# 
+
+
+## 
 # We have to now enter categorization of Factor/Numeric/ 'Computation not required' in the excel file generated
 ### Only to be done in 3rd column
 ## Code is 
@@ -746,6 +747,21 @@ write.csv(medsdata_Col_Labels,file = "Data/Labels/medsdata_Col_Labels.csv")
 # 2 = Factor requiring computation
 
 # Please write Column name for the category as "Cat"
+
+
+
+#  Categorization of variables
+
+Cat_meds <- c(0,2,2,2,2,1,2,1)
+Cat_meds
+medsdata_Col_Labels <- data.frame(medsdata_Col_Labels,Cat = Cat_meds)
+
+write.csv(medsdata_Col_Labels,file = "Data/Labels/medsdata_Col_Labels.csv")
+
+
+
+
+
 
 #######################################  Reading Index again
 
@@ -798,22 +814,11 @@ predM_medsdata = init_medsdata$predictorMatrix
 
 predM_medsdata[, c("SEQN")]=0
 
-##If you want to skip a variable from imputation use the code below.
-##This variable will still be used for prediction.
-#++++++++++++++++++++++++++++++++++
-#meth[c("Variable")]=""
-
 meth_medsdata[Catcolmn_Nul_medsdata] = ""
-
-#++++++++++++++++++++++++++++++++++
-##Now let specify the methods for imputing the missing values.
 
 meth_medsdata[Catcolmn_medsdata]="rf"
 
-## we impute the Numerical Variable
-
 meth_medsdata[Numcolmn_medsdata]="pmm"
-
 
 set.seed(256)
 imputed_medsdata = mice(medsdata_selected, method=meth_medsdata, predictorMatrix=predM_medsdata, m=5)
@@ -836,8 +841,11 @@ write.csv(medsdata_imputed , "Data/Working/medsdata_imputed.csv")
 medsdata_imputed   = read.csv("Data/Working/medsdata_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
 
 
-#######################################  Upcoming probability to include column
-########################################   names after impute or final model?
+
+
+
+
+
 
 
 
