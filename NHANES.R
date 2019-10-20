@@ -572,7 +572,123 @@ ncol(examination)
 summary(examination)
 str(examination)
 
+# Add raw data file for labs
+labs <- read.csv(file.choose(), header = TRUE, na.strings = c("NA","","#NA"))
+# many of columns have 60% or higher missing rows.  
+sapply(labs, function(x) sum(is.na(x)))
+str(labs)
 
+str(labs_subset)
+sapply(labs_subset, function(x) sum(is.na(x)))
+imputed_labs_subset <- mice(diet_subset, m=5, maxit= 50, method = 'pmm', seed=501)
+sapply(labs_subset, function(x) sum(is.na(x)))
+
+
+select_columns_labs <- c("SEQN", "LBXWBCSI", "LBXRBCSI", "PHQ020", "PHQ030", "PHQ060", "LBXHA", "LBXHBC", "LBXTC" )
+labs_subset = subset(labs, select=select_columns_labs)
+
+# Relabel the columns to meaningful names.  
+
+labs_subset <- labs_subset %>% 
+  rename("ID"                =         "SEQN",  
+         "White_blood_cells_labs" =     "LBXWBCSI",  
+         "Red_bloods_cells_labs"  =     "LBXRBCSI",  
+         "Caffeine_labs"          =     "PHQ020",  
+         "Alcohol_labs"           =     "PHQ030",  
+         "Supplements_labs"       =     "PHQ060",   
+         "Hepatitis_a_labs"       =     "LBXHA",  
+         "Hepatitis_b_labs"       =     "LBXHBC",  
+         "Cholesterol_labs"       =     "LBXTC"  )
+
+#LBXWBCSI  and LBXRBCSI are both numerical values  
+#PHQ020 is a factor. 1=Yes, 2=No , NA= Not provided
+#PHQ030 is a factor. 1=Yes, 2=No , NA= Not provided
+#PHQ060 is a factor. 1=Yes, 2=No, NA= Not provided
+#LBXHA is a factor. 1=Positive, 2=Negative, 3=Indeterminate, NA=Not tested
+#LBXHBC is a factor. 1=Positive, 2=Negative NA=Not tested
+#LBXTC is numerical.
+
+sapply(labs_subset, function(x) sum(is.na(x)))
+str(labs_subset)
+
+labs_subset$Caffeine_labs <- as.factor(labs_subset$Caffeine_labs)
+labs_subset$Alcohol_labs <- as.factor(labs_subset$Alcohol_labs)
+labs_subset$Supplements_labs <- as.factor(labs_subset$Supplements_labs)
+labs_subset$Hepatitis_a_labs <- as.factor(labs_subset$Hepatitis_a_labs)
+labs_subset$Hepatitis_b_labs <- as.factor(labs_subset$Hepatitis_b_labs)
+str(labs_subset)
+
+summary(labs_subset)
+require(mice)
+install.packages("randomForest")
+
+init = mice(labs_subset, maxit=0)
+meth = init$method
+predM = init$predictorMatrix
+# select the "ID" variable to not be included as predictor during imputation.
+predM[, c("ID")]=0
+
+# Cart usage: https://stefvanbuuren.name/fimd/sec-cart.html
+# https://en.wikipedia.org/wiki/Random_forest 
+
+#Skip a variable from imputation, this variable will still be used for prediction
+meth[c("ID")]=""
+
+#Now let specify the methods for imputing the missing values.
+
+meth[c("White_blood_cells_labs")]="rf"
+meth[c("Red_bloods_cells_labs" )]="rf"
+meth[c("Caffeine_labs")]="cart"
+meth[c("Alcohol_labs")]="cart"
+meth[c("Supplements_labs")]="cart"
+meth[c("Hepatitis_a_labs"  )] ="cart"
+meth[c("Hepatitis_b_labs" )] ="cart"
+meth[c("Cholesterol_labs")]="rf"
+
+set.seed(145)
+imputed = mice(labs_subset, method=meth, predictorMatrix=predM, m=5)
+#Create a dataset after imputation.
+labs_subset_imputed<- complete(imputed)
+sapply(labs_subset_imputed, function(x) sum(is.na(x)))
+
+write.csv(labs_subset_imputed,file = "labs_subset_imputed.csv")
+
+# Label the data for factor/categorical values from imputed dataset.
+labs_subset_labelled <- labs_subset_imputed
+
+labs_subset_labelled = labs_subset_imputed %>% 
+  mutate(Caffeine_labs= recode(Caffeine_labs, "1" = "Yes",
+                              "2" = "No", 
+                              "NA" = "Not Tested"))
+
+
+labs_subset_labelled = labs_subset_imputed %>% 
+  mutate(Alcohol_labs= recode(Alcohol_labs, "1" = "Yes",
+                               "2" = "No", 
+                               "NA" = "Not Tested"))
+
+labs_subset_labelled = labs_subset_imputed %>% 
+  mutate(Supplements_labs= recode(Supplements_labs, "1" = "Yes",
+                               "2" = "No", 
+                               "NA" = "Not Tested"))
+
+
+
+labs_subset_labelled = labs_subset_imputed %>% 
+  mutate(Hepatitis_a_labs= recode(Hepatitis_a_labs, "1" = "Positive",
+                                  "2" = "Negative",
+                                  "3" = "Indeterminate",
+                                  "NA" = "Not Tested"))
+
+
+labs_subset_labelled = labs_subset_imputed %>% 
+  mutate(Hepatitis_b_labs= recode(Hepatitis_b_labs, "1" = "Positive",
+                                  "2" = "Negative",
+                                  "NA" = "Not Tested"))
+
+
+str(labs_subset_labelled)
+write.csv(labs_subset_labelled,file = "labs_subset_labelled.csv")
 
 ############################################### Medications######################################
 
