@@ -663,8 +663,8 @@ Among the 88 columns with less than 25% of missing value we have selected sixty-
 * **Eicosapentaenoic (DR1TP205)** - PFA 20:5 (Eicosapentaenoic) (gm).
 * **Docosapentaenoic (DR1TP225)** - PFA 22:5 (Docosapentaenoic) (gm).
 * **Docosahexaenoic (DR1TP226)** - PFA 22:6 (Docosahexaenoic) (gm).
-* **Food_yesterday (DR1_300)** - Was the amount of food that {you/NAME} ate yesterd… more than usual, usual, or much less than usual?.
-* **Water_yesterday (DR1_320Z)** - Total plain water drank yesterday - including plai… a water cooler, bottled water, and spring water..
+* **Food_yesterday (DR1_300)** - Was the amount of food that {you/NAME} ate yesterday much more than usual, usual, or much less than usual?.
+* **Water_yesterday (DR1_320Z)** - Total plain water drank yesterday - including plain tap water, water from a drinking fountain, water from a water cooler, bottled water, and spring water..
 
 
 diet_subset -> Need to impute it.  
