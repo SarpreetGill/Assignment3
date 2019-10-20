@@ -292,15 +292,6 @@ write.csv(demo_subset_8_imputed , "Data/Working/demographic_major_imputed.csv")
 #write.csv(demo_subset_8_imputed,file = "Data/Working/demo_subset_8_imputed.csv")
 
 
-
-
-########################################## FROM HERE ####################################3
-
-
-
-
-
-
 # histogramme
 
 multi.hist(demo_subset_8_imputed[,sapply(demo_subset_8_imputed, is.numeric)])
@@ -696,6 +687,157 @@ nrow(medications)
 ncol(medications)
 summary(medications)
 str(medications)
+
+
+##################################### ZV/NZV feature remove #########################
+
+
+medsdata_major <- medications
+
+if (length(nearZeroVar(medsdata_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
+                       names = FALSE, foreach = FALSE, allowParallel = TRUE)) > 0){
+  medsdata_major <- medsdata_major[, -nearZeroVar(medsdata_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
+                                                  names = FALSE, foreach = FALSE, allowParallel = TRUE)] 
+  
+}
+
+
+#######################################  Check the data for missing values.
+
+#colSums(is.na(medsdata_major))
+#colMeans(is.na(medsdata_major))*100
+medsdata_major %>% summarise_all(~(sum(is.na(.))/n()*100))
+
+#######################################  Removing data having greater than 32 % missing values
+
+
+
+Null_Num_medsdata <- apply(medsdata_major, 2, function(x) length(which(x == "" | is.na(x) | x == "NA" | x == "-999" ))/length(x))
+Null_Colms_medsdata <- colnames(medsdata_major)[Null_Num_medsdata > 0.32]
+medsdata68 <- select(medsdata_major, -Null_Colms_medsdata)
+
+colSums(is.na(medsdata68))
+medsdata68 %>% summarise_all(~(sum(is.na(.))/n()*100))
+
+
+
+
+
+medsdata_indexed <- medsdata68
+colnames(medsdata_indexed) <- with(Dictionary,
+                                   Dictionary$Variable.Description[match(colnames(medsdata68),
+                                                                         Dictionary$Variable.Name,
+                                                                         nomatch = Dictionary$Variable.Name
+                                   )])
+
+medsdata_Col_Labels <- data.frame("Code"=c(colnames(medsdata68)), 
+                                  "Desp"=c(colnames(medsdata_indexed)))
+#dir.create("Data/Labels")
+write.csv(medsdata_Col_Labels,file = "Data/Labels/medsdata_Col_Labels.csv")
+
+#######################################  Categorization of variables
+
+############# 
+# We have to now enter categorization of Factor/Numeric/ 'Computation not required' in the excel file generated
+### Only to be done in 3rd column
+## Code is 
+# 0 = Factor requiring no computation
+# 1 = Numeric requiring computation
+# 2 = Factor requiring computation
+
+# Please write Column name for the category as "Cat"
+
+#######################################  Reading Index again
+
+
+medsdata_Col_Labels   = read.csv("Data/Labels/medsdata_Col_Labels.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+medsdata_Col_Labels[, 2] <- sapply(medsdata_Col_Labels[, 2], as.character)
+
+
+#######################################  Preparing dataset for Impute
+
+
+Catcolmn_medsdata <- medsdata_Col_Labels[medsdata_Col_Labels$Cat ==2 , 2 ] 
+Numcolmn_medsdata <- medsdata_Col_Labels[medsdata_Col_Labels$Cat ==1 , 2 ] 
+Catcolmn_Nul_medsdata <- medsdata_Col_Labels[medsdata_Col_Labels$Cat ==0 , 2 ] 
+WorkingColm_medsdata <- c(Catcolmn_Nul_medsdata, Numcolmn_medsdata, Catcolmn_medsdata)
+
+
+#medsdata_selected = subset(medsdata68,select= WorkingColm )
+
+medsdata_selected = medsdata68[ WorkingColm_medsdata ]
+
+medsdata_selected[, Catcolmn_medsdata] <- sapply(medsdata_selected[, Catcolmn_medsdata], as.numeric)
+medsdata_selected[, Catcolmn_Nul_medsdata] <- sapply(medsdata_selected[, Catcolmn_Nul_medsdata], as.factor)
+medsdata_selected[, Numcolmn_medsdata] <- sapply(medsdata_selected[, Numcolmn_medsdata], as.numeric)
+
+#Look the dataset structure.
+
+sapply(medsdata_selected, function(x) sum(is.na(x)))
+
+
+#==========================  IMPUTATION( MICE package)   =======================
+#recisely, the methods used by this package are:
+#1)-PMM (Predictive Mean Matching) — For numeric variables
+#2)-logreg(Logistic Regression) — For Binary Variables( with 2 levels)
+#3)-polyreg(Bayesian polytomous regression) — For Factor Variables (>= 2 levels)
+#4)-Proportional odds model (ordered, >= 2 levels)
+#5)-cart  Classification and regression trees (any) 
+#6)rf Random forest imputations (any)
+#==============================================================================
+
+meth_medsdata=
+  init_medsdata=
+  predM=
+  init_medsdata = mice(medsdata_selected, maxit=0)
+meth_medsdata = init_medsdata$method
+predM_medsdata = init_medsdata$predictorMatrix
+
+##remove the variable as a predictor but still will be imputed
+
+predM_medsdata[, c("SEQN")]=0
+
+##If you want to skip a variable from imputation use the code below.
+##This variable will still be used for prediction.
+#++++++++++++++++++++++++++++++++++
+#meth[c("Variable")]=""
+
+meth_medsdata[Catcolmn_Nul_medsdata] = ""
+
+#++++++++++++++++++++++++++++++++++
+##Now let specify the methods for imputing the missing values.
+
+meth_medsdata[Catcolmn_medsdata]="rf"
+
+## we impute the Numerical Variable
+
+meth_medsdata[Numcolmn_medsdata]="pmm"
+
+
+set.seed(256)
+imputed_medsdata = mice(medsdata_selected, method=meth_medsdata, predictorMatrix=predM_medsdata, m=5)
+
+#Create a dataset after imputation.
+
+medsdata_imputed<- complete(imputed_medsdata)
+
+
+
+#Check for missings in the imputed dataset.
+sapply(medsdata_imputed, function(x) sum(is.na(x)))
+
+
+
+#######################################  Saving Impute
+
+
+write.csv(medsdata_imputed , "Data/Working/medsdata_imputed.csv")
+medsdata_imputed   = read.csv("Data/Working/medsdata_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+
+#######################################  Upcoming probability to include column
+########################################   names after impute or final model?
 
 
 
