@@ -61,8 +61,8 @@ ggsave(plot = demographic_MS_plot,width = 8, height =4, dpi = 300,
 
 demographic_MS_plot
 
-#<<<<<<< HEAD
-#library(VIM) 
+
+
 #aggr(demographic,only.miss=TRUE,numbers=TRUE,sortVar=TRUE)
 
 ##################   diet_MS : MS stand for missing data      ####################
@@ -70,7 +70,7 @@ demographic_MS_plot
 ##################   diet_MS : MS stand for missing data###################################
 
 
-#>>>>>>> ffc62e6b80ea63248a4d851391542e470f9e7ed9
+
 diet_MS <- diet %>% summarise_all(~(sum(is.na(.))/n()))
 diet_MS <- gather(diet_MS, key = "variables", value = "percent_missing")
 diet_MS <- diet_MS[diet_MS$percent_missing > 0.0, ] 
@@ -85,6 +85,8 @@ ggsave(plot = diet_MS_plot, width = 8, height = 4, dpi = 300,
        filename = "Figures/diet_MS_plot.png")
 
 diet_MS_plot
+
+
 
 ################## examination_MS : MS stand for missing data#############################
 
@@ -104,6 +106,7 @@ ggsave(plot = examination_MS_plot, width = 8, height = 4, dpi = 300,
 examination_MS_plot
 
 
+
 ################## medications_MS : MS stand for missing data ##########################
 
 medications_MS <- medications %>% summarise_all(~(sum(is.na(.))/n()))
@@ -120,6 +123,8 @@ ggsave(plot = medications_MS_plot, width = 8, height = 3,  dpi = 300,
        filename = "Figures/medications_MS_plot.png")
 
 medications_MS_plot
+
+
 
 
 ############################## labs_MS : MS stand for missing data ####################
@@ -175,6 +180,13 @@ questionnaire_MS_less25
 questionnaire_MS_less50
 
 questionnaire_MS_less75
+
+
+################################################################################
+########################           Demographic Impute #1    ####################
+######################  Choosing interesting variables manually   ##############
+
+################################################################################
 
 
 ################################################################################
@@ -291,16 +303,6 @@ write.csv(demo_subset_8_imputed , "Data/Working/demographic_major_imputed.csv")
 
 #write.csv(demo_subset_8_imputed,file = "Data/Working/demo_subset_8_imputed.csv")
 
-
-
-
-########################################## FROM HERE ####################################3
-
-
-
-
-
-
 # histogramme
 
 multi.hist(demo_subset_8_imputed[,sapply(demo_subset_8_imputed, is.numeric)])
@@ -413,6 +415,258 @@ Gender_plot
 
 ggsave(plot = Gender_plot,dpi = 300, 
      filename = "Figures/Gender_plot.png")
+##########################  Country_of_birth #############
+Country_of_birth  <- demo_subset_8_labeled %>%
+  group_by(Country_of_birth) %>%
+  summarize(count=n()) %>%
+  arrange(desc(count))%>%
+  mutate(pct = count / sum(count),
+         pctlabel = paste0(round(pct*100), "%"),
+         lab.ypos = 100*cumsum(pct) - 0.5  *100*pct) 
+
+
+#Bar plot
+
+require(scales)
+Birth_plot <- ggplot(Country_of_birth, aes(x = reorder(Country_of_birth, -pct),y = pct)) + 
+  geom_bar(stat = "identity", fill = "indianred3", color = "black") +
+  geom_text(aes(label = pctlabel), vjust = -0.25) +
+  scale_y_continuous(labels = percent) +
+  labs(x = "Country of birth", y = "percantage", title  = "Bar Chart of Country of birth")  
+
+
+Birth_plot
+
+#Pie plot
+#Birth_plot <-ggplot(Country_of_birth, aes(x = "", y =  round(100*count/sum(count), 1), fill =  reorder(Country_of_birth,count))) +
+#  geom_bar(width = 1, stat = "identity", color = "white") +
+#  coord_polar("y", start = 0)+
+#  geom_text(aes(y = cumsum(100*count/sum(count)) - 0.5*(100*count/sum(count)), label = paste(round(count/sum(count)*100),"%")), color = "black")+
+#  ggtitle("Pie plot of Country of birth")+
+#  scale_fill_grey(start = 0.8, end = 0.2,"Country_of_birth") + theme_void()
+
+ggsave(plot = Birth_plot, dpi = 300, 
+       filename = "Figures/Birth_plot.png")
+
+
+########################  Marital_status  #######################
+
+Marital_status  <- demo_subset_8_labeled %>%
+  group_by(Marital_status) %>%
+  summarize(count=n()) %>%
+  arrange(desc(count))%>%
+  mutate(pct = count / sum(count),
+         pctlabel = paste0(round(pct*100), "%"),
+         lab.ypos = 100*cumsum(pct) - 0.5  *100*pct) 
+
+#Bar plot
+
+require(scales)
+Marital_plot <- ggplot(Marital_status, aes(x = reorder(Marital_status, -pct),y = pct)) + 
+  geom_bar(stat = "identity", fill = "indianred3", color = "black") +
+  geom_text(aes(label = pctlabel), vjust = -0.25) +
+  scale_y_continuous(labels = percent) +
+  labs(x = "Marital status", y = "percantage", title  = "Bar Chart of Marital status in US ")  +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+#Pie plot
+#Marital_plot <- ggplot(Marital_status, aes(x = "", y =  round(100*count/sum(count), 1), fill =  reorder(Marital_status ,count))) +
+#  geom_bar(width = 1, stat = "identity", color = "white") +
+#  coord_polar("y", start = 0)+
+#  geom_text(aes(y = cumsum(100*count/sum(count)) - 0.5*(100*count/sum(count)), label = paste(round(count/sum(count)*100),"%")), color = "black")+
+#  ggtitle("Pie plot of Marital status")+
+#  scale_fill_grey(start = 0.8, end = 0.2,"Marital_status") + theme_void()
+
+
+
+ggsave(plot = Marital_plot, dpi = 300, 
+       filename = "Figures/Marital_plot.png")
+
+
+Marital_plot
+########################  Race  #######################
+
+Race  <- demo_subset_8_labeled %>%
+  group_by(Race) %>%
+  summarize(count=n()) %>%
+  arrange(desc(count))%>%
+  mutate(pct = count / sum(count),
+         pctlabel = paste0(round(pct*100), "%"),
+         lab.ypos = 100*cumsum(pct) - 0.5  *100*pct) 
+
+
+
+
+#Bar plot
+
+require(scales)
+Race_plot <- ggplot(Race, aes(x = reorder(Race, -pct),y = pct)) + 
+  geom_bar(stat = "identity", fill = "indianred3", color = "black") +
+  geom_text(aes(label = pctlabel), vjust = -0.25) +
+  scale_y_continuous(labels = percent) +
+  labs(x = "Race", y = "percantage", title  = "Bar Chart of Race in US ")  +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+Race_plot
+
+#Pie plot
+#Race_plot <- ggplot(Race, aes(x = "", y =  round(100*count/sum(count), 1), fill =  reorder(Race ,count))) +
+#  geom_bar(width = 1, stat = "identity", color = "white") +
+#  coord_polar("y", start = 0)+
+#  geom_text(aes(y = cumsum(100*count/sum(count)) - 0.5*(100*count/sum(count)), label = paste(round(count/sum(count)*100),"%")), color = "black")+
+#  ggtitle("Pie plot of Race")+
+#  scale_fill_grey(start = 0.8, end = 0.2,"Races") + theme_void()
+
+ggsave(plot = Race_plot, dpi = 300, 
+       filename = "Figures/Race_plot.png")
+
+
+################################################################################
+########################           Demographic Impute #2    ####################
+######################  Keeping all available data for data engineering  #######
+
+################################################################################
+
+
+################################################################################
+########################           demographics    #############################
+################################################################################
+
+
+
+
+
+
+########################################## FROM HERE ####################################3
+
+
+
+
+
+demo_subset_8_imputed<- demo_subset_8_imputed %>% 
+  rename("ID"                 =         "SEQN",  
+         "Gender"             =     "RIAGENDR",  
+         "Age"                =     "RIDAGEYR",  
+         "Race"               =     "RIDRETH3",  
+         "Country_of_birth"   =     "DMDBORN4",  
+         "Citizenship_status" =     "DMDCITZN",   
+         "Family_members"     =     "DMDFMSIZ",  
+         "Marital_status"     =     "DMDHRMAR",  
+         "Family_income"      =     "INDFMIN2"  )
+
+
+# histogramme
+
+multi.hist(demo_subset_8_imputed[,sapply(demo_subset_8_imputed, is.numeric)])
+
+#Most of the variables  have right skewed distributions.
+
+demo_subset_8_labeled = mutate(demo_subset_8_imputed, Gender= ifelse(
+  demo_subset_8_imputed$Gender == "1" , "Male", "Female" ))
+
+
+require(dplyr)# because Race is a factor of level 6
+demo_subset_8_labeled <- demo_subset_8_labeled %>%
+  mutate(Race = recode(Race, "1" = "Mexican_American",
+                       "2" = "Other_Hispanic",
+                       "3" = "White",
+                       "4" = "Black",
+                       "6" = "Asian",
+                       "7" = "multiracial"))
+
+#demo_subset_8_processed <- demo_subset_8_processed %>% 
+# mutate(Race = replace(Race, Race == 1, "Mexican_American")) %>%
+# mutate(Race = replace(Race, Race == 2, "Other_Hispanic")) %>%
+#  mutate(Race = replace(Race, Race == 3, "White")) %>%
+#  mutate(Race = replace(Race, Race == 4, "Black")) %>%
+#  mutate(Race = replace(Race, Race == 6, "Asian")) %>%
+#  mutate(Race = replace(Race, Race == 7, "multiracial")) 
+
+
+demo_subset_8_labeled <- demo_subset_8_labeled %>%
+  mutate(Country_of_birth  = recode(Country_of_birth , "1" = "US",
+                                    "2" = "Others",
+                                    "77" = "Refused",
+                                    "99" = "Uknown"))
+
+demo_subset_8_labeled <- demo_subset_8_labeled %>%
+  mutate(Citizenship_status = recode(Citizenship_status, "1" = "US",
+                                     "2" = "Other",
+                                     "7" = "Refused",
+                                     "9" = "Unknown"))
+
+demo_subset_8_labeled <- demo_subset_8_labeled %>%
+  mutate(Marital_status = recode(Marital_status, "1" = "Married",
+                                 "2" = "Widowed",
+                                 "3" = "Divorced",
+                                 "4" = "Separated",
+                                 "5" = "Never_married",
+                                 "6" = "partner",
+                                 "77" = "Refused",
+                                 "99" = "Unknown"))
+
+
+
+demo_subset_8_labeled <- demo_subset_8_labeled %>%
+  mutate(Family_income = recode(Family_income, "1" = 	"$0 - $4999",
+                                "2" =	"$5000 - $9999",
+                                "3" =	"$10000 - $14999",
+                                "4" =	"$15000 - $19999",		
+                                "5" =	"$20000 - $24999",		
+                                "6" =	"$25000 - $34999",		
+                                "7" =	"$35000 - $44999",	
+                                "8" =	"$45000 - $54999",		
+                                "9" =	"$55000 - $64999",		
+                                "10" = 	"$65000 - $74999",		
+                                "12" =	"$20000 and Over",	
+                                "13" =	"Under $20000",	
+                                "14" =	"$75000 - $99999",	
+                                "15" = "$100000 and Over",	
+                                "77" =	"Refused",
+                                "99" =	"Unknown"	))
+
+demo_subset_8_labeled$Family_income <- as.factor(demo_subset_8_labeled$Family_income)
+demo_subset_8_imputed$Family_income <- as.factor(demo_subset_8_imputed$Family_income)
+
+
+write.csv(demo_subset_8_labeled,file = "Data/Working/demo_subset_8_labeled.csv")
+
+##########################  Gender #############
+Gender  <- demo_subset_8_labeled %>%
+  group_by(Gender) %>%
+  summarize(count=n()) %>%
+  arrange(desc(count))%>%
+  mutate(pct = count / sum(count),
+         pctlabel = paste0(round(pct*100), "%"),
+         lab.ypos = 100*cumsum(pct) - 0.5  *100*pct) 
+
+
+head(Gender)
+
+
+require(scales)
+ggplot(Gender, aes(x = reorder(Gender, -pct),y = pct)) + 
+  geom_bar(stat = "identity", fill = "indianred3", color = "black") +
+  geom_text(aes(label = pctlabel), vjust = -0.25) +
+  scale_y_continuous(labels = percent) +
+  labs(x = "Gender", y = "percantage", title  = "Bar Chart of Gender")  
+
+#brewer.pal( 2, name = "Dark2")
+
+Gender_plot <- ggplot(Gender, aes(x = "", y =  round(100*pct, 1), fill = reorder(Gender,count))) +
+  geom_bar(width = 1, stat = "identity", color = "white") +
+  geom_text(aes(y = lab.ypos, label = pctlabel), color = "black")+
+  coord_polar("y", start = 0) +
+  ggtitle("Pie plot of Gender")+
+  scale_fill_grey(start = 0.8, end = 0.2,"Gender") + theme_void()
+
+Gender_plot
+
+#ggsave(plot = Gender_plot, width = 3, height = 3, dpi = 300, 
+#     filename = "Figures/Gender_plot.png")
+
+ggsave(plot = Gender_plot,dpi = 300, 
+       filename = "Figures/Gender_plot.png")
 ##########################  Country_of_birth #############
 Country_of_birth  <- demo_subset_8_labeled %>%
   group_by(Country_of_birth) %>%
