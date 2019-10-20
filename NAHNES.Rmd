@@ -147,7 +147,7 @@ data_joined = join_all(data_list)
 ## Checking for missing data
 It is always important to check for missing values and consider how to fix them.
 
-We decided to represent the Demographic and Medications datasets as they are mostly complete.
+We decided to represent the Demographic and Diet datasets as they are mostly complete.
 
 We found that the percentage of missing data in four of the six spreadsheets is very significant. Almost all attributes/columns have varying degrees of missing values.
 
@@ -396,6 +396,7 @@ sapply(demo_subset_8_imputed, function(x) sum(is.na(x)))
 
 ```
 
+\pagebreak
 
 ```{r, eval=F, echo=TRUE, warning = F, message=F}
 
@@ -592,6 +593,7 @@ Our samples is pretty representative of the US population:
 
 
 ### Diet
+<!-- https://wwwn.cdc.gov/nchs/nhanes/search/variablelist.aspx?Component=Dietary&CycleBeginYear=2013 -->
 Among the 88 columns with less than 25% of missing value we have selected sixty-nine interesting columns:
 * **ID (SEQN)** - Respondent sequence number.
 
@@ -630,7 +632,30 @@ After imputation missing values:
 
 These variables/attributes are referring to the one day nutrituion numerical attributes.  
 
+### Examination
+<!-- https://wwwn.cdc.gov/nchs/nhanes/search/variablelist.aspx?Component=Examination&CycleBeginYear=2013 -->
+Among the 105 columns with less than 25% of missing value we have selected <which> relevant columns:
+
+* **ID (SEQN)** - Respondent sequence number.
+
+examination_MS <- examination %>% summarise_all(~(sum(is.na(.))/n()))
+examination_MS <- gather(examination_MS, key = "variables", value = "percent_missing")
+examination_MS[examination_MS[2]<0.25,][[1]]
+
+
+### Labs
+<!-- https://wwwn.cdc.gov/nchs/nhanes/search/variablelist.aspx?Component=Laboratory&CycleBeginYear=2013 -->
+Among the 46 columns with less than 25% of missing value we have selected <which> relevant columns:
+
+* **ID (SEQN)** - Respondent sequence number.
+
+labs_MS <- labs %>% summarise_all(~(sum(is.na(.))/n()))
+labs_MS <- gather(labs_MS, key = "variables", value = "percent_missing")
+labs_MS[labs_MS[2]<0.25,][[1]]
+
+
 ### Medication
+<!-- https://wwwn.cdc.gov/Nchs/Nhanes/2013-2014/RXQ_RX_H.htm -->
 All of the columns had more than 25% missing value. Among the 8 columns with less than 32% of missing value we have selected five relevant columns:
 
 * **ID (SEQN)** - Respondent sequence number.
@@ -639,6 +664,15 @@ All of the columns had more than 25% missing value. Among the 8 columns with les
 * **Medication_purpose (RXDRSD1)** - Reasons for use reported by participants
 * **Amount_taken (RXDCOUNT)** - Number of prescription medicines taken
 
+
+### Questionnaire
+<!-- https://wwwn.cdc.gov/nchs/nhanes/search/variablelist.aspx?Component=Questionnaire&CycleBeginYear=2013 -->
+Among the 79 columns with less than 25% of missing value we have selected <which> relevant columns:
+
+* **ID (SEQN)** - Respondent sequence number.
+questionnaire_MS <- questionnaire %>% summarise_all(~(sum(is.na(.))/n()))
+questionnaire_MS <- gather(questionnaire_MS, key = "variables", value = "percent_missing")
+questionnaire_MS[questionnaire_MS[2]<0.25,][[1]]
 
 
 
@@ -668,6 +702,7 @@ It is useful to show histograms of all numeric columns.
 ```{r, eval=FALSE, echo=TRUE}
 
 ```
+
 
 # Problem 1: Clustering
 
@@ -705,6 +740,9 @@ It is useful to show histograms of all numeric columns.
 ```{r, eval=FALSE, echo=TRUE}
 
 ```
+
+
+
 
 
 
