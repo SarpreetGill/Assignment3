@@ -303,7 +303,7 @@ https://wwwn.cdc.gov/nchs/nhanes/continuousnhanes/default.aspx?BeginYear=2013
 We have inspected the above data dictionary and we have selected the following relevant values for further analysis:
 
 ### Demographic
-Among the 32 columns with less than 25% of missing value we have selected eight relevant columns:
+We have selected the following 8 relevant columns among the 32 that have less than 25% of missing values:
 
 * **ID (SEQN)** - Respondent sequence number..
 * **Gender (RIAGENDR)** - Gender of the participant..
@@ -594,7 +594,7 @@ Our samples is pretty representative of the US population:
 
 ### Diet
 <!-- https://wwwn.cdc.gov/nchs/nhanes/search/variablelist.aspx?Component=Dietary&CycleBeginYear=2013 -->
-Among the 88 columns with less than 25% of missing value we have selected sixty-nine relevant columns:
+We have selected the following 69 relevant columns among the 88 that have less than 25% of missing values:
 
 * **ID (SEQN)** - Respondent sequence number.
 * **Number_of_foods (DR1TNUMF)** - Total number of foods/beverages reported in the individual foods file.
@@ -712,7 +712,7 @@ These variables/attributes are referring to the one day nutrituion numerical att
 
 ### Examination
 <!-- https://wwwn.cdc.gov/nchs/nhanes/search/variablelist.aspx?Component=Examination&CycleBeginYear=2013 -->
-Among the 105 columns with less than 25% of missing value we have selected twelve relevant columns:
+We have selected the following 12 relevant columns among the 105 that have less than 25% of missing values:
 
 * **ID (SEQN)** - Respondent sequence number.
 * **BP_test_time (PEASCTM1)** - Blood Pressure Time in Seconds.
@@ -732,7 +732,7 @@ Among the 105 columns with less than 25% of missing value we have selected twelv
 
 ### Labs
 <!-- https://wwwn.cdc.gov/nchs/nhanes/search/variablelist.aspx?Component=Laboratory&CycleBeginYear=2013 -->
-Among the 46 columns with less than 25% of missing value we have selected nine relevant columns:
+We have selected the following 9 relevant columns among the 46 that have less than 25% of missing values:
 
 * **ID (SEQN)** - Respondent sequence number..
 * **White_cells_count (LBXWBCSI)** - White blood cell count (1000 cells/uL).
@@ -890,7 +890,7 @@ write.csv(labs_subset_labelled,file = "labs_subset_labelled.csv")
 
 ### Medication
 <!-- https://wwwn.cdc.gov/Nchs/Nhanes/2013-2014/RXQ_RX_H.htm -->
-All of the columns had more than 25% missing value. Among the 8 columns with less than 32% of missing value we have selected five relevant columns:
+All of the columns had more than 25% missing values. Among the 8 columns with less than 32% of missing value we have selected the following 5 relevant columns:
 
 * **ID (SEQN)** - Respondent sequence number.
 * **Medication (RXDDRGID)** - Generic drug name
@@ -903,7 +903,7 @@ All of the columns had more than 25% missing value. Among the 8 columns with les
 
 ### Questionnaire
 <!-- https://wwwn.cdc.gov/nchs/nhanes/search/variablelist.aspx?Component=Questionnaire&CycleBeginYear=2013 -->
-Among the 79 columns with less than 25% of missing value we have selected thirty-eight relevant columns:
+We have selected the following 38 relevant columns among the 79 that have less than 25% of missing values:
 
 * **ID (SEQN)** - Respondent sequence number.
 * **Spent_total (CBD070)** - The next questions are about how much money {your family spends/you spend} on food. First I'll ask you about money spent at supermarkets or grocery stores. Then we will talk about money spent at other types of stores. During the past 30 days, how much money {did your family/did you} spend at supermarkets or grocery stores? Please include purchases made with food stamps..
