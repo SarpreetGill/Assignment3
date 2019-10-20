@@ -702,16 +702,28 @@ After imputation missing values:
 
 These variables/attributes are referring to the one day nutrituion numerical attributes.  
 
+
+\pagebreak
+
 ### Examination
 <!-- https://wwwn.cdc.gov/nchs/nhanes/search/variablelist.aspx?Component=Examination&CycleBeginYear=2013 -->
 Among the 105 columns with less than 25% of missing value we have selected <which> relevant columns:
 
 * **ID (SEQN)** - Respondent sequence number.
+* **BP_test_time (PEASCTM1)** - Blood Pressure Time in Seconds.
+* **BP_arm (BPAARM)** - Arm selected:.
+* **BP_Systolic (BPXSY2)** - Systolic: Blood pressure (second reading) mm Hg.
+* **BP_Diastolic (BPXDI2)** - Diastolic: Blood pressure (second reading) mm Hg.
+* **Weight (BMXWT)** - Weight (kg).
+* **Height (BMXHT)** - Standing Height (cm).
+* **Leg_length (BMXBMI)** - Body Mass Index (kg/m**2).
+* **Arm_length (BMXLEG)** - Upper Leg Length (cm).
+* **Waist_circumference (BMXWAIST)** - Waist Circumference (cm).
+* **Dominant_hand (MGD130)** - Are you right-handed, left-handed, or do you use both hands equally?.
+* **Grip_strength (MGDCGSZ)** - Combined grip strength (kg): the sum of the largest reading from each hand..
 
-examination_MS <- examination %>% summarise_all(~(sum(is.na(.))/n()))
-examination_MS <- gather(examination_MS, key = "variables", value = "percent_missing")
-examination_MS[examination_MS[2]<0.25,][[1]]
 
+\pagebreak
 
 ### Labs
 <!-- https://wwwn.cdc.gov/nchs/nhanes/search/variablelist.aspx?Component=Laboratory&CycleBeginYear=2013 -->
@@ -722,9 +734,13 @@ Among the 46 columns with less than 25% of missing value we have selected six re
 * **Red_cells_count (LBXRBCSI)** - Red blood cell count (million cells/uL).
 * **Caffeine (PHQ020)** - Coffee or tea with cream or sugar? [Include milk or non-dairy creamers.].
 * **Alcohol (PHQ030)** - Alcohol, such as beer, wine, or liquor?.
-* **Supplements (PHQ060)** - Dietary supplements such as vitamins and minerals?…e multivitamins and single nutrient supplements.].
+* **Supplements (PHQ060)** - Dietary supplements such as vitamins and minerals? [Include multivitamins and single nutrient supplements.].
+* **Hepatitis_a (LBXHA)** - Hepatitis A antibody.
+* **Hepatitis_b (LBXHBC)** - Hepatitis B core antibody.
 * **Cholesterol (LBXTC)** - Total Cholesterol( mg/dL).
 
+
+\pagebreak
 
 ### Medication
 <!-- https://wwwn.cdc.gov/Nchs/Nhanes/2013-2014/RXQ_RX_H.htm -->
