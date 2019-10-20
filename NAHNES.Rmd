@@ -109,6 +109,7 @@ library(factoextra)
 library(RColorBrewer)
 library(caret)
 library(plotly)
+library(scales)
 ```
 
 
