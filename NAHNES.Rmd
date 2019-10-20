@@ -753,14 +753,50 @@ All of the columns had more than 25% missing value. Among the 8 columns with les
 * **Amount_taken (RXDCOUNT)** - Number of prescription medicines taken
 
 
+\pagebreak
+
 ### Questionnaire
 <!-- https://wwwn.cdc.gov/nchs/nhanes/search/variablelist.aspx?Component=Questionnaire&CycleBeginYear=2013 -->
 Among the 79 columns with less than 25% of missing value we have selected <which> relevant columns:
 
 * **ID (SEQN)** - Respondent sequence number.
-questionnaire_MS <- questionnaire %>% summarise_all(~(sum(is.na(.))/n()))
-questionnaire_MS <- gather(questionnaire_MS, key = "variables", value = "percent_missing")
-questionnaire_MS[questionnaire_MS[2]<0.25,][[1]]
+* **Spent_total (CBD070)** - The next questions are about how much money {your family spends/you spend} on food. First I'll ask you about money spent at supermarkets or grocery stores. Then we will talk about money spent at other types of stores. During the past 30 days, how much money {did your family/did you} spend at supermarkets or grocery stores? Please include purchases made with food stamps..
+* **Spent_groceries (CBD110)** - About how much money {did your family/did you} spend on food at these types of stores? (Please do not include any stores you have already told me about.).
+* **Spent_vending (CBD120)** - During the past 30 days, how much money {did your family/did you} spend on eating out? Please include money spent in cafeterias at work or at school or on vending machines, for all family members..
+* **Spent_delivered (CBD130)** - During the past 30 days, how much money {did your family/did you} spend on food carried out or delivered? Please do not include money you have already told me about..
+* **Cold_30 (HSQ500)** - Did {you/SP} have a head cold or chest cold that started during those 30 days?.
+* **Stomach_30 (HSQ510)** - Did {you/SP} have a stomach or intestinal illness with vomiting or diarrhea that started during those 30 days?.
+* **Flu_30 (HSQ520)** - Did {you/SP} have flu, pneumonia, or ear infections that started during those 30 days?.
+* **Diabetes (DIQ010)** - The next questions are about specific medical conditions. {Other than during pregnancy, {have you/has SP}/{Have you/Has SP}} ever been told by a doctor or health professional that {you have/{he/she/SP} has} diabetes or sugar diabetes?.
+* **Taking_insuline (DIQ050)** - {Is SP/Are you} now taking insulin.
+* **Milk_30 (DBQ197)** - Now I'm going to ask a few questions about milk products. Do not include their use in cooking. In the past 30 days, how often did {you/SP} have milk to drink or on {your/his/her} cereal? Please include chocolate and other flavored milks as well as hot cocoa made with milk. Do not count small amounts of milk added to coffee or tea. Would you say....
+* **Meals_outside (DBD895)** - Next I'm going to ask you about meals. By meal, I mean breakfast, lunch and dinner. During the past 7 days, how many meals {did you/did SP} get that were prepared away from home in places such as restaurants, fast food places, food stands, grocery stores, or from vending machines? {Please do not include meals provided as part of the school lunch or school breakfast./Please do not include meals provided as part of the community programs you reported earlier.}.
+* **Meals_premade (DBD905)** - Some grocery stores sell "ready to eat" foods such as salads, soups, chicken, sandwiches and cooked vegetables in their salad bars and deli counters. During the past 30 days, how often did {you/SP} eat "ready to eat" foods from the grocery store? Please do not include sliced meat or cheese you buy for sandwiches and frozen or canned foods..
+* **Meals_frozen (DBD910)** - During the past 30 days, how often did you {SP} eat frozen meals or frozen pizzas? Here are some examples of frozen meals and frozen pizzas..
+* **Deafness (DLQ010)** - With this next set of questions, we want to learn about people who have physical, mental, or emotional conditions that cause serious difficulties with their daily activities. Though different, these questions may sound similar to ones I asked earlier. {Are you/Is SP} deaf or {do you/does he/does she} have serious difficulty hearing?.
+* **Blindness (DLQ020)** - {Are you/Is SP} blind or {do you/does he/does she} have serious difficulty seeing even when wearing glasses?.
+* **Forgetfulness (DLQ040)** - Because of a physical, mental, or emotional condition, {do you/does he/does she} have serious difficulty concentrating, remembering, or making decisions?.
+* **Food_assistance (FSD151)** - In the last 12 months, did {you/you or any member of your household} ever get emergency food from a church, a food pantry, or a food bank, or eat in a soup kitchen?.
+* **WIC_assistance (FSQ162)** - In the last 12 months, did {you/you or any member of your household} receive benefits from the WIC program, that is, the Women, Infants and Children program?.
+* **Insurance_current (HIQ011)** - The (first/next) questions are about health insurance. {Are you/Is SP} covered by health insurance or some other kind of health care plan? [Include health insurance obtained through employment or purchased directly as well as government programs like Medicare and Medicaid that provide medical care or help pay medical bills.].
+* **Insurance_lapse_12 (HIQ210)** - In the past 12 months, was there any time when {you/SP} did not have any health insurance coverage?.
+* **House_rooms (HOD050)** - How many rooms are in this home? Count the kitchen but not the bathroom..
+* **Health_current (HUQ010)** - {First/Next} I have some general questions about {your/SP's} health. Would you say {your/SP's} health in general is . . ..
+* **Health_institution (HUQ041)** - {What kind of place is it - a clinic, doctor's office, emergency room, or some other place?} {What kind of place {do you/does SP} go to most often - a clinic, doctor's office, emergency room, or some other place?}.
+* **Doctor_visits_12 (HUQ051)** - {During the past 12 months, how/How} many times {have you/has SP} seen a doctor or other health care professional about {your/his/her} health at a doctor's office, a clinic or some other place? Do not include times {you were/s/he was} hospitalized overnight, visits to hospital emergency rooms, home visits or telephone calls..
+* **Health_mental_12 (HUQ090)** - During the past 12 months, that is since {DISPLAY CURRENT MONTH} of {DISPLAY LAST YEAR}, {have you/has SP} seen or talked to a mental health professional such as a psychologist, psychiatrist, psychiatric nurse or clinical social worker about {your/his/her} health?.
+* **Family_income_mo (IND235)** - Monthly family income (reported as a range value in dollars)..
+* **Asthma (MCQ010)** - The following questions are about different medical conditions. Has a doctor or other health professional ever told {you/SP} that {you have/s/he/SP has} asthma (az-ma)?.
+* **Anemia (MCQ053)** - During the past 3 months, {have you/has SP} been on treatment for anemia (a-nee-me-a), sometimes called "tired blood" or "low blood"? [Include diet, iron pills, iron shots, transfusions as treatment.].
+* **Celiac (MCQ082)** - Has a doctor or other health professional ever told {you/SP} that {you have/s/he/SP has} celiac (sele-ak) disease, also called or sprue (sproo)?.
+* **Gluten_free_diet (MCQ086)** - {Are you/is SP} on a gluten-free diet?.
+* **Jaundice (MCQ203)** - Has anyone ever told {you/SP} that {you/she/he/SP} had yellow skin, yellow eyes or jaundice? Please do not include infant jaundice, which is common during the first weeks after birth..
+* **Asthma_relatives (MCQ300B)** - Including living and deceased, were any of {SP's/your} close biological that is, blood relatives including father, mother, sisters or brothers, ever told by a health professional that they had asthma (az-ma)?.
+* **Dentist_visit_since (OHQ030)** - The next questions are about {your/SP's} teeth and gums. About how long has it been since {you/SP} last visited a dentist? Include all types of dentists, such as, orthodontists, oral surgeons, and all other dental specialists, as well as dental hygienists..
+* **TV_30 (PAQ710)** - Now I will ask you first about TV watching and then about computer use. Over the past 30 days, on average how many hours per day did {you/SP} sit and watch TV or videos? Would you say . . ..
+* **Gaming_hours (PAQ715)** - Over the past 30 days, on average how many hours per day did {you/SP} use a computer or play computer games outside of school? Include Playstation, Nintendo DS, or other portable video games Would you say . . ..
+* **Smoking_relatives (SMD460)** - Now I would like to ask you a few questions about smoking in this home. How many people who live here smoke cigarettes, cigars, little cigars, pipes, water pipes, hookah, or any other tobacco product?.
+* **Ride_motor_vehicle (SMQ870)** - During the last 7 days, did {you/SP} ride in a car or motor vehicle?.
 
 
 
