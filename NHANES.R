@@ -291,6 +291,16 @@ write.csv(demo_subset_8_imputed , "Data/Working/demographic_major_imputed.csv")
 
 #write.csv(demo_subset_8_imputed,file = "Data/Working/demo_subset_8_imputed.csv")
 
+
+
+
+########################################## FROM HERE ####################################3
+
+
+
+
+
+
 # histogramme
 
 multi.hist(demo_subset_8_imputed[,sapply(demo_subset_8_imputed, is.numeric)])
