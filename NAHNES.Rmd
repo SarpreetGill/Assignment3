@@ -300,10 +300,10 @@ As per our guidelines, we will select attributes/columns of interest based on ou
 
 https://wwwn.cdc.gov/nchs/nhanes/continuousnhanes/default.aspx?BeginYear=2013
 
-We have inspected the above data dictionary and we have selected the following interesting values for further analysis:
+We have inspected the above data dictionary and we have selected the following relevant values for further analysis:
 
 ### Demographic
-Among the 32 columns with less than 25% of missing value we have selected eight interesting columns:
+Among the 32 columns with less than 25% of missing value we have selected eight relevant columns:
 
 * **ID (SEQN)** - Respondent sequence number.
 * **Gender (RIAGENDR)** - Gender of the participant.
@@ -594,8 +594,78 @@ Our samples is pretty representative of the US population:
 
 ### Diet
 <!-- https://wwwn.cdc.gov/nchs/nhanes/search/variablelist.aspx?Component=Dietary&CycleBeginYear=2013 -->
-Among the 88 columns with less than 25% of missing value we have selected sixty-nine interesting columns:
+Among the 88 columns with less than 25% of missing value we have selected sixty-nine relevant columns:
+
 * **ID (SEQN)** - Respondent sequence number.
+* **Number_of_foods (DR1TNUMF)** - Total number of foods/beverages reported in the individual foods file.
+* **Energy_kcal (DR1TKCAL)** - Energy (kcal).
+* **Protein (DR1TPROT)** - Protein (gm).
+* **Carbohydrate (DR1TCARB)** - Carbohydrate (gm).
+* **Sugar (DR1TSUGR)** - Total sugars (gm).
+* **Fiber (DR1TFIBE)** - Dietary fiber (gm).
+* **Total_fat (DR1TTFAT)** - Total fat (gm).
+* **Sat_fats (DR1TSFAT)** - Total saturated fatty acids (gm).
+* **Mono_fats (DR1TMFAT)** - Total monounsaturated fatty acids (gm).
+* **Poly_fats (DR1TPFAT)** - Total polyunsaturated fatty acids (gm).
+* **Cholesterol (DR1TCHOL)** - Cholesterol (mg).
+* **Tocopherol (DR1TATOC)** - Vitamin E as alpha-tocopherol (mg).
+* **Tocopherol_alpha (DR1TATOA)** - Added alpha-tocopherol (Vitamin E) (mg).
+* **Retinol (DR1TRET)** - Retinol (mcg).
+* **Retinol_a (DR1TVARA)** - Vitamin A as retinol activity equivalents (mcg).
+* **Carotene_alpha (DR1TACAR)** - Alpha-carotene (mcg).
+* **Carotene_beta (DR1TBCAR)** - Beta-carotene (mcg).
+* **Cryptoxanthin (DR1TCRYP)** - Beta-cryptoxanthin (mcg).
+* **Lycopene (DR1TLYCO)** - Lycopene (mcg).
+* **Lutein_zeaxanthin (DR1TLZ)** - Lutein + zeaxanthin (mcg).
+* **Thiamin (DR1TVB1)** - Thiamin (Vitamin B1) (mg).
+* **Riboflavin (DR1TVB2)** - Riboflavin (Vitamin B2) (mg).
+* **Niacin (DR1TNIAC)** - Niacin (mg).
+* **Vitamin_b6 (DR1TVB6)** - Vitamin B6 (mg).
+* **Folate (DR1TFOLA)** - Total folate (mcg).
+* **Folic_acid (DR1TFA)** - Folic acid (mcg).
+* **Folate_food (DR1TFF)** - Food folate (mcg).
+* **Folate_equivs (DR1TFDFE)** - Folate as dietary folate equivalents (mcg).
+* **Choline (DR1TCHL)** - Total choline (mg).
+* **Vitamine_b12 (DR1TVB12)** - Vitamin B12 (mcg).
+* **Vitamine_b12_added (DR1TB12A)** - Added vitamin B12 (mcg).
+* **Vitamine_c (DR1TVC)** - Vitamin C (mg).
+* **Vitamine_d (DR1TVD)** - Vitamin D (D2 + D3) (mcg).
+* **Vitamine_k (DR1TVK)** - Vitamin K (mcg).
+* **Calcium (DR1TCALC)** - Calcium (mg).
+* **Phosphorus (DR1TPHOS)** - Phosphorus (mg).
+* **Magnesium (DR1TMAGN)** - Magnesium (mg).
+* **Iron (DR1TIRON)** - Iron (mg).
+* **Zinc (DR1TZINC)** - Zinc (mg).
+* **Copper (DR1TCOPP)** - Copper (mg).
+* **Sodium (DR1TSODI)** - Sodium (mg).
+* **Potassium (DR1TPOTA)** - Potassium (mg).
+* **Selenium (DR1TSELE)** - Selenium (mcg).
+* **Caffeine (DR1TCAFF)** - Caffeine (mg).
+* **Theobromine (DR1TTHEO)** - Theobromine (mg).
+* **Alcohol (DR1TALCO)** - Alcohol (gm).
+* **Moisture (DR1TMOIS)** - Moisture (gm).
+* **Butanoic (DR1TS040)** - SFA 4:0 (Butanoic) (gm).
+* **Hexanoic (DR1TS060)** - SFA 6:0 (Hexanoic) (gm).
+* **Octanoic (DR1TS080)** - SFA 8:0 (Octanoic) (gm).
+* **Decanoic (DR1TS100)** - SFA 10:0 (Decanoic) (gm).
+* **Dodecanoic (DR1TS120)** - SFA 12:0 (Dodecanoic) (gm).
+* **Tetradecanoic (DR1TS140)** - SFA 14:0 (Tetradecanoic) (gm).
+* **Hexadecanoic (DR1TS160)** - SFA 16:0 (Hexadecanoic) (gm).
+* **Octadecanoic (DR1TS180)** - SFA 18:0 (Octadecanoic) (gm).
+* **Hexadecenoic (DR1TM161)** - MFA 16:1 (Hexadecenoic) (gm).
+* **Octadecenoic (DR1TM181)** - MFA 18:1 (Octadecenoic) (gm).
+* **Eicosenoic (DR1TM201)** - MFA 20:1 (Eicosenoic) (gm).
+* **Docosenoic (DR1TM221)** - MFA 22:1 (Docosenoic) (gm).
+* **Octadecadienoic (DR1TP182)** - PFA 18:2 (Octadecadienoic) (gm).
+* **Octadecatrienoic (DR1TP183)** - PFA 18:3 (Octadecatrienoic) (gm).
+* **Octadecatetraenoic (DR1TP184)** - PFA 18:4 (Octadecatetraenoic) (gm).
+* **Eicosapentaenoic (DR1TP204)** - PFA 20:4 (Eicosatetraenoic) (gm).
+* **Eicosapentaenoic (DR1TP205)** - PFA 20:5 (Eicosapentaenoic) (gm).
+* **Docosapentaenoic (DR1TP225)** - PFA 22:5 (Docosapentaenoic) (gm).
+* **Docosahexaenoic (DR1TP226)** - PFA 22:6 (Docosahexaenoic) (gm).
+* **Food_yesterday (DR1_300)** - Was the amount of food that {you/NAME} ate yesterd… more than usual, usual, or much less than usual?.
+* **Water_yesterday (DR1_320Z)** - Total plain water drank yesterday - including plai… a water cooler, bottled water, and spring water..
+
 
 diet_subset -> Need to impute it.  
 
@@ -645,7 +715,7 @@ examination_MS[examination_MS[2]<0.25,][[1]]
 
 ### Labs
 <!-- https://wwwn.cdc.gov/nchs/nhanes/search/variablelist.aspx?Component=Laboratory&CycleBeginYear=2013 -->
-Among the 46 columns with less than 25% of missing value we have selected <which> relevant columns:
+Among the 46 columns with less than 25% of missing value we have selected six relevant columns:
 
 * **ID (SEQN)** - Respondent sequence number..
 * **White_cells_count (LBXWBCSI)** - White blood cell count (1000 cells/uL).
