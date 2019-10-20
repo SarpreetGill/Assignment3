@@ -253,12 +253,17 @@ We have inspected the above data dictionary and we have selected the following i
 ### Demographic
 Among the 32 Column with less than 25% of missing value we have selected eight interesting columns (4, 5, 8, 13, 14, 30, 39,46):
 
-## Data Imputation and  Vizualization
+* **[1] ID (SEQN)** - Respondent sequence number.
+* **[4] Gender (RIAGENDR)** - Gender of the participant.
+* **[5] Age (RIDAGEYR)** - Age in years of the participant at the time of screening. Individuals 80 and over are topcoded at 80 years of age.
+* **[8] Race (RIDRETH3)** - Recode of reported race and Hispanic origin information, with Non-Hispanic Asian Category.
+* **[13] Country_of_birth (DMDBORN4)** - In what country {were you/was SP} born?
+* **[14] Citizenship_status (DMDCITZN)** - {Are you/Is SP} a citizen of the United States?
+* **[30] Family_members DMDFMSIZ)** - Total number of people in the Family.
+* **[39] Marital_status (DMDHRMAR)** - HH reference person's marital status.
+* **[46] Family_income (INDFMIN2)** - Total family income (reported as a range value in dollars).
 
-* **Demographic**
 
-Among the 32 Column with less than 25% of missing value we have selected  
- 8 interesting columns (4, 5, 8, 13, 14, 30, 39,46)
 
 ```{r, eval=TRUE, echo=TRUE, warning = F, message=F}
 
@@ -275,7 +280,7 @@ demo_subset_8<- demo_subset_8 %>%
          "Race"               =     "RIDRETH3",  
          "Country_of_birth"   =     "DMDBORN4",  
          "Citizenship_status" =     "DMDCITZN",   
-         "Family_menbers"     =     "DMDFMSIZ",  
+         "Family_members"     =     "DMDFMSIZ",  
          "Marital_status"     =     "DMDHRMAR",  
          "Family_income"      =     "INDFMIN2"  )
     
@@ -309,7 +314,7 @@ meth[c("Gender")]=""
 meth[c("Age")]=""
 meth[c("Race")]=""
 meth[c("Country_of_birth")]=""
-meth[c("Family_menbers")]=""
+meth[c("Family_members")]=""
 
 
 #Now let specify the methods for imputing the missing values.
