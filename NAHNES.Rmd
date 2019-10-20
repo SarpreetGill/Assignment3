@@ -305,13 +305,13 @@ We have inspected the above data dictionary and we have selected the following r
 ### Demographic
 Among the 32 columns with less than 25% of missing value we have selected eight relevant columns:
 
-* **ID (SEQN)** - Respondent sequence number.
-* **Gender (RIAGENDR)** - Gender of the participant.
-* **Age (RIDAGEYR)** - Age in years of the participant at the time of screening. Individuals 80 and over are topcoded at 80 years of age.
+* **ID (SEQN)** - Respondent sequence number..
+* **Gender (RIAGENDR)** - Gender of the participant..
+* **Age (RIDAGEYR)** - Age in years of the participant at the time of screening. Individuals 80 and over are topcoded at 80 years of age..
 * **Race (RIDRETH3)** - Recode of reported race and Hispanic origin information, with Non-Hispanic Asian Category.
-* **Country_of_birth (DMDBORN4)** - In what country {were you/was SP} born?
-* **Citizenship_status (DMDCITZN)** - {Are you/Is SP} a citizen of the United States?
-* **Family_members DMDFMSIZ)** - Total number of people in the Family.
+* **Country_of_birth (DMDBORN4)** - In what country {were you/was SP} born?.
+* **Citizenship_status (DMDCITZN)** - {Are you/Is SP} a citizen of the United States? [Information about citizenship is being collected by the U.S. Public Health Service to perform health related research. Providing this information is voluntary and is collected under the authority of the Public Health Service Act. There will be no effect on pending immigration or citizenship petitions.].
+* **Family_members (DMDFMSIZ)** - Total number of people in the Family.
 * **Marital_status (DMDHRMAR)** - HH reference person's marital status.
 * **Family_income (INDFMIN2)** - Total family income (reported as a range value in dollars).
 
@@ -707,7 +707,7 @@ These variables/attributes are referring to the one day nutrituion numerical att
 
 ### Examination
 <!-- https://wwwn.cdc.gov/nchs/nhanes/search/variablelist.aspx?Component=Examination&CycleBeginYear=2013 -->
-Among the 105 columns with less than 25% of missing value we have selected <which> relevant columns:
+Among the 105 columns with less than 25% of missing value we have selected twelve relevant columns:
 
 * **ID (SEQN)** - Respondent sequence number.
 * **BP_test_time (PEASCTM1)** - Blood Pressure Time in Seconds.
@@ -727,7 +727,7 @@ Among the 105 columns with less than 25% of missing value we have selected <whic
 
 ### Labs
 <!-- https://wwwn.cdc.gov/nchs/nhanes/search/variablelist.aspx?Component=Laboratory&CycleBeginYear=2013 -->
-Among the 46 columns with less than 25% of missing value we have selected six relevant columns:
+Among the 46 columns with less than 25% of missing value we have selected nine relevant columns:
 
 * **ID (SEQN)** - Respondent sequence number..
 * **White_cells_count (LBXWBCSI)** - White blood cell count (1000 cells/uL).
@@ -757,7 +757,7 @@ All of the columns had more than 25% missing value. Among the 8 columns with les
 
 ### Questionnaire
 <!-- https://wwwn.cdc.gov/nchs/nhanes/search/variablelist.aspx?Component=Questionnaire&CycleBeginYear=2013 -->
-Among the 79 columns with less than 25% of missing value we have selected <which> relevant columns:
+Among the 79 columns with less than 25% of missing value we have selected thirty-eight relevant columns:
 
 * **ID (SEQN)** - Respondent sequence number.
 * **Spent_total (CBD070)** - The next questions are about how much money {your family spends/you spend} on food. First I'll ask you about money spent at supermarkets or grocery stores. Then we will talk about money spent at other types of stores. During the past 30 days, how much money {did your family/did you} spend at supermarkets or grocery stores? Please include purchases made with food stamps..
