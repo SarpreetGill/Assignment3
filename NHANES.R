@@ -1115,7 +1115,75 @@ ques_sel_Feat <- c("SEQN","CBD070","CBD110","CBD120","CBD130","HSQ500","HSQ510",
 
 ques_data_imputed_subset = subset(ques_data_imputed,select=ques_sel_Feat )
 
+
 #### Labeling the dataset 
+
+
+
+demo_subset_8_labeled = mutate(demo_subset_8_imputed, Gender= ifelse(
+  demo_subset_8_imputed$Gender == "1" , "Male", "Female" ))
+
+
+require(dplyr)# because Race is a factor of level 6
+demo_subset_8_labeled <- demo_subset_8_labeled %>%
+  mutate(Race = recode(Race, "1" = "Mexican_American",
+                       "2" = "Other_Hispanic",
+                       "3" = "White",
+                       "4" = "Black",
+                       "6" = "Asian",
+                       "7" = "multiracial"))
+
+#demo_subset_8_processed <- demo_subset_8_processed %>% 
+# mutate(Race = replace(Race, Race == 1, "Mexican_American")) %>%
+# mutate(Race = replace(Race, Race == 2, "Other_Hispanic")) %>%
+#  mutate(Race = replace(Race, Race == 3, "White")) %>%
+#  mutate(Race = replace(Race, Race == 4, "Black")) %>%
+#  mutate(Race = replace(Race, Race == 6, "Asian")) %>%
+#  mutate(Race = replace(Race, Race == 7, "multiracial")) 
+
+
+demo_subset_8_labeled <- demo_subset_8_labeled %>%
+  mutate(Country_of_birth  = recode(Country_of_birth , "1" = "US",
+                                    "2" = "Others",
+                                    "77" = "Refused",
+                                    "99" = "Uknown"))
+
+demo_subset_8_labeled <- demo_subset_8_labeled %>%
+  mutate(Citizenship_status = recode(Citizenship_status, "1" = "US",
+                                     "2" = "Other",
+                                     "7" = "Refused",
+                                     "9" = "Unknown"))
+
+demo_subset_8_labeled <- demo_subset_8_labeled %>%
+  mutate(Marital_status = recode(Marital_status, "1" = "Married",
+                                 "2" = "Widowed",
+                                 "3" = "Divorced",
+                                 "4" = "Separated",
+                                 "5" = "Never_married",
+                                 "6" = "partner",
+                                 "77" = "Refused",
+                                 "99" = "Unknown"))
+
+demo_subset_8_labeled <- demo_subset_8_labeled %>%
+  mutate(Family_income = recode(Family_income, "1" = 	"$0 - $4999",
+                                "2" =	"$5000 - $9999",
+                                "3" =	"$10000 - $14999",
+                                "4" =	"$15000 - $19999",		
+                                "5" =	"$20000 - $24999",		
+                                "6" =	"$25000 - $34999",		
+                                "7" =	"$35000 - $44999",	
+                                "8" =	"$45000 - $54999",		
+                                "9" =	"$55000 - $64999",		
+                                "10" = 	"$65000 - $74999",		
+                                "12" =	"$20000 and Over",	
+                                "13" =	"Under $20000",	
+                                "14" =	"$75000 - $99999",	
+                                "15" = "$100000 and Over",	
+                                "77" =	"Refused",
+                                "99" =	"Unknown"	))
+
+
+
 
 ques_subset_labelled <- ques_data_imputed_subset
 colnames(ques_subset_labelled) <- with(Dictionary,
@@ -1126,7 +1194,6 @@ colnames(ques_subset_labelled) <- with(Dictionary,
 
 
 write.csv(ques_subset_labelled,file = "Data/Working/ques_subset_labelled.csv")
-
 
 
 
