@@ -978,14 +978,16 @@ write.csv(labs_subset_labelled,file = "labs_subset_labelled.csv")
 \pagebreak
 
 ### Medication
+
+
 <!-- https://wwwn.cdc.gov/Nchs/Nhanes/2013-2014/RXQ_RX_H.htm -->
 All of the columns had more than 25% missing values. Among the 8 columns with less than 32% of missing value we have selected the following 5 relevant columns:
 
 * **ID (SEQN)** - Respondent sequence number.
-* **Medication (RXDDRGID)** - Generic drug name
-* **Days_taken (RXDDAYS)** - Number of days taken medicine
-* **Medication_purpose (RXDRSD1)** - Reasons for use reported by participants
-* **Amount_taken (RXDCOUNT)** - Number of prescription medicines taken
+* **Medication (RXDDRGID)** - Generic drug name.
+* **Days_taken (RXDDAYS)** - Number of days taken medicine.
+* **Medication_purpose (RXDRSD1)** - Reasons for use reported by participants.
+* **Amount_taken (RXDCOUNT)** - Number of prescription medicines taken.
 
 
 
@@ -1042,14 +1044,13 @@ medsdata_Col_Labels <- data.frame("Code"=c(colnames(medsdata68)),
  Categorization of variables
 
  
-<!-- # We have to now enter categorization of Factor/Numeric/ 'Computation not required' in the excel file generated -->
-<!-- ### Only to be done in 3rd column -->
-<!-- ## Code is  -->
-<!-- # 0 = Factor requiring no computation -->
-<!-- # 1 = Numeric requiring computation -->
-<!-- # 2 = Factor requiring computation -->
-
-<!-- # Please write Column name for the category as "Cat" -->
+ We have to now enter categorization of Factor/Numeric/ 'Computation not required' in the excel file generated <br />
+* Only to be done in 3rd column...<br />
+* Code is....<br />
+* **0** = Factor requiring no computation.<br />
+* **1** = Numeric requiring computation.<br />
+* **2** = Factor requiring computation.<br />
+* **Please write Column name for the category as "Cat" **<br />
 
 Reading Index again
 
@@ -1078,15 +1079,15 @@ WorkingColm_medsdata <- c(Catcolmn_Nul_medsdata, Numcolmn_medsdata, Catcolmn_med
 \pagebreak
 
 
-#==========================  IMPUTATION( MICE package)   =======================
-#recisely, the methods used by this package are:
-#1)-PMM (Predictive Mean Matching) For numeric variables
-#2)-logreg(Logistic Regression) For Binary Variables( with 2 levels)
-#3)-polyreg(Bayesian polytomous regression) For Factor Variables (>= 2 levels)
-#4)-Proportional odds model (ordered, >= 2 levels)
-#5)-cart  Classification and regression trees (any) 
-#6)rf Random forest imputations (any)
-#==============================================================================
+* ==========================  IMPUTATION( MICE package)   =======================<br />
+* Precisely, the methods used by this package are:<br />
+* 1)-PMM (Predictive Mean Matching) For numeric variables<br />
+* 2)-logreg(Logistic Regression) For Binary Variables( with 2 levels)<br />
+* 3)-polyreg(Bayesian polytomous regression) For Factor Variables (>= 2 levels)<br />
+* 4)-Proportional odds model (ordered, >= 2 levels)<br />
+* 5)-cart  Classification and regression trees (any) <br />
+* 6)rf Random forest imputations (any)<br />
+* ==============================================================================<br />
 
 ```{r, eval=FALSE, echo=TRUE}
 
