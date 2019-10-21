@@ -987,9 +987,9 @@ WorkingColm_medsdata <- c(Catcolmn_Nul_medsdata, Numcolmn_medsdata, Catcolmn_med
 
 #==========================  IMPUTATION( MICE package)   =======================
 #recisely, the methods used by this package are:
-#1)-PMM (Predictive Mean Matching) â For numeric variables
-#2)-logreg(Logistic Regression) â For Binary Variables( with 2 levels)
-#3)-polyreg(Bayesian polytomous regression) â For Factor Variables (>= 2 levels)
+#1)-PMM (Predictive Mean Matching) For numeric variables
+#2)-logreg(Logistic Regression) For Binary Variables( with 2 levels)
+#3)-polyreg(Bayesian polytomous regression) For Factor Variables (>= 2 levels)
 #4)-Proportional odds model (ordered, >= 2 levels)
 #5)-cart  Classification and regression trees (any) 
 #6)rf Random forest imputations (any)
