@@ -760,9 +760,6 @@ write.csv(medsdata_Col_Labels,file = "Data/Labels/medsdata_Col_Labels.csv")
 
 
 
-
-
-
 #######################################  Reading Index again
 
 
@@ -838,14 +835,23 @@ sapply(medsdata_imputed, function(x) sum(is.na(x)))
 
 
 write.csv(medsdata_imputed , "Data/Working/medsdata_imputed.csv")
-medsdata_imputed   = read.csv("Data/Working/medsdata_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
+#medsdata_imputed   = read.csv("Data/Working/medsdata_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
 
 ###Selecting Variables:
 Meds_sel_Feat <- c("SEQN", "RXDDRGID", "RXDDAYS", "RXDRSD1","RXDCOUNT")
 medsdata_imputed_subset = subset(medsdata_imputed,select=Meds_sel_Feat )
 
+#### Labeling the dataset 
 
+meds_subset_labelled <- medsdata_imputed_subset
+colnames(meds_subset_labelled) <- with(Dictionary,
+                                   Dictionary$Variable.Description[match(colnames(medsdata_imputed_subset),
+                                                                         Dictionary$Variable.Name,
+                                                                         nomatch = Dictionary$Variable.Name
+                                   )])
 
+str(meds_subset_labelled)
+write.csv(meds_subset_labelled,file = "meds_subset_labelled.csv")
 
 
 

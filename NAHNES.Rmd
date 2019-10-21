@@ -899,7 +899,6 @@ All of the columns had more than 25% missing values. Among the 8 columns with le
 * **Amount_taken (RXDCOUNT)** - Number of prescription medicines taken
 
 
-\pagebreak
 
 First we would remove all the Near Zero Variance features from the data set:
 
@@ -946,9 +945,9 @@ medsdata_Col_Labels <- data.frame("Code"=c(colnames(medsdata68)),
 ```
 
 
-#######################################  Categorization of variables
+ Categorization of variables
 
-############# 
+ 
 # We have to now enter categorization of Factor/Numeric/ 'Computation not required' in the excel file generated
 ### Only to be done in 3rd column
 ## Code is 
@@ -958,10 +957,9 @@ medsdata_Col_Labels <- data.frame("Code"=c(colnames(medsdata68)),
 
 # Please write Column name for the category as "Cat"
 
-#######################################  Reading Index again
+Reading Index again
 
-```{r}
-
+```{r, eval=FALSE, echo=TRUE}
 Cat_meds <- c(0,2,2,2,2,1,2,2,1)
 Cat_meds
 medsdata_Col_Labels <- data.frame(medsdata_Col_Labels,Cat = Cat_meds)
@@ -974,7 +972,7 @@ write.csv(medsdata_Col_Labels,file = "Data/Labels/medsdata_Col_Labels.csv")
 
 Now we prepare the dataset for impute from all the information.
 
-```{r}
+```{r, eval=FALSE, echo=TRUE}
 medsdata_Col_Labels[, 2] <- sapply(medsdata_Col_Labels[, 2], as.character)
 
 
@@ -995,7 +993,7 @@ WorkingColm_medsdata <- c(Catcolmn_Nul_medsdata, Numcolmn_medsdata, Catcolmn_med
 #6)rf Random forest imputations (any)
 #==============================================================================
 
-```{r}
+```{r, eval=FALSE, echo=TRUE}
 
 predM_medsdata[, c("SEQN")]=0
 
@@ -1021,15 +1019,31 @@ medsdata_imputed   = read.csv("Data/Working/medsdata_imputed.csv", header = TRUE
 
 Selecting the desired variables:-
 
-```{r}
+```{r, eval=FALSE, echo=TRUE}
 Meds_sel_Feat <- c("SEQN", "RXDDRGID", "RXDDAYS", "RXDRSD1","RXDCOUNT")
 medsdata_imputed_subset = subset(medsdata_imputed,select=Meds_sel_Feat )
 
 ```
 
+Labeling the dataset:
+
+```{r, eval=FALSE, echo=TRUE}
+
+meds_subset_labelled <- medsdata_imputed_subset
+colnames(meds_subset_labelled) <- with(Dictionary,
+                                   Dictionary$Variable.Description[match(colnames(medsdata_imputed_subset),
+                                                                         Dictionary$Variable.Name,
+                                                                         nomatch = Dictionary$Variable.Name
+                                   )])
+
+str(meds_subset_labelled)
+write.csv(meds_subset_labelled,file = "meds_subset_labelled.csv")
+
+```
 
 
 
+\pagebreak
 
 
 
