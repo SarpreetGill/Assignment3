@@ -713,7 +713,7 @@ medsdata_major %>% summarise_all(~(sum(is.na(.))/n()*100))
 
 
 Null_Num_medsdata <- apply(medsdata_major, 2, function(x) length(which(x == "" | is.na(x) | x == "NA" | x == "-999" ))/length(x))
-Null_Colms_medsdata <- colnames(medsdata_major)[Null_Num_medsdata > 0.32]
+Null_Colms_medsdata <- colnames(medsdata_major)[Null_Num_medsdata > 0.33]
 medsdata68 <- select(medsdata_major, -Null_Colms_medsdata)
 
 colSums(is.na(medsdata68))
@@ -752,7 +752,7 @@ write.csv(medsdata_Col_Labels,file = "Data/Labels/medsdata_Col_Labels.csv")
 
 #  Categorization of variables
 
-Cat_meds <- c(0,2,2,2,2,1,2,1)
+Cat_meds <- c(0,2,2,2,2,1,2,2,1)
 Cat_meds
 medsdata_Col_Labels <- data.frame(medsdata_Col_Labels,Cat = Cat_meds)
 
@@ -840,8 +840,9 @@ sapply(medsdata_imputed, function(x) sum(is.na(x)))
 write.csv(medsdata_imputed , "Data/Working/medsdata_imputed.csv")
 medsdata_imputed   = read.csv("Data/Working/medsdata_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
 
-
-
+###Selecting Variables:
+Meds_sel_Feat <- c("SEQN", "RXDDRGID", "RXDDAYS", "RXDRSD1","RXDCOUNT")
+medsdata_imputed_subset = subset(medsdata_imputed,select=Meds_sel_Feat )
 
 
 

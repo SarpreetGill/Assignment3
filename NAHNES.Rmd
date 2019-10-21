@@ -923,7 +923,7 @@ Now, we will remove the features having a missing values of more that 32% as dec
 
 
 Null_Num_medsdata <- apply(medsdata_major, 2, function(x) length(which(x == "" | is.na(x) | x == "NA" | x == "-999" ))/length(x))
-Null_Colms_medsdata <- colnames(medsdata_major)[Null_Num_medsdata > 0.32]
+Null_Colms_medsdata <- colnames(medsdata_major)[Null_Num_medsdata > 0.33]
 medsdata68 <- select(medsdata_major, -Null_Colms_medsdata)
 
 ```
@@ -962,7 +962,7 @@ medsdata_Col_Labels <- data.frame("Code"=c(colnames(medsdata68)),
 
 ```{r}
 
-Cat_meds <- c(0,2,2,2,2,1,2,1)
+Cat_meds <- c(0,2,2,2,2,1,2,2,1)
 Cat_meds
 medsdata_Col_Labels <- data.frame(medsdata_Col_Labels,Cat = Cat_meds)
 
@@ -1017,6 +1017,19 @@ medsdata_imputed   = read.csv("Data/Working/medsdata_imputed.csv", header = TRUE
 
 
 ```
+
+
+Selecting the desired variables:-
+
+```{r}
+Meds_sel_Feat <- c("SEQN", "RXDDRGID", "RXDDAYS", "RXDRSD1","RXDCOUNT")
+medsdata_imputed_subset = subset(medsdata_imputed,select=Meds_sel_Feat )
+
+```
+
+
+
+
 
 
 
