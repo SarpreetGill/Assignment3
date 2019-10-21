@@ -19,8 +19,6 @@ library(AMR)
 library(RColorBrewer)
 library(caret)
 
-#>>>>>>> ffc62e6b80ea63248a4d851391542e470f9e7ed9
-
 ########################################### Reading files ###########################
 
 
