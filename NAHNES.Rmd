@@ -27,7 +27,7 @@ knitr::opts_chunk$set(warning=FALSE)
 \newpage
 
 # Introduction
-Our client, a hypothetical pharmaceutical company, is looking to understand better what the data related to subjects (clients and potential clients) and various health conditions and miscellaneous attributes. The goal is to extract meaningful information that could guide future research and assist with the company's budgeting while focusing on and improving the wellbeing of the clients.
+Our client, a hypothetical pharmaceutical company, is looking to understand better what the data related to individuals (clients and potential clients) and various health conditions and miscellaneous attributes. The goal is to extract meaningful information that could guide future research and assist with the company's budgeting while focusing on and improving the wellbeing of the clients.
 
 ## Terms and defenitions
 
