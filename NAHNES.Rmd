@@ -1001,6 +1001,10 @@ if (length(nearZeroVar(medsdata_major, freqCut = 90/2, uniqueCut = 10, saveMetri
 }
 ```
 
+
+\pagebreak
+
+
 Now, we will remove the features having a missing values of more that 32% as decided before:
 
 ```{r, eval=FALSE, echo=TRUE}
@@ -1030,6 +1034,7 @@ medsdata_Col_Labels <- data.frame("Code"=c(colnames(medsdata68)),
 
 ```
 
+\pagebreak
 
  Categorization of variables
 
@@ -1067,6 +1072,7 @@ Numcolmn_medsdata <- medsdata_Col_Labels[medsdata_Col_Labels$Cat ==1 , 2 ]
 Catcolmn_Nul_medsdata <- medsdata_Col_Labels[medsdata_Col_Labels$Cat ==0 , 2 ] 
 WorkingColm_medsdata <- c(Catcolmn_Nul_medsdata, Numcolmn_medsdata, Catcolmn_medsdata)
 ```
+\pagebreak
 
 
 #==========================  IMPUTATION( MICE package)   =======================
@@ -1101,6 +1107,8 @@ medsdata_imputed   = read.csv("Data/Working/medsdata_imputed.csv", header = TRUE
 
 
 ```
+
+\pagebreak
 
 
 Selecting the desired variables:-
