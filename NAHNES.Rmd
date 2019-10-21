@@ -716,17 +716,17 @@ These variables/attributes are referring to the one day nutrituion numerical att
 We have selected the following 12 relevant columns among the 105 that have less than 25% of missing values:
 
 * **ID (SEQN)** - Respondent sequence number.
-* **BP_test_time (PEASCTM1)** - Blood Pressure Time in Seconds.
-* **BP_arm (BPAARM)** - Arm selected:.
-* **BP_Systolic (BPXSY2)** - Systolic: Blood pressure (second reading) mm Hg.
-* **BP_Diastolic (BPXDI2)** - Diastolic: Blood pressure (second reading) mm Hg.
-* **Weight (BMXWT)** - Weight (kg).
-* **Height (BMXHT)** - Standing Height (cm).
-* **Leg_length (BMXBMI)** - Body Mass Index (kg/m**2).
-* **Arm_length (BMXLEG)** - Upper Leg Length (cm).
-* **Waist_circumference (BMXWAIST)** - Waist Circumference (cm).
-* **Dominant_hand (MGD130)** - Are you right-handed, left-handed, or do you use both hands equally?.
-* **Grip_strength (MGDCGSZ)** - Combined grip strength (kg): the sum of the largest reading from each hand..
+* **BP_test_time_exam (PEASCTM1)** - Blood Pressure Time in Seconds.
+* **BP_arm_exam (BPAARM)** - Arm selected:.
+* **BP_Systolic_exam (BPXSY2)** - Systolic: Blood pressure (second reading) mm Hg.
+* **BP_Diastolic_exam (BPXDI2)** - Diastolic: Blood pressure (second reading) mm Hg.
+* **Weight_exam (BMXWT)** - Weight (kg).
+* **Height_exam (BMXHT)** - Standing Height (cm).
+* **Leg_length_exam (BMXBMI)** - Body Mass Index (kg/m**2).
+* **Arm_length_exam (BMXLEG)** - Upper Leg Length (cm).
+* **Waist_circumference_exam (BMXWAIST)** - Waist Circumference (cm).
+* **Dominant_hand_exam (MGD130)** - Are you right-handed, left-handed, or do you use both hands equally?.
+* **Grip_strength_exam (MGDCGSZ)** - Combined grip strength (kg): the sum of the largest reading from each hand..
 
 
 \pagebreak
@@ -736,14 +736,14 @@ We have selected the following 12 relevant columns among the 105 that have less 
 We have selected the following 9 relevant columns among the 46 that have less than 25% of missing values:
 
 * **ID (SEQN)** - Respondent sequence number..
-* **White_cells_count (LBXWBCSI)** - White blood cell count (1000 cells/uL).
-* **Red_cells_count (LBXRBCSI)** - Red blood cell count (million cells/uL).
-* **Caffeine (PHQ020)** - Coffee or tea with cream or sugar? [Include milk or non-dairy creamers.].
-* **Alcohol (PHQ030)** - Alcohol, such as beer, wine, or liquor?.
-* **Supplements (PHQ060)** - Dietary supplements such as vitamins and minerals? [Include multivitamins and single nutrient supplements.].
-* **Hepatitis_a (LBXHA)** - Hepatitis A antibody.
-* **Hepatitis_b (LBXHBC)** - Hepatitis B core antibody.
-* **Cholesterol (LBXTC)** - Total Cholesterol( mg/dL).
+* **White_blood_cells_labs (LBXWBCSI)** - White blood cell count (1000 cells/uL).
+* **Red_bloods_cells_labs (LBXRBCSI)** - Red blood cell count (million cells/uL).
+* **Caffeine_labs (PHQ020)** - Coffee or tea with cream or sugar? [Include milk or non-dairy creamers.].
+* **Alcohol_labs (PHQ030)** - Alcohol, such as beer, wine, or liquor?.
+* **Supplements_labs (PHQ060)** - Dietary supplements such as vitamins and minerals? [Include multivitamins and single nutrient supplements.].
+* **Hepatitis_a_labs (LBXHA)** - Hepatitis A antibody.
+* **Hepatitis_b_labs (LBXHBC)** - Hepatitis B core antibody.
+* **Cholesterol_labs (LBXTC)** - Total Cholesterol( mg/dL).
 
 First we create a subset of labs data and then relabel the columns to meaningful names.  
 
