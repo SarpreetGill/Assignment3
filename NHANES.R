@@ -548,11 +548,87 @@ write.csv(imputed_diet_subset_complete, "diet_subset_processed.csv")
 
 ########################################### Examination###############################
 
-nrow(examination)
-ncol(examination)
-summary(examination)
-str(examination)
+# Import libraries
+require(AMR)
+require(mice)
+require(randomForest)
 
+# Import the raw dataset
+examination = read.csv(file.choose(), header = TRUE, na.strings = c("NA","","#NA"))
+
+# Select relevant columns
+examination_subset = subset(
+  examination,
+  select=c('SEQN', 'PEASCTM1', 'BPAARM', 'BPXSY2', 'BPXDI2', 'BMXWT', 'BMXHT', 'BMXBMI', 'BMXLEG',
+           'BMXWAIST', 'MGD130', 'MGDCGSZ')
+  )
+
+# Rename columns to meaningful names
+examination_renamed = rename(
+  examination_subset,
+  "ID"                  = "SEQN",
+  "BP_test_time_exam"        = "PEASCTM1",
+  "BP_arm_exam"              = "BPAARM",
+  "BP_Systolic_exam"         = "BPXSY2",
+  "BP_Diastolic_exam"        = "BPXDI2",
+  "Weight_exam"              = "BMXWT",
+  "Height_exam"              = "BMXHT",
+  "Leg_length_exam"          = "BMXBMI",
+  "Arm_length_exam"          = "BMXLEG",
+  "Waist_circumference_exam" = "BMXWAIST",
+  "Dominant_hand_exam"       = "MGD130",
+  "Grip_strength_exam"       = "MGDCGSZ"
+  )
+
+# Check if there are no missing values:
+0 == sum(sapply(examination_renamed, function(x) sum(is.na(x)))) # FALSE
+
+# Explore the columns in the subset
+summary(examination_renamed[2:12])
+# Numerical: 9 - pmm or rf
+# 2 Factors: 1 - logreg or cart
+# 3 Factors: 1 - polyreg or cart
+
+freq(examination_renamed$BP_arm_exam)
+# BP_arm_exam has 2 factors. 1=Left, 2=Right, 8=Right (maybe 8 was a typo)
+examination_renamed$BP_arm_exam[examination_renamed$BP_arm_exam == 8] = 2
+examination_renamed$BP_arm_exam = as.factor(examination_renamed$BP_arm_exam)
+
+freq(examination_renamed$Dominant_hand_exam)
+# Dominant_hand_exam has 3 factors: 1=Right, 2=Left, 3=Neither
+examination_renamed$Dominant_hand_exam = as.factor(examination_renamed$Dominant_hand_exam)
+
+set.seed(125)
+# Configure and run mice
+examination_mice = mice(examination_renamed, m=5) # slow line
+examination_mice$predictorMatrix[, 'ID']=0
+examination_mice$method[c(2:12)] = 'rf'
+examination_mice$method['BP_arm_exam'] = 'logreg'
+examination_mice$method['Dominant_hand_exam'] = 'polyreg'
+
+examination_imputed = complete(examination_mice)
+
+# Check there are no missing values
+0 == sum(sapply(examination_imputed, function(x) sum(is.na(x)))) # TRUE
+summary(examination_imputed)
+
+# Export the dataset
+##write.csv(examination_imputed, file.choose())
+
+# Label the data
+examination_labeled = mutate(
+  examination_imputed,
+  BP_arm_exam = recode(BP_arm_exam,
+                       "1" = "Left",
+                       "2" = "Right"),
+  Dominant_hand_exam = recode(Dominant_hand_exam,
+                              "1"="Right",
+                              "2"="Left",
+                              "3"="Neither")
+  )
+
+# Export the dataset
+##write.csv(examination_labeled, file.choose())
 
 
 
