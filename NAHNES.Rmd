@@ -28,27 +28,26 @@ knitr::opts_chunk$set(warning=FALSE)
 \newpage
 
 # Introduction
-The following is a hypothetical business problem: A pharmaceutical company is looking to better understand what the data related to subjects and various health conditions and miscellaneous attributes.
+Our client, a hypothetical pharmaceutical company, is looking to understand better what the data related to subjects (clients and potential clients) and various health conditions and miscellaneous attributes. The goal is to extract meaningful information that could guide future research and assist with the company's budgeting while focusing on and improving the wellbeing of the clients.
 
-## Terms 
+## Terms and defenitions
 
-  * **Subject** - A person who has been surveyed by the NHMS dataset for various attributes related to the following: demographics, examinations, dietary, questionnaire (medical history), and medication.
+  * **Subject** - A person who has been surveyed by the NHMS (National Health Measurement Study) dataset for various attributes related to the following: demographics, examinations, dietary, questionnaire (medical history), and medication.
   
   * **Health Conditions** - Various diseases or ailments that people may inhibit, such as sleep disorders, diabetes, oral health, cholesterol.  
   
   * **The National Health and Nutrition Examination Survey (NHANES)** - A program of studies designed to assess the health and nutritional status of adults and children in the United States.
 
-
 ## Data Description
 
-The data is spread against 6 spreadsheets (CSV): Demographics, Examinations, Dietary, Laboratory, Questionnaire, and Medication.
+The data gettered is spread into six distinct files (CSV format): Demographics, Examinations, Dietary, Laboratory, Questionnaire, and Medication.
 
 # Business Case
-A pharmaceutical company wants to develop new drugs. The company is curious as to whether existing data on subjects and their associated health conditions could provide advice and insight to their drug researchers. They have obtained the NHANES dataset.  This dataset contains subject/patient data along with various information including health conditions.  
+Our client wants to develop new drugs that primary intent to improve the quality of life of the individuals survived. The company is interested as to whether existing data on subjects and their associated health conditions could provide advice and insight to their researcher. They have obtained the NHANES dataset and requested our assistance to perform the intended analysis.  This dataset contains individuals data along with various information, including health conditions.  
 
-The company is interested in devleoping new drugs for the following health conditions: diabetes and hypertension/cholesterol and cancer. <we can add or remove health conditions later.  At the very least, let’s keep diabetes or something>
+The company is interested in developing new drugs for the following health conditions: diabetes and hypertension/cholesterol and cancer. <we can add or remove health conditions later.  At the very least, let’s keep diabetes or something>
 
-They have approached our Machine Learning group for help on these problems:
+The company, aware of our Machine Learning skills, approached us for help on the following problems:
 
 ## First Problem: 
 What types of symptoms, medications, diet, demographics are common among various "health conditions"? For example: The type of dietary factors are commonly found with diabetes.
