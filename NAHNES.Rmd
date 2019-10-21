@@ -950,14 +950,14 @@ medsdata_Col_Labels <- data.frame("Code"=c(colnames(medsdata68)),
  Categorization of variables
 
  
-# We have to now enter categorization of Factor/Numeric/ 'Computation not required' in the excel file generated
-### Only to be done in 3rd column
-## Code is 
-# 0 = Factor requiring no computation
-# 1 = Numeric requiring computation
-# 2 = Factor requiring computation
+<!-- # We have to now enter categorization of Factor/Numeric/ 'Computation not required' in the excel file generated -->
+<!-- ### Only to be done in 3rd column -->
+<!-- ## Code is  -->
+<!-- # 0 = Factor requiring no computation -->
+<!-- # 1 = Numeric requiring computation -->
+<!-- # 2 = Factor requiring computation -->
 
-# Please write Column name for the category as "Cat"
+<!-- # Please write Column name for the category as "Cat" -->
 
 Reading Index again
 
