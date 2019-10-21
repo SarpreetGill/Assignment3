@@ -1517,25 +1517,25 @@ York University School of Continuing Studies<br><h4 class="date">Oct 6, 2019</h4
 <div style="page-break-after: always;"></div>
 <div id="introduction" class="section level1">
 <h1>Introduction</h1>
-<p>The following is a hypothetical business problem: A pharmaceutical company is looking to better understand what the data related to subjects and various health conditions and miscellaneous attributes.</p>
-<div id="terms" class="section level2">
-<h2>Terms</h2>
+<p>Our client, a hypothetical pharmaceutical company, is looking to understand better what the data related to individuals (clients and potential clients) and various health conditions and miscellaneous attributes. The goal is to extract meaningful information that could guide future research and assist with the company rapidly expanding business and market share while focusing on and improving the wellbeing of the clients.</p>
+<div id="terms-and-defenitions" class="section level2">
+<h2>Terms and defenitions</h2>
 <ul>
-<li><p><strong>Subject</strong> - A person who has been surveyed by the NHMS dataset for various attributes related to the following: demographics, examinations, dietary, questionnaire (medical history), and medication.</p></li>
+<li><p><strong>Individual</strong> - A person who has been surveyed by the NHMS (National Health Measurement Study) dataset for various attributes related to the following: demographics, examinations, dietary, questionnaire (medical history), and medication.</p></li>
 <li><p><strong>Health Conditions</strong> - Various diseases or ailments that people may inhibit, such as sleep disorders, diabetes, oral health, cholesterol.</p></li>
 <li><p><strong>The National Health and Nutrition Examination Survey (NHANES)</strong> - A program of studies designed to assess the health and nutritional status of adults and children in the United States.</p></li>
 </ul>
 </div>
 <div id="data-description" class="section level2">
 <h2>Data Description</h2>
-<p>The data is spread against 6 spreadsheets (CSV): Demographics, Examinations, Dietary, Laboratory, Questionnaire, and Medication.</p>
+<p>The data gettered is spread into six distinct files (CSV format): Demographics, Examinations, Dietary, Laboratory, Questionnaire, and Medication.</p>
 </div>
 </div>
 <div id="business-case" class="section level1">
 <h1>Business Case</h1>
-<p>A pharmaceutical company wants to develop new drugs. The company is curious as to whether existing data on subjects and their associated health conditions could provide advice and insight to their drug researchers. They have obtained the NHANES dataset. This dataset contains subject/patient data along with various information including health conditions.</p>
-<p>The company is interested in devleoping new drugs for the following health conditions: diabetes and hypertension/cholesterol and cancer. &lt;we can add or remove health conditions later. At the very least, let’s keep diabetes or something&gt;</p>
-<p>They have approached our Machine Learning group for help on these problems:</p>
+<p>Our client wants to develop new drugs that primary intent to improve the quality of life of the individuals survived. The company is interested as to whether existing data on subjects and their associated health conditions could provide advice and insight to their researcher. They have obtained the NHANES dataset and requested our assistance to perform the intended analysis. This dataset contains individuals data along with various information, including health conditions.</p>
+<p>The company is interested in developing new drugs for the following health conditions: diabetes and hypertension/cholesterol and cancer. &lt;we can add or remove health conditions later. At the very least, let’s keep diabetes or something&gt;</p>
+<p>The company, aware of our Machine Learning skills, approached us for help on the following problems:</p>
 <div id="first-problem" class="section level2">
 <h2>First Problem:</h2>
 <p>What types of symptoms, medications, diet, demographics are common among various “health conditions”? For example: The type of dietary factors are commonly found with diabetes.</p>
@@ -1543,6 +1543,7 @@ York University School of Continuing Studies<br><h4 class="date">Oct 6, 2019</h4
 <div id="second-problem" class="section level2">
 <h2>Second Problem:</h2>
 <p>Are there any commonalities between various people with the same health conditions? For example: The similarities that subjects have if they share a health condition.</p>
+<p>The company would ask us about possible wraping the model as a robust, easy to use App that could be present to managment and corporate to assist with the decision making, based on a few user inputs.</p>
 <div style="page-break-after: always;"></div>
 </div>
 </div>
@@ -1553,7 +1554,7 @@ York University School of Continuing Studies<br><h4 class="date">Oct 6, 2019</h4
 <li>What features are associated with “health condition” features?</li>
 <li>We’re comparing the rows of the dataset.</li>
 </ul>
-<p>The <strong>second business problem</strong> involves finding commonality between subjects. This is a clustering problem and we will need a model using a clustering algorithm. We need to determine whether the business’s presumption is accurate:</p>
+<p>The <strong>second business problem</strong> involves finding commonality between individuals. This is a clustering problem and we will need a model using a clustering algorithm. We need to determine whether the business’s presumption is accurate:</p>
 <ul>
 <li>According to their health conditions, can subjects be divided into discrete groups that could provide meaningful data for the drug researchers?</li>
 <li>We’re comparing the columns of the dataset.</li>
@@ -1608,13 +1609,13 @@ library(AMR)</code></pre>
 <div id="data-cleaning" class="section level1">
 <h1>Data cleaning</h1>
 <p><Describe what needs to happen to the data files></p>
-<p>As indicated eariler, the dataset conists of six raw data files: Demographics, Examinations, Dietary, Laboratory, Questionnaire, and Medication. The largest dataset, in term of attributes, contains 953 variables; while the smallest one contains 47 variables.</p>
-<p>Because this is a large amount of data, with over a thousand attributes cummulatively, we decided to employ the following guidelines to reduce the complexity of the data:</p>
+<p>As indicated earlier, the dataset consists of six raw data files: Demographics, Examinations, Dietary, Laboratory, Questionnaire, and Medication. The largest dataset, in terms of attributes, contains 953 variables, while the smallest one contains 47 variables.</p>
+<p>Because this is a large amount of data, with over a thousand attributes cumulatively, we decided to employ the following guidelines to reduce the complexity of the data:</p>
 <ul>
 <li>If more than 25% of the values are missing for an attribute(column), we will consider removing the column from further evaluation.</li>
-<li>If the majority of attributes are missing 25% or more of their values for a given dataset, we will use business/personal judgmement to subjectively select a smaller subset of values of interest. Of these subset of missing values, we will decide how to impute the values on these attributes.</li>
+<li>If the majority of attributes are missing 25% or more of their values for a given dataset, we will use business and expert judgement to select a smaller subset of values of interest subjectively. Of these subsets of missing values, we will decide how to impute the values on these attributes.</li>
 </ul>
-<p>Ideally, we would like to analyse and impute every attribute with missing values, but in this situation, it may not be practical due to the large volume of missing data.</p>
+<p>Ideally, we would like to analyze and impute every attribute with missing values, but in this situation, it may not be practical due to the large volume of missing data.</p>
 <pre class="r"><code># Reading files
 demographic   = read.csv(&quot;Data/Raw/demographic.csv&quot;, header = TRUE, na.strings = c(&quot;NA&quot;,&quot;&quot;,&quot;#NA&quot;))
 diet          = read.csv(&quot;Data/Raw/diet.csv&quot;, header = TRUE, na.strings = c(&quot;NA&quot;,&quot;&quot;,&quot;#NA&quot;))
@@ -1629,7 +1630,7 @@ data_joined = join_all(data_list)</code></pre>
 <div style="page-break-after: always;"></div>
 <div id="checking-for-missing-data" class="section level2">
 <h2>Checking for missing data</h2>
-<p>It is always important to check for missing values and consider how to fix them.</p>
+<p>It is always essentialto check for missing values and consider how to addreess them in the model.</p>
 <p>We decided to represent the Demographic and Diet datasets as they are mostly complete.</p>
 <p>We found that the percentage of missing data in four of the six spreadsheets is very significant. Almost all attributes/columns have varying degrees of missing values.</p>
 <div id="demographic" class="section level3">
@@ -1666,7 +1667,6 @@ diet_MS_plot &lt;- ggplot(diet_MS, aes(x = reorder(variables, percent_missing),
   #theme_fivethirtyeight() +
   ggtitle(&quot;Diet Missing Data By Columns&quot;)+
   theme(axis.text.y=element_text(size=3))
-
 
 #diet_MS_plot
 ggsave(plot = diet_MS_plot, width = 8, height = 4, dpi = 300, 
@@ -2132,6 +2132,88 @@ write.csv(imputed_diet_subset_complete, &quot;diet_subset_processed.csv&quot;)</
 <li><strong>Dominant_hand_exam (MGD130)</strong> - Are you right-handed, left-handed, or do you use both hands equally?.</li>
 <li><strong>Grip_strength_exam (MGDCGSZ)</strong> - Combined grip strength (kg): the sum of the largest reading from each hand..</li>
 </ul>
+<!--TODO split code in segments and explain it a  bit-->
+<pre class="r"><code># Import libraries
+require(AMR)
+require(mice)
+require(randomForest)
+
+# Import the raw dataset
+examination = read.csv(file.choose(), header = TRUE, na.strings = c(&quot;NA&quot;,&quot;&quot;,&quot;#NA&quot;))
+
+# Select relevant columns
+examination_subset = subset(
+  examination,
+  select=c(&#39;SEQN&#39;, &#39;PEASCTM1&#39;, &#39;BPAARM&#39;, &#39;BPXSY2&#39;, &#39;BPXDI2&#39;, &#39;BMXWT&#39;, &#39;BMXHT&#39;, &#39;BMXBMI&#39;, &#39;BMXLEG&#39;,
+           &#39;BMXWAIST&#39;, &#39;MGD130&#39;, &#39;MGDCGSZ&#39;)
+  )
+
+# Rename columns to meaningful names
+examination_renamed = rename(
+  examination_subset,
+  &quot;ID&quot;                  = &quot;SEQN&quot;,
+  &quot;BP_test_time_exam&quot;        = &quot;PEASCTM1&quot;,
+  &quot;BP_arm_exam&quot;              = &quot;BPAARM&quot;,
+  &quot;BP_Systolic_exam&quot;         = &quot;BPXSY2&quot;,
+  &quot;BP_Diastolic_exam&quot;        = &quot;BPXDI2&quot;,
+  &quot;Weight_exam&quot;              = &quot;BMXWT&quot;,
+  &quot;Height_exam&quot;              = &quot;BMXHT&quot;,
+  &quot;Leg_length_exam&quot;          = &quot;BMXBMI&quot;,
+  &quot;Arm_length_exam&quot;          = &quot;BMXLEG&quot;,
+  &quot;Waist_circumference_exam&quot; = &quot;BMXWAIST&quot;,
+  &quot;Dominant_hand_exam&quot;       = &quot;MGD130&quot;,
+  &quot;Grip_strength_exam&quot;       = &quot;MGDCGSZ&quot;
+  )
+
+# Check if there are no missing values:
+0 == sum(sapply(examination_renamed, function(x) sum(is.na(x)))) # FALSE
+
+# Explore the columns in the subset
+summary(examination_renamed[2:12])
+# Numerical: 9 - pmm or rf
+# 2 Factors: 1 - logreg or cart
+# 3 Factors: 1 - polyreg or cart
+
+freq(examination_renamed$BP_arm_exam)
+# BP_arm_exam has 2 factors. 1=Left, 2=Right, 8=Right (maybe 8 was a typo)
+examination_renamed$BP_arm_exam[examination_renamed$BP_arm_exam == 8] = 2
+examination_renamed$BP_arm_exam = as.factor(examination_renamed$BP_arm_exam)
+
+freq(examination_renamed$Dominant_hand_exam)
+# Dominant_hand_exam has 3 factors: 1=Right, 2=Left, 3=Neither
+examination_renamed$Dominant_hand_exam = as.factor(examination_renamed$Dominant_hand_exam)
+
+set.seed(125)
+# Configure and run mice
+examination_mice = mice(examination_renamed, m=5) # slow line
+examination_mice$predictorMatrix[, &#39;ID&#39;]=0
+examination_mice$method[c(2:12)] = &#39;rf&#39;
+examination_mice$method[&#39;BP_arm_exam&#39;] = &#39;logreg&#39;
+examination_mice$method[&#39;Dominant_hand_exam&#39;] = &#39;polyreg&#39;
+
+examination_imputed = complete(examination_mice)
+
+# Check there are no missing values
+0 == sum(sapply(examination_imputed, function(x) sum(is.na(x)))) # TRUE
+summary(examination_imputed)
+
+# Export the dataset
+##write.csv(examination_imputed, file.choose())
+
+# Label the data
+examination_labeled = mutate(
+  examination_imputed,
+  BP_arm_exam = recode(BP_arm_exam,
+                       &quot;1&quot; = &quot;Left&quot;,
+                       &quot;2&quot; = &quot;Right&quot;),
+  Dominant_hand_exam = recode(Dominant_hand_exam,
+                              &quot;1&quot;=&quot;Right&quot;,
+                              &quot;2&quot;=&quot;Left&quot;,
+                              &quot;3&quot;=&quot;Neither&quot;)
+  )
+
+# Export the dataset
+##write.csv(examination_labeled, file.choose())</code></pre>
 <div style="page-break-after: always;"></div>
 </div>
 <div id="labs-1" class="section level3">
@@ -2285,29 +2367,13 @@ colnames(medsdata_indexed) &lt;- with(Dictionary,
 medsdata_Col_Labels &lt;- data.frame(&quot;Code&quot;=c(colnames(medsdata68)), 
                                   &quot;Desp&quot;=c(colnames(medsdata_indexed)))</code></pre>
 <p>Categorization of variables</p>
-</div>
-</div>
-</div>
-<div id="we-have-to-now-enter-categorization-of-factornumeric-computation-not-required-in-the-excel-file-generated" class="section level1">
-<h1>We have to now enter categorization of Factor/Numeric/ ‘Computation not required’ in the excel file generated</h1>
-<div id="only-to-be-done-in-3rd-column" class="section level3">
-<h3>Only to be done in 3rd column</h3>
-</div>
-<div id="code-is" class="section level2">
-<h2>Code is</h2>
-</div>
-</div>
-<div id="factor-requiring-no-computation" class="section level1">
-<h1>0 = Factor requiring no computation</h1>
-</div>
-<div id="numeric-requiring-computation" class="section level1">
-<h1>1 = Numeric requiring computation</h1>
-</div>
-<div id="factor-requiring-computation" class="section level1">
-<h1>2 = Factor requiring computation</h1>
-</div>
-<div id="please-write-column-name-for-the-category-as-cat" class="section level1">
-<h1>Please write Column name for the category as “Cat”</h1>
+<!-- # We have to now enter categorization of Factor/Numeric/ 'Computation not required' in the excel file generated -->
+<!-- ### Only to be done in 3rd column -->
+<!-- ## Code is  -->
+<!-- # 0 = Factor requiring no computation -->
+<!-- # 1 = Numeric requiring computation -->
+<!-- # 2 = Factor requiring computation -->
+<!-- # Please write Column name for the category as "Cat" -->
 <p>Reading Index again</p>
 <pre class="r"><code>Cat_meds &lt;- c(0,2,2,2,2,1,2,2,1)
 Cat_meds
@@ -2354,6 +2420,7 @@ colnames(meds_subset_labelled) &lt;- with(Dictionary,
 str(meds_subset_labelled)
 write.csv(meds_subset_labelled,file = &quot;meds_subset_labelled.csv&quot;)</code></pre>
 <div style="page-break-after: always;"></div>
+</div>
 <div id="questionnaire-1" class="section level3">
 <h3>Questionnaire</h3>
 <!-- https://wwwn.cdc.gov/nchs/nhanes/search/variablelist.aspx?Component=Questionnaire&CycleBeginYear=2013 -->
@@ -2400,6 +2467,7 @@ write.csv(meds_subset_labelled,file = &quot;meds_subset_labelled.csv&quot;)</cod
 <li><strong>Smoking_relatives (SMD460)</strong> - Now I would like to ask you a few questions about smoking in this home. How many people who live here smoke cigarettes, cigars, little cigars, pipes, water pipes, hookah, or any other tobacco product?.</li>
 <li><strong>Ride_motor_vehicle (SMQ870)</strong> - During the last 7 days, did {you/SP} ride in a car or motor vehicle?.</li>
 </ul>
+</div>
 </div>
 <div id="visualising-all-numeric-columns" class="section level2">
 <h2>Visualising all numeric columns</h2>

@@ -9,13 +9,13 @@ author:
     affiliation: York University School of Continuing Studies
 date: "Oct 6, 2019"
 output:
-  pdf_document:
-    toc: yes
   html_document:
     toc: true
     toc_float:
       collapsed: true
       smooth_scroll: true
+  pdf_document:
+    toc: yes
 ---
 ```{r setup, include=FALSE, warning = F}
 knitr::opts_chunk$set(echo = TRUE, fig.align="center")
@@ -27,11 +27,11 @@ knitr::opts_chunk$set(warning=FALSE)
 \newpage
 
 # Introduction
-Our client, a hypothetical pharmaceutical company, is looking to understand better what the data related to individuals (clients and potential clients) and various health conditions and miscellaneous attributes. The goal is to extract meaningful information that could guide future research and assist with the company's budgeting while focusing on and improving the wellbeing of the clients.
+Our client, a hypothetical pharmaceutical company, is looking to understand better what the data related to individuals (clients and potential clients) and various health conditions and miscellaneous attributes. The goal is to extract meaningful information that could guide future research and assist with the company rapidly expanding business and market share while focusing on and improving the wellbeing of the clients.
 
 ## Terms and defenitions
 
-  * **Subject** - A person who has been surveyed by the NHMS (National Health Measurement Study) dataset for various attributes related to the following: demographics, examinations, dietary, questionnaire (medical history), and medication.
+  * **Individual** - A person who has been surveyed by the NHMS (National Health Measurement Study) dataset for various attributes related to the following: demographics, examinations, dietary, questionnaire (medical history), and medication.
   
   * **Health Conditions** - Various diseases or ailments that people may inhibit, such as sleep disorders, diabetes, oral health, cholesterol.  
   
@@ -54,6 +54,8 @@ What types of symptoms, medications, diet, demographics are common among various
 ## Second Problem: 
 Are there any commonalities between various people with the same health conditions? For example: The similarities that subjects have if they share a health condition.
 
+The company would ask us about possible wraping the model as a robust, easy to use App that could be present to managment and corporate to assist with the decision making, based on a few user inputs.
+
 \pagebreak
 
 # Analytical Reframing for the Business Case.  
@@ -62,7 +64,7 @@ The **first business problem** involves using “health condition” features an
 * What features are associated with “health condition” features?
 * We’re comparing the rows of the dataset.
 
-The **second business problem** involves finding commonality between subjects. This is a clustering problem and we will need a model using a clustering algorithm. We need to determine whether the business’s presumption is accurate:
+The **second business problem** involves finding commonality between individuals. This is a clustering problem and we will need a model using a clustering algorithm. We need to determine whether the business’s presumption is accurate:
 
 * According to their health conditions, can subjects be divided into discrete groups that could provide meaningful data for the drug researchers?
 * We’re comparing the columns of the dataset.
@@ -116,14 +118,14 @@ library(AMR)
 
 <Describe what needs to happen to the data files> 
 
-As indicated eariler, the dataset conists of six raw data files: Demographics, Examinations, Dietary, Laboratory, Questionnaire, and Medication. The largest dataset, in term of attributes, contains 953 variables; while the smallest one contains 47 variables.
+As indicated earlier, the dataset consists of six raw data files: Demographics, Examinations, Dietary, Laboratory, Questionnaire, and Medication. The largest dataset, in terms of attributes, contains 953 variables, while the smallest one contains 47 variables.
 
-Because this is a large amount of data, with over a thousand attributes cummulatively, we decided to employ the following guidelines to reduce the complexity of the data: 
+Because this is a large amount of data, with over a thousand attributes cumulatively, we decided to employ the following guidelines to reduce the complexity of the data: 
 
 * If more than 25% of the values are missing for an attribute(column), we will consider removing the column from further evaluation.
-* If the majority of attributes are missing 25% or more of their values for a given dataset, we will use business/personal judgmement to subjectively select a smaller subset of values of interest. Of these subset of missing values, we will decide how to impute the values on these attributes.     
+* If the majority of attributes are missing 25% or more of their values for a given dataset, we will use business and expert judgement to select a smaller subset of values of interest subjectively. Of these subsets of missing values, we will decide how to impute the values on these attributes.     
 
-Ideally, we would like to analyse and impute every attribute with missing values, but in this situation, it may not be practical due to the large volume of missing data. 
+Ideally, we would like to analyze and impute every attribute with missing values, but in this situation, it may not be practical due to the large volume of missing data. 
 
 
 ```{r, warning = F, message=F}
@@ -144,7 +146,8 @@ data_joined = join_all(data_list)
 \pagebreak
 
 ## Checking for missing data
-It is always important to check for missing values and consider how to fix them.
+
+It is always essentialto check for missing values and consider how to addreess them in the model.
 
 We decided to represent the Demographic and Diet datasets as they are mostly complete.
 
@@ -175,6 +178,8 @@ ggsave(plot = demographic_MS_plot, width = 8, height = 4, dpi = 300,
 \pagebreak
 
 ### Diet
+
+
 ```{r, eval=F, echo=TRUE, warning = F, message=F}
 diet_MS <- diet %>% summarise_all(~(sum(is.na(.))/n()))
 diet_MS <- gather(diet_MS, key = "variables", value = "percent_missing")
@@ -188,7 +193,6 @@ diet_MS_plot <- ggplot(diet_MS, aes(x = reorder(variables, percent_missing),
   #theme_fivethirtyeight() +
   ggtitle("Diet Missing Data By Columns")+
   theme(axis.text.y=element_text(size=3))
-
 
 #diet_MS_plot
 ggsave(plot = diet_MS_plot, width = 8, height = 4, dpi = 300, 

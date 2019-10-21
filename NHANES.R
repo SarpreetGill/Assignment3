@@ -1,5 +1,6 @@
 #setwd("~/Documents/ML-UYork/ML1000/Asignement2")
 #setwd ("c:/Users/sarpr/Desktop/Machine Learning/Assignments/Assignment2")
+#setwd("E:\\_Git\\ML1000\\Assignment2")
 library(plyr)
 library(dplyr)
 library(tidyr)
@@ -339,8 +340,6 @@ demo_subset_8_labeled <- demo_subset_8_labeled %>%
                        "6" = "partner",
                        "77" = "Refused",
                        "99" = "Unknown"))
-
-
 
 demo_subset_8_labeled <- demo_subset_8_labeled %>%
   mutate(Family_income = recode(Family_income, "1" = 	"$0 - $4999",
@@ -952,7 +951,15 @@ str(questionnaire)
 
 
 #Define the predictors
+
+
+
 #Train the model
+
+
+
+
 #Evaluate the model
+
 
 
