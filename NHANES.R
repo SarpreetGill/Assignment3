@@ -647,35 +647,36 @@ write.csv(labs_subset_imputed,file = "labs_subset_imputed.csv")
 # Label the data for factor/categorical values from imputed dataset.
 labs_subset_labelled <- labs_subset_imputed
 
-labs_subset_labelled = labs_subset_imputed %>% 
+labs_subset_labelled = labs_subset_labelled %>% 
   mutate(Caffeine_labs= recode(Caffeine_labs, "1" = "Yes",
                               "2" = "No", 
                               "NA" = "Not Tested"))
 
 
-labs_subset_labelled = labs_subset_imputed %>% 
+labs_subset_labelled = labs_subset_labelled %>% 
   mutate(Alcohol_labs= recode(Alcohol_labs, "1" = "Yes",
                                "2" = "No", 
                                "NA" = "Not Tested"))
 
-labs_subset_labelled = labs_subset_imputed %>% 
+labs_subset_labelled = labs_subset_labelled %>% 
   mutate(Supplements_labs= recode(Supplements_labs, "1" = "Yes",
                                "2" = "No", 
                                "NA" = "Not Tested"))
 
 
 
-labs_subset_labelled = labs_subset_imputed %>% 
+labs_subset_labelled = labs_subset_labelled %>% 
   mutate(Hepatitis_a_labs= recode(Hepatitis_a_labs, "1" = "Positive",
                                   "2" = "Negative",
                                   "3" = "Indeterminate",
                                   "NA" = "Not Tested"))
 
 
-labs_subset_labelled = labs_subset_imputed %>% 
+labs_subset_labelled = labs_subset_labelled %>% 
   mutate(Hepatitis_b_labs= recode(Hepatitis_b_labs, "1" = "Positive",
                                   "2" = "Negative",
                                   "NA" = "Not Tested"))
+
 
 
 str(labs_subset_labelled)
