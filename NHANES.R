@@ -955,6 +955,7 @@ if (length(nearZeroVar(ques_data_major, freqCut = 90/2, uniqueCut = 10, saveMetr
 }
 
 
+
 #######################################  Check the data for missing values.
 
 #colSums(is.na(ques_data_major))
@@ -1108,6 +1109,23 @@ ques_data_imputed   = read.csv("Data/Working/ques_data_imputed.csv", header = TR
 
 
 
+###Selecting Variables:
+
+ques_sel_Feat <- c("SEQN","CBD070","CBD110","CBD120","CBD130","HSQ500","HSQ510","HSQ520","DIQ010","DIQ050","DBQ197","DBD895","DBD905","DBD910","DLQ010","DLQ020","DLQ040","FSD151","FSQ162","HEQ010","HEQ030","HIQ011","HIQ210","HOD050","HUQ010","HUQ041","HUQ051","HUQ090","IND235","MCQ010","MCQ053","MCQ082","MCQ086","MCQ203","MCQ300B","OHQ030","PAQ710","PAQ715","SMD460","SMQ870")
+
+ques_data_imputed_subset = subset(ques_data_imputed,select=ques_sel_Feat )
+
+#### Labeling the dataset 
+
+ques_subset_labelled <- ques_data_imputed_subset
+colnames(ques_subset_labelled) <- with(Dictionary,
+                                       Dictionary$Variable.Description[match(colnames(ques_data_imputed_subset),
+                                                                             Dictionary$Variable.Name,
+                                                                             nomatch = Dictionary$Variable.Name
+                                       )])
+
+str(meds_subset_labelled)
+write.csv(meds_subset_labelled,file = "meds_subset_labelled.csv")
 
 
 
