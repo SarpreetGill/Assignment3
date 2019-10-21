@@ -8,10 +8,10 @@ library(knitr)    # For knitting document and include_graphics function
 library(ggplot2)  # For plotting
 library(mice)
 library(scales)
-#<<<<<<< HEAD
 library(randomForest)
 library(psych)
 library(factoextra)
+library(AMR)
 
 
 # Reading files
