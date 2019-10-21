@@ -1,13 +1,13 @@
 import re
 
-def part_one(data_dict):
+def extract_var_names(data_dict):
     data = data_dict['data']
     var_names = list(i.replace('.','_').upper()
                      for i in re.findall('([a-zA-Z0-9.]+)', data)
                      if not i.isdigit())
     return var_names
 
-def part_two(var_names, data_dict):
+def select_relevant_vars(var_names, data_dict):
     var_descs = data_dict['var_descs']
 
     if 'selected' not in data_dict:
@@ -21,6 +21,18 @@ def part_two(var_names, data_dict):
             new_name = selected[n]
             print('* **{} ({})** - {}.'.format(new_name, var_names[n], var_descs[n]))
 
+def print_selected_vars(data_dict):
+    print(list(i for i in var_names
+               if var_names.index(i)
+               in data_dict['selected'].keys()))
+
+def print_rename_vars(data_dict, suffix=''):
+    for index, new_name in data_dict['selected'].items():
+        var_name = var_names[index]
+        new_name = new_name + '_' + suffix
+        print('"{}" = "{}",'.format(new_name, var_name))
+        #print('#{} - '.format(new_name))
+    
 labs = {}
 diet = {}
 quest = {}
@@ -53,13 +65,13 @@ demo['data'] = '''[1] "SEQN"     "SDDSRVYR" "RIDSTATR" "RIAGENDR" "RIDAGEYR" "RI
 
 ##################
 
-SELECTED = quest
+SELECTED = exam
 
 ##################
 
 
 # get variable names for 2. get_variable_descriptions.js
-var_names = part_one(SELECTED)
+var_names = extract_var_names(SELECTED)
 print(var_names)
 print('')
 
@@ -220,4 +232,8 @@ demo['selected'] = {0: 'ID',
 # Modify SELECTED at Ln53
 
 if 'var_descs' in SELECTED:
-    part_two(var_names, SELECTED)
+    select_relevant_vars(var_names, SELECTED)
+    print('')
+    print_selected_vars(SELECTED)
+    print('')
+    print_rename_vars(SELECTED, 'exam')
