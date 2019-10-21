@@ -470,6 +470,7 @@ ggsave(plot = Marital_plot, dpi = 300,
 
 
 Marital_plot
+
 ########################  Race  #######################
 
 Race  <- demo_subset_8_labeled %>%
@@ -938,6 +939,178 @@ nrow(questionnaire)
 ncol(questionnaire)
 summary(questionnaire)
 str(questionnaire)
+
+
+
+##################################### ZV/NZV feature remove #########################
+
+
+ques_data_major <- questionnaire
+
+if (length(nearZeroVar(ques_data_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
+                       names = FALSE, foreach = FALSE, allowParallel = TRUE)) > 0){
+  ques_data_major <- ques_data_major[, -nearZeroVar(ques_data_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
+                                                    names = FALSE, foreach = FALSE, allowParallel = TRUE)] 
+  
+}
+
+
+#######################################  Check the data for missing values.
+
+#colSums(is.na(ques_data_major))
+#colMeans(is.na(ques_data_major))*100
+ques_data_major %>% summarise_all(~(sum(is.na(.))/n()*100))
+
+#######################################  Removing data having greater than 25% missing values
+
+
+
+Null_Num_ques_data <- apply(ques_data_major, 2, function(x) length(which(x == "" | is.na(x) | x == "NA" | x == "-999" ))/length(x))
+Null_Colms_ques_data <- colnames(ques_data_major)[Null_Num_ques_data > 0.25]
+ques_data75 <- select(ques_data_major, -Null_Colms_ques_data)
+
+colSums(is.na(ques_data75))
+ques_data75 %>% summarise_all(~(sum(is.na(.))/n()*100))
+
+
+
+#######################################  Creating Index for firther use
+
+
+
+ques_data_indexed <- ques_data75
+colnames(ques_data_indexed) <- with(Dictionary,
+                                    Dictionary$Variable.Description[match(colnames(ques_data75),
+                                                                          Dictionary$Variable.Name,
+                                                                          nomatch = Dictionary$Variable.Name
+                                    )])
+
+ques_data_Col_Labels <- data.frame("Code"=c(colnames(ques_data75)), 
+                                   "Desp"=c(colnames(ques_data_indexed)))
+#dir.create("Data/Labels")
+write.csv(ques_data_Col_Labels,file = "Data/Labels/ques_data_Col_Labels.csv")
+
+#######################################  Categorization of variables
+
+
+#  Categorization of variables
+
+Cat_ques <- c(0,1,1,1,1,1,2,2,2,0,2,2,2,1,1,1,2,2,2,2,
+              2,2,2,2,2,2,2,2,2,2,2,2,1,2,2,2,2,2,1,2,
+              2,2,2,2,2,2,2,2,2,2,2,2,1,1,1,2,2,2,2,1,
+              2,2,1,1,1,1,2,2,1,2,2,2,2,2,2)
+
+ques_data_Col_Labels <- data.frame(ques_data_Col_Labels,Cat = Cat_ques)
+
+write.csv(ques_data_Col_Labels,file = "Data/Labels/ques_data_Col_Labels.csv")
+
+
+
+
+###################################################################################
+# We have to now enter categorization of Factor/Numeric/ 'Computation not required' in the excel file generated
+### Only to be done in 3rd column
+## Code is 
+# 0 = Factor requiring no computation
+# 1 = Numeric requiring computation
+# 2 = Factor requiring computation
+
+# Please write Column name for the category as "Cat"
+
+#######################################  Reading Index again##########################
+
+
+ques_data_Col_Labels   = read.csv("Data/Labels/ques_data_Col_Labels.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+ques_data_Col_Labels[, 2] <- sapply(ques_data_Col_Labels[, 2], as.character)
+
+
+#######################################  Preparing dataset for Impute
+
+
+Catcolmn_ques_data <- ques_data_Col_Labels[ques_data_Col_Labels$Cat ==2 , 2 ] 
+Numcolmn_ques_data <- ques_data_Col_Labels[ques_data_Col_Labels$Cat ==1 , 2 ] 
+Catcolmn_Nul_ques_data <- ques_data_Col_Labels[ques_data_Col_Labels$Cat ==0 , 2 ] 
+WorkingColm_ques_data <- c(Catcolmn_Nul_ques_data, Numcolmn_ques_data, Catcolmn_ques_data)
+
+
+#ques_data_selected = subset(ques_data75,select= WorkingColm )
+
+ques_data_selected = ques_data75[ WorkingColm_ques_data ]
+
+ques_data_selected[, Catcolmn_ques_data] <- sapply(ques_data_selected[, Catcolmn_ques_data], as.numeric)
+ques_data_selected[, Catcolmn_Nul_ques_data] <- sapply(ques_data_selected[, Catcolmn_Nul_ques_data], as.factor)
+ques_data_selected[, Numcolmn_ques_data] <- sapply(ques_data_selected[, Numcolmn_ques_data], as.numeric)
+
+#Look the dataset structure.
+
+sapply(ques_data_selected, function(x) sum(is.na(x)))
+
+
+#==========================  IMPUTATION( MICE package)   =======================
+#recisely, the methods used by this package are:
+#1)-PMM (Predictive Mean Matching) — For numeric variables
+#2)-logreg(Logistic Regression) — For Binary Variables( with 2 levels)
+#3)-polyreg(Bayesian polytomous regression) — For Factor Variables (>= 2 levels)
+#4)-Proportional odds model (ordered, >= 2 levels)
+#5)-cart  Classification and regression trees (any) 
+#6)rf Random forest imputations (any)
+#==============================================================================
+
+meth_ques_data=
+  init_ques_data=
+  predM=
+  init_ques_data = mice(ques_data_selected, maxit=0)
+meth_ques_data = init_ques_data$method
+predM_ques_data = init_ques_data$predictorMatrix
+
+##remove the variable as a predictor but still will be imputed
+
+predM_ques_data[, c("SEQN")]=0
+
+##If you want to skip a variable from imputation use the code below.
+##This variable will still be used for prediction.
+#++++++++++++++++++++++++++++++++++
+#meth[c("Variable")]=""
+
+meth_ques_data[Catcolmn_Nul_ques_data] = ""
+
+#++++++++++++++++++++++++++++++++++
+##Now let specify the methods for imputing the missing values.
+
+meth_ques_data[Catcolmn_ques_data]="cart"
+
+## we impute the Numerical Variable
+
+meth_ques_data[Numcolmn_ques_data]="pmm"
+
+
+set.seed(415)
+imputed_ques_data = mice(ques_data_selected, method=meth_ques_data, predictorMatrix=predM_ques_data, m=5)
+
+#Create a dataset after imputation.
+
+ques_data_imputed<- complete(imputed_ques_data)
+
+
+
+#Check for missings in the imputed dataset.
+sapply(ques_data_imputed, function(x) sum(is.na(x)))
+
+
+
+#######################################  Saving Impute
+
+
+write.csv(ques_data_imputed , "Data/Working/ques_data_imputed.csv")
+ques_data_imputed   = read.csv("Data/Working/ques_data_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+
+
+
+
+
+
 
 ################################################################################
 #############  diabete and symptoms (questionaire)   ###########################
