@@ -979,27 +979,27 @@ ques_data75 %>% summarise_all(~(sum(is.na(.))/n()*100))
 # Select interesting Questions
 
 ques_Yes_No <- "SEQN" %>% c("HSQ500","HSQ510","HSQ520","DIQ010","DIQ050","DLQ010","DLQ020","DLQ040","FSD151","FSQ162","HIQ011","HIQ210","HUQ090","MCQ010","MCQ053","MCQ300B","SMQ870")
-ques_Yes_No_with_SEQN <- c("HSQ500","HSQ510","HSQ520","DIQ010","DIQ050","DLQ010","DLQ020","DLQ040","FSD151","FSQ162","HIQ011","HIQ210","HUQ090","MCQ010","MCQ053","MCQ300B","SMQ870")
+ques_Yes_No_NO_SEQN <- c("HSQ500","HSQ510","HSQ520","DIQ010","DIQ050","DLQ010","DLQ020","DLQ040","FSD151","FSQ162","HIQ011","HIQ210","HUQ090","MCQ010","MCQ053","MCQ300B","SMQ870")
 ques_data_with_outliers <- select(ques_data75, ques_Yes_No)
-ques_data_without_outliers <- select(ques_data75, -ques_Yes_No_with_SEQN)
+ques_data_without_outliers <- select(ques_data75, -ques_Yes_No_NO_SEQN)
 
 # Remove outliers from a column
 remove_outliers_col <- function(x, na.rm = TRUE, ...) {
-  qnt <- quantile(x, probs=c(.25, .75), na.rm = na.rm, ...)
-  H <- 1.5 * IQR(x, na.rm = na.rm)
-  y <- x
-  y[x < (qnt[1] - H)] <- NA
-  y[x > (qnt[2] + H)] <- NA
-  y
+  ques_probs <- quantile(x, probs=c(.25, .75), na.rm = na.rm, ...)
+  ques_Lim <- 1.5 * IQR(x, na.rm = na.rm)
+  ques_outlier <- x
+  ques_outlier[x < (ques_probs[1] - ques_Lim)] <- NA
+  ques_outlier[x > (ques_probs[2] + ques_Lim)] <- NA
+  ques_outlier
 }
 # Removes all outliers from a data set
-remove_all_outliers_df <- function(df){
+remove_all_outliers_Fn <- function(In){
   # We only want the numeric columns
-  df[,sapply(df, is.numeric)] <- lapply(df[,sapply(df, is.numeric)], remove_outliers_col)
-  df
+  In[,sapply(In, is.numeric)] <- lapply(In[,sapply(In, is.numeric)], remove_outliers_col)
+  In
 }
 
-ques_data_pro_outliers <- remove_all_outliers_df(ques_data_with_outliers)
+ques_data_pro_outliers <- remove_all_outliers_Fn(ques_data_with_outliers)
 
 ques_data_na_process<-merge(x=ques_data_without_outliers,y=ques_data_pro_outliers,by="SEQN")
 
@@ -1144,8 +1144,13 @@ ques_data_imputed_subset = subset(ques_data_imputed,select=ques_sel_Feat )
 
 #### Labeling the dataset 
 
+ques_Yes_No_NO_SEQN
+
+Rename_Yes_No 
+
 ques_data_imputed_subset <- ques_data_imputed_subset %>%
-  mutate(ques_Yes_No_with_SEQN = recode(ques_Yes_No_with_SEQN, "1" = "Yes",
+  mutate(ques_Yes_No_NO_SEQN = recode(ques_Yes_No_NO_SEQN, 
+                                        "1" = "Yes",
                                         "2" = "No"))
 
  
