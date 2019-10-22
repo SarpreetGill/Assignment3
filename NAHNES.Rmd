@@ -1194,7 +1194,6 @@ We have selected the following 38 relevant columns among the 79 that have less t
 
 
 
-
 First, we will remove the near zero vairiance variables.
 
 ```{r, eval=FALSE, echo=TRUE}

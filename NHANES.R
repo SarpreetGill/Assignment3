@@ -1147,24 +1147,14 @@ ques_data_imputed_subset   = read.csv("Data/Working/ques_data_imputed_subset.csv
 
 #### Labeling the dataset 
 
-ques_Yes_No_NO_SEQN
+
+# Labeling Questions
 #("HSQ500","HSQ510","HSQ520","DIQ010","DIQ050","DLQ010","DLQ020","DLQ040","FSD151","FSQ162","HIQ011","HIQ210","HUQ090","MCQ010","MCQ053","MCQ300B","SMQ870")
 
-
 ques_data_imputed_subset[ , ques_Yes_No_NO_SEQN ][ ques_data_imputed_subset[ , ques_Yes_No_NO_SEQN ] == "1" ] <- "Yes"
-
-summary(ques_data_major$HSQ500)
-summary(ques_data_imputed$HSQ500)
-
-summary(ques_data_imputed_subset)
+ques_data_imputed_subset[ , ques_Yes_No_NO_SEQN ][ ques_data_imputed_subset[ , ques_Yes_No_NO_SEQN ] == "2" ] <- "No"
 
 
-ques_data_imputed_subset <- ques_data_imputed_subset %>%
-  mutate(ques_data_imputed_subset, .data[ques_Yes_No_NO_SEQN] = recode(ques_Yes_No_NO_SEQN, 
-                                        "1" = "Yes",
-                                        "2" = "No"))
-
- 
 
 
 demo_subset_8_labeled <- demo_subset_8_labeled %>%
