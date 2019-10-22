@@ -973,13 +973,42 @@ ques_data75 <- select(ques_data_major, -Null_Colms_ques_data)
 colSums(is.na(ques_data75))
 ques_data75 %>% summarise_all(~(sum(is.na(.))/n()*100))
 
+ 
+#######################################  Removing Outliers
+
+# Select interesting Questions
+
+ques_Yes_No <- "SEQN" %>% c("HSQ500","HSQ510","HSQ520","DIQ010","DIQ050","DLQ010","DLQ020","DLQ040","FSD151","FSQ162","HIQ011","HIQ210","HUQ090","MCQ010","MCQ053","MCQ300B","SMQ870")
+ques_Yes_No_with_SEQN <- c("HSQ500","HSQ510","HSQ520","DIQ010","DIQ050","DLQ010","DLQ020","DLQ040","FSD151","FSQ162","HIQ011","HIQ210","HUQ090","MCQ010","MCQ053","MCQ300B","SMQ870")
+ques_data_with_outliers <- select(ques_data75, ques_Yes_No)
+ques_data_without_outliers <- select(ques_data75, -ques_Yes_No_with_SEQN)
+
+# Remove outliers from a column
+remove_outliers_col <- function(x, na.rm = TRUE, ...) {
+  qnt <- quantile(x, probs=c(.25, .75), na.rm = na.rm, ...)
+  H <- 1.5 * IQR(x, na.rm = na.rm)
+  y <- x
+  y[x < (qnt[1] - H)] <- NA
+  y[x > (qnt[2] + H)] <- NA
+  y
+}
+# Removes all outliers from a data set
+remove_all_outliers_df <- function(df){
+  # We only want the numeric columns
+  df[,sapply(df, is.numeric)] <- lapply(df[,sapply(df, is.numeric)], remove_outliers_col)
+  df
+}
+
+ques_data_pro_outliers <- remove_all_outliers_df(ques_data_with_outliers)
+
+ques_data_na_process<-merge(x=ques_data_without_outliers,y=ques_data_pro_outliers,by="SEQN")
 
 
 #######################################  Creating Index for firther use
 
 
 
-ques_data_indexed <- ques_data75
+ques_data_indexed <- ques_data_na_process
 colnames(ques_data_indexed) <- with(Dictionary,
                                     Dictionary$Variable.Description[match(colnames(ques_data75),
                                                                           Dictionary$Variable.Name,
@@ -996,10 +1025,7 @@ write.csv(ques_data_Col_Labels,file = "Data/Labels/ques_data_Col_Labels.csv")
 
 #  Categorization of variables
 
-Cat_ques <- c(0,1,1,1,1,1,2,2,2,0,2,2,2,1,1,1,2,2,2,2,
-              2,2,2,2,2,2,2,2,2,2,2,2,1,2,2,2,2,2,1,2,
-              2,2,2,2,2,2,2,2,2,2,2,2,1,1,1,2,2,2,2,1,
-              2,2,1,1,1,1,2,2,1,2,2,2,2,2,2)
+Cat_ques <- c(0,1,1,1,1,1,2,2,2,0,2,2,2,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,2,2,2,2,2,1,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,1,2,2,2,2,1,2,2,1,1,1,1,2,2,1,2,2,2,2,2,2)
 
 ques_data_Col_Labels <- data.frame(ques_data_Col_Labels,Cat = Cat_ques)
 
@@ -1117,10 +1143,27 @@ ques_data_imputed_subset = subset(ques_data_imputed,select=ques_sel_Feat )
 
 
 #### Labeling the dataset 
-ques_Yes_No <- c("HSQ500","HSQ510","HSQ520","DIQ010","DIQ050","DLQ010","DLQ020","DLQ040","FSD151","FSQ162","HEQ010","HEQ030","HIQ011","HIQ210","HUQ090","MCQ010","MCQ053","MCQ082","MCQ086","MCQ203","MCQ300B","SMQ870")
+ques_Yes_No <- c("HSQ500","HSQ510","HSQ520","DIQ010","DIQ050","DLQ010","DLQ020","DLQ040","FSD151","FSQ162","HIQ011","HIQ210","HUQ090","MCQ010","MCQ053","MCQ300B","SMQ870")
 
-boxplot(ques_data_imputed_subset$ques_Yes_No, plot=FALSE)
+ques_data_with_outliers <- select(ques_data_imputed_subset, ques_Yes_No)
 
+# Remove outliers from a column
+remove_outliers_col <- function(x, na.rm = TRUE, ...) {
+  qnt <- quantile(x, probs=c(.25, .75), na.rm = na.rm, ...)
+  H <- 1.5 * IQR(x, na.rm = na.rm)
+  y <- x
+  y[x < (qnt[1] - H)] <- NA
+  y[x > (qnt[2] + H)] <- NA
+  y
+}
+# Removes all outliers from a data set
+remove_all_outliers_df <- function(df){
+  # We only want the numeric columns
+  df[,sapply(df, is.numeric)] <- lapply(df[,sapply(df, is.numeric)], remove_outliers_col)
+  df
+}
+
+remove_all_outliers_df(ques_data_with_outliers)
 
 
 ques_outliers <- boxplot(ques_data_imputed_subset, plot=FALSE)$out
