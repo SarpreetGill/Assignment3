@@ -975,41 +975,11 @@ ques_data75 %>% summarise_all(~(sum(is.na(.))/n()*100))
 
  
 
-#######################################  Removing Outliers
-
-# Select interesting Questions
-
-ques_Yes_No <- "SEQN" %>% c("HSQ500","HSQ510","HSQ520","DIQ010","DIQ050","DLQ010","DLQ020","DLQ040","FSD151","FSQ162","HIQ011","HIQ210","HUQ090","MCQ010","MCQ053","MCQ300B","SMQ870")
-ques_Yes_No_NO_SEQN <- c("HSQ500","HSQ510","HSQ520","DIQ010","DIQ050","DLQ010","DLQ020","DLQ040","FSD151","FSQ162","HIQ011","HIQ210","HUQ090","MCQ010","MCQ053","MCQ300B","SMQ870")
-ques_data_with_outliers <- select(ques_data75, ques_Yes_No)
-ques_data_without_outliers <- select(ques_data75, -ques_Yes_No_NO_SEQN)
-
-remove_outliers_col <- function(x, na.rm = TRUE, ...) {
-  ques_probs <- quantile(x, probs=c(0, .95), na.rm = na.rm, ...)
-    ques_Lim <- 1.5 * IQR(x, na.rm = na.rm)
-  ques_outlier <- x
-  ques_outlier[x < (ques_probs[1] - ques_Lim)] <- NA
-  ques_outlier[x > (ques_probs[2] + ques_Lim)] <- NA
-  ques_outlier
-}
-
-remove_all_outliers_Fn <- function(In){
-  In[,sapply(In, is.numeric)] <- lapply(In[,sapply(In, is.numeric)], remove_outliers_col)
-  In
-}
-
-ques_data_pro_outliers <- remove_all_outliers_Fn(ques_data_with_outliers)
-
-ques_data_na_process<-merge(x=ques_data_without_outliers,y=ques_data_pro_outliers,by="SEQN")
-
-
-summary(ques_data_pro_outliers)
-
 #######################################  Creating Index for firther use
 
 
 
-ques_data_indexed <- ques_data_na_process
+ques_data_indexed <- ques_data75
 colnames(ques_data_indexed) <- with(Dictionary,
                                     Dictionary$Variable.Description[match(colnames(ques_data75),
                                                                           Dictionary$Variable.Name,
@@ -1026,7 +996,7 @@ write.csv(ques_data_Col_Labels,file = "Data/Labels/ques_data_Col_Labels.csv")
 
 #  Categorization of variables
 
-Cat_ques <- c(0,1,1,1,1,1,2,2,2,0,2,2,2,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,2,2,2,2,2,1,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,1,2,2,2,2,1,2,2,1,1,1,1,2,2,1,2,2,2,2,2,2)
+Cat_ques <- c(0,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2)
 
 ques_data_Col_Labels <- data.frame(ques_data_Col_Labels,Cat = Cat_ques)
 
@@ -1064,7 +1034,7 @@ WorkingColm_ques_data <- c(Catcolmn_Nul_ques_data, Numcolmn_ques_data, Catcolmn_
 
 #ques_data_selected = subset(ques_data75,select= WorkingColm )
 
-ques_data_selected = ques_data_na_process[ WorkingColm_ques_data ]
+ques_data_selected = ques_data75[ WorkingColm_ques_data ]
 
 ques_data_selected[, Catcolmn_ques_data] <- sapply(ques_data_selected[, Catcolmn_ques_data], as.numeric)
 ques_data_selected[, Catcolmn_Nul_ques_data] <- sapply(ques_data_selected[, Catcolmn_Nul_ques_data], as.factor)
@@ -1147,57 +1117,171 @@ ques_data_imputed_subset   = read.csv("Data/Working/ques_data_imputed_subset.csv
 
 #### Labeling the dataset 
 
+# Select interesting Questions
 
-# Labeling Questions
-#("HSQ500","HSQ510","HSQ520","DIQ010","DIQ050","DLQ010","DLQ020","DLQ040","FSD151","FSQ162","HIQ011","HIQ210","HUQ090","MCQ010","MCQ053","MCQ300B","SMQ870")
+ques_Yes_No_NO_SEQN <- c("HSQ500","HSQ510","HSQ520","DIQ010","DIQ050","DLQ010","DLQ020","DLQ040","FSD151","FSQ162","HIQ011","HIQ210","HUQ090","MCQ010","MCQ053","MCQ300B","SMQ870")
+
 
 ques_data_imputed_subset[ , ques_Yes_No_NO_SEQN ][ ques_data_imputed_subset[ , ques_Yes_No_NO_SEQN ] == "1" ] <- "Yes"
 ques_data_imputed_subset[ , ques_Yes_No_NO_SEQN ][ ques_data_imputed_subset[ , ques_Yes_No_NO_SEQN ] == "2" ] <- "No"
+ques_data_imputed_subset[ , ques_Yes_No_NO_SEQN ][ ques_data_imputed_subset[ , ques_Yes_No_NO_SEQN ] == "7" ] <- "Refused"
+ques_data_imputed_subset[ , ques_Yes_No_NO_SEQN ][ ques_data_imputed_subset[ , ques_Yes_No_NO_SEQN ] == "9" ] <- "Unknown"
 
 
 
-
-demo_subset_8_labeled <- demo_subset_8_labeled %>%
-  mutate(Country_of_birth  = recode(Country_of_birth , "1" = "US",
-                                    "2" = "Others",
-                                    "77" = "Refused",
-                                    "99" = "Uknown"))
-
-demo_subset_8_labeled <- demo_subset_8_labeled %>%
-  mutate(Citizenship_status = recode(Citizenship_status, "1" = "US",
-                                     "2" = "Other",
-                                     "7" = "Refused",
-                                     "9" = "Unknown"))
-
-demo_subset_8_labeled <- demo_subset_8_labeled %>%
-  mutate(Marital_status = recode(Marital_status, "1" = "Married",
-                                 "2" = "Widowed",
-                                 "3" = "Divorced",
-                                 "4" = "Separated",
-                                 "5" = "Never_married",
-                                 "6" = "partner",
-                                 "77" = "Refused",
-                                 "99" = "Unknown"))
-
-demo_subset_8_labeled <- demo_subset_8_labeled %>%
-  mutate(Family_income = recode(Family_income, "1" = 	"$0 - $4999",
-                                "2" =	"$5000 - $9999",
-                                "3" =	"$10000 - $14999",
-                                "4" =	"$15000 - $19999",		
-                                "5" =	"$20000 - $24999",		
-                                "6" =	"$25000 - $34999",		
-                                "7" =	"$35000 - $44999",	
-                                "8" =	"$45000 - $54999",		
-                                "9" =	"$55000 - $64999",		
-                                "10" = 	"$65000 - $74999",		
-                                "12" =	"$20000 and Over",	
-                                "13" =	"Under $20000",	
-                                "14" =	"$75000 - $99999",	
-                                "15" = "$100000 and Over",	
-                                "77" =	"Refused",
-                                "99" =	"Unknown"	))
+ques_data_numeric5 <-c("CBD070", "CBD110","CBD120","CBD130")
+ques_data_imputed_subset[ , ques_data_numeric5 ][ ques_data_imputed_subset[ , ques_data_numeric5 ] == "777777" ] <- "Refused"
+ques_data_imputed_subset[ , ques_data_numeric5 ][ ques_data_imputed_subset[ , ques_data_numeric5 ] == "999999" ] <- "Unknown"
 
 
+ques_data_imputed_subset <- ques_data_imputed_subset %>%
+  mutate(HUQ010  = recode(HUQ010 ,
+                        "1" =	"Excellent"	,
+                        "2" =	"Very good"	,
+                        "3"=	"Good"	,
+                        "4"=	"Fair"	,
+                        "5"	= "Poor"	,
+                        "7"=	"Refused"	,
+                        "9"=	"Unknown"))
+
+
+ques_data_imputed_subset <- ques_data_imputed_subset %>%
+  mutate(DBQ197  = recode(DBQ197 ,
+                          "0"=	"Never",
+                          "1"=	"Rarely-less than once a week",
+                          "2"=	"Sometimes-once a week or more, but less than once a day",
+                          "3"=	"Often-once a day or more?",
+                          "4"=	"Varied",
+                          "7"=	"Refused",
+                          "9"=	"Unknown"))
+
+ques_data_imputed_subset <- ques_data_imputed_subset %>%
+  mutate(DBD895  = recode(DBD895 ,
+                          "0"=	"None",
+                          "5555"=	"More than 21 meals per week",
+                          "7777"=	"Refused",
+                          "9999"=	"Unknown"))
+
+ques_data_imputed_subset <- ques_data_imputed_subset %>%
+  mutate(DBD905  = recode(DBD905 ,
+                          "0"=	"None",
+                          "7777"=	"Refused",
+                          "9999"=	"Unknown"))
+
+ques_data_imputed_subset <- ques_data_imputed_subset %>%
+  mutate(DBD910  = recode(DBD910 ,
+                          "0"=	"Never",
+                          "7777"=	"Refused",
+                          "9999"=	"Unknown"))
+
+ques_data_imputed_subset <- ques_data_imputed_subset %>%
+  mutate(HUQ041  = recode(HUQ041 ,
+                          "1"=	"Clinic or health center",	
+                          "2"=	"Doctor's office or HMO",	
+                          "3"=	"Hospital emergency room",	
+                          "4"=	"Hospital outpatient department",	
+                          "5"=	"Some other place",	
+                          "6"=	"Doesn't go to one place most often",	
+                          "77"=	"Refused",	
+                          "99"=	"Unknown"))
+
+ques_data_imputed_subset <- ques_data_imputed_subset %>%
+  mutate(HUQ051  = recode(HUQ051 ,
+                          "0"=	"None",	
+                          "1"=	"1",
+                          "2"=	"2 to 3",
+                          "3"=	"4 to 5",
+                          "4"=	"6 to 7",
+                          "5"=	"8 to 9",
+                          "6"=	"10 to 12",
+                          "7"=	"13 to 15",
+                          "8"=	"16 or more",
+                          "77"=	"Refused",
+                          "99"=	"Unknown"))
+
+ques_data_imputed_subset <- ques_data_imputed_subset %>%
+  mutate(IND235  = recode(IND235 ,
+                          "1"=	"$0 - $399",	
+                          "2"=	"$400 - $799",	
+                          "3"=	"$800 - $1249",	
+                          "4"=	"$1250 - $1649",	
+                          "5"=	"$1650 - $2099",	
+                          "6"=	"$2100 - $2899",	
+                          "7"=	"$2900 - $3749",	
+                          "8"=	"$3750 - $4599",	
+                          "9"=	"$4600 - $5399",	
+                          "10"=	"$5400 - $6249",	
+                          "11"=	"$6250 - $8399",	
+                          "12"=	"$8400 and over",	
+                          "77"=	"Refused",	
+                          "99"=	"Unknown"))
+
+
+ques_data_imputed_subset <- ques_data_imputed_subset %>%
+  mutate(OHQ030  = recode(OHQ030 ,
+                          "1"=	"6 months or less",	
+                          "2"=	"More than 6 months, but not more than 1 year ago",	
+                          "3"=	"More than 1 year, but not more than 2 years ago",	
+                          "4"=	"More than 2 years, but not more than 3 years ago",	
+                          "5"=	"More than 3 years, but not more than 5 years ago",	
+                          "6"=	"More than 5 years ago",	
+                          "7"=	"Never have been",
+                          "77"=	"Refused",	
+                          "99"=	"Unknown"	))
+
+
+ques_data_imputed_subset <- ques_data_imputed_subset %>%
+  mutate(PAQ710  = recode(PAQ710 ,
+                          "0"=	"Less than 1 hour",	
+                          "1"=	"1 hour",	
+                          "2"=	"2 hours",	
+                          "3"=	"3 hours",	
+                          "4"=	"4 hours",	
+                          "5"=	"5 hours or more",	
+                          "8"=	"{You don't/SP does not} watch TV or videos",	
+                          "77"=	"Refused",	
+                          "99"=	"Unknown"	))
+
+ques_data_imputed_subset <- ques_data_imputed_subset %>%
+  mutate(PAQ715  = recode(PAQ715 ,
+                          "0"=	"Less than 1 hour",	
+                          "1"=	"1 hour",	
+                          "2"=	"2 hours",	
+                          "3"=	"3 hours",	
+                          "4"=	"4 hours",	
+                          "5"=	"5 hours or more",	
+                          "8"=	"{you do not/SP does not} use a computer outside of school",	
+                          "77"=	"Refused",	
+                          "99"=	"Unknown"	))
+
+ques_data_imputed_subset <- ques_data_imputed_subset %>%
+  mutate(SMD460  = recode(SMD460 ,
+                          "0"=	"No one in houseold is a smoker",
+                          "1"=	"1 household member is a smoker",	
+                          "2"=	"2 household members are smokers",	
+                          "3"=	"3 or more household members are smokers",	
+                          "777"=	"Refused	5	10058	End of Section",
+                          "999"=	"Unknown"))
+
+
+ques_data_imputed_subset <- ques_data_imputed_subset %>%
+  mutate(HOD050  = recode(HOD050 ,
+                          "1"=	"1",	
+                          "2"=	"2",	
+                          "3"=	"3",	
+                          "4"=	"4",	
+                          "5"=	"5",	
+                          "6"=	"6",	
+                          "7"=	"7",	
+                          "8"=	"8",	
+                          "9"=	"9",	
+                          "10"=	"10",	
+                          "11"=	"11",	
+                          "12"=	"12",	
+                          "13"=	"13 or more",
+                          "777"=	"Refused",	
+                          "999"=	"Unknown"	))
+s
 
 
 ques_subset_labelled <- ques_data_imputed_subset

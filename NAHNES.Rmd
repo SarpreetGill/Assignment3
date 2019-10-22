@@ -1226,56 +1226,13 @@ ques_data75 %>% summarise_all(~(sum(is.na(.))/n()*100))
 ```
 
 
-To help make our model more robust, we will try to identify if the features having precievable/obvious inputs are outliers. We will try to to identify the outliers in the data for questions having answers as "Yes" and "No".
-To do this we will seperate the interesting data containing only answers:
-
-
-```{r, eval=FALSE, echo=TRUE}
-
-ques_Yes_No <- "SEQN" %>% c("HSQ500","HSQ510","HSQ520","DIQ010","DIQ050","DLQ010","DLQ020","DLQ040","FSD151","FSQ162","HIQ011","HIQ210","HUQ090","MCQ010","MCQ053","MCQ300B","SMQ870")
-ques_Yes_No_NO_SEQN <- c("HSQ500","HSQ510","HSQ520","DIQ010","DIQ050","DLQ010","DLQ020","DLQ040","FSD151","FSQ162","HIQ011","HIQ210","HUQ090","MCQ010","MCQ053","MCQ300B","SMQ870")
-ques_data_with_outliers <- select(ques_data75, ques_Yes_No)
-ques_data_without_outliers <- select(ques_data75, -ques_Yes_No_NO_SEQN)
-
-```
-
-
-Removing Outliers:
-
-```{r, eval=FALSE, echo=TRUE}
-
-remove_outliers_col <- function(x, na.rm = TRUE, ...) {
-  ques_probs <- quantile(x, probs=c(0, .95), na.rm = na.rm, ...)
-    ques_Lim <- 1.5 * IQR(x, na.rm = na.rm)
-  ques_outlier <- x
-  ques_outlier[x < (ques_probs[1] - ques_Lim)] <- NA
-  ques_outlier[x > (ques_probs[2] + ques_Lim)] <- NA
-  ques_outlier
-}
-
-remove_all_outliers_Fn <- function(In){
-  In[,sapply(In, is.numeric)] <- lapply(In[,sapply(In, is.numeric)], remove_outliers_col)
-  In
-}
-
-ques_data_pro_outliers <- remove_all_outliers_Fn(ques_data_with_outliers)
-
-ques_data_na_process<-merge(x=ques_data_without_outliers,y=ques_data_pro_outliers,by="SEQN")
-```
-
-Outliers Removed:-
-
-![](Figures/Outliers_Removed.png){width=800px}
-
-
-
 We will now refer to our Dictionary for making a reference dataframe to differentiate between different forms of variables in a fast and effective way:
 
 
 
 ```{r, eval=FALSE, echo=TRUE}
 
-ques_data_indexed <- ques_data_na_process
+ques_data_indexed <- ques_data75
 colnames(ques_data_indexed) <- with(Dictionary,
                                     Dictionary$Variable.Description[match(colnames(ques_data75),
                                                                           Dictionary$Variable.Name,
@@ -1284,6 +1241,7 @@ colnames(ques_data_indexed) <- with(Dictionary,
 
 ques_data_Col_Labels <- data.frame("Code"=c(colnames(ques_data75)), 
                                    "Desp"=c(colnames(ques_data_indexed)))
+#dir.create("Data/Labels")
 write.csv(ques_data_Col_Labels,file = "Data/Labels/ques_data_Col_Labels.csv")
 
 ```
@@ -1310,14 +1268,11 @@ Reading Index again
 
 #  Categorization of variables
 
-Cat_ques <- c(0,1,1,1,1,1,2,2,2,0,2,2,2,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
-              2,2,1,2,2,2,2,2,1,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,1,2,2,2,2,1,
-              2,2,1,1,1,1,2,2,1,2,2,2,2,2,2)
+Cat_ques <- c(0,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2)
 
 ques_data_Col_Labels <- data.frame(ques_data_Col_Labels,Cat = Cat_ques)
 
 write.csv(ques_data_Col_Labels,file = "Data/Labels/ques_data_Col_Labels.csv")
-
 
 ques_data_Col_Labels   = read.csv("Data/Labels/ques_data_Col_Labels.csv", header = TRUE, na.strings = c("NA","","#NA"))
 
@@ -1335,7 +1290,7 @@ Catcolmn_ques_data <- ques_data_Col_Labels[ques_data_Col_Labels$Cat ==2 , 2 ]
 Numcolmn_ques_data <- ques_data_Col_Labels[ques_data_Col_Labels$Cat ==1 , 2 ] 
 Catcolmn_Nul_ques_data <- ques_data_Col_Labels[ques_data_Col_Labels$Cat ==0 , 2 ] 
 WorkingColm_ques_data <- c(Catcolmn_Nul_ques_data, Numcolmn_ques_data, Catcolmn_ques_data)
-ques_data_selected = ques_data_na_process[ WorkingColm_ques_data ]
+ques_data_selected = ques_data75[ WorkingColm_ques_data ]
 ques_data_selected[, Catcolmn_ques_data] <- sapply(ques_data_selected[, Catcolmn_ques_data], as.numeric)
 ques_data_selected[, Catcolmn_Nul_ques_data] <- sapply(ques_data_selected[, Catcolmn_Nul_ques_data], as.factor)
 ques_data_selected[, Numcolmn_ques_data] <- sapply(ques_data_selected[, Numcolmn_ques_data], as.numeric)
