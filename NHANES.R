@@ -1143,36 +1143,7 @@ ques_data_imputed_subset = subset(ques_data_imputed,select=ques_sel_Feat )
 
 
 #### Labeling the dataset 
-ques_Yes_No <- c("HSQ500","HSQ510","HSQ520","DIQ010","DIQ050","DLQ010","DLQ020","DLQ040","FSD151","FSQ162","HIQ011","HIQ210","HUQ090","MCQ010","MCQ053","MCQ300B","SMQ870")
 
-ques_data_with_outliers <- select(ques_data_imputed_subset, ques_Yes_No)
-
-# Remove outliers from a column
-remove_outliers_col <- function(x, na.rm = TRUE, ...) {
-  qnt <- quantile(x, probs=c(.25, .75), na.rm = na.rm, ...)
-  H <- 1.5 * IQR(x, na.rm = na.rm)
-  y <- x
-  y[x < (qnt[1] - H)] <- NA
-  y[x > (qnt[2] + H)] <- NA
-  y
-}
-# Removes all outliers from a data set
-remove_all_outliers_df <- function(df){
-  # We only want the numeric columns
-  df[,sapply(df, is.numeric)] <- lapply(df[,sapply(df, is.numeric)], remove_outliers_col)
-  df
-}
-
-remove_all_outliers_df(ques_data_with_outliers)
-
-
-ques_outliers <- boxplot(ques_data_imputed_subset, plot=FALSE)$out
-
-
-
-
-
-require(dplyr)
 demo_subset_8_labeled <- demo_subset_8_labeled %>%
   mutate(Race = recode(Race, "1" = "Mexican_American",
                        "2" = "Other_Hispanic",
