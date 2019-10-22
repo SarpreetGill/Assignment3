@@ -1117,14 +1117,19 @@ ques_data_imputed_subset = subset(ques_data_imputed,select=ques_sel_Feat )
 
 
 #### Labeling the dataset 
+ques_Yes_No <- c("HSQ500","HSQ510","HSQ520","DIQ010","DIQ050","DLQ010","DLQ020","DLQ040","FSD151","FSQ162","HEQ010","HEQ030","HIQ011","HIQ210","HUQ090","MCQ010","MCQ053","MCQ082","MCQ086","MCQ203","MCQ300B","SMQ870")
+
+boxplot(ques_data_imputed_subset$ques_Yes_No, plot=FALSE)
 
 
 
-demo_subset_8_labeled = mutate(demo_subset_8_imputed, Gender= ifelse(
-  demo_subset_8_imputed$Gender == "1" , "Male", "Female" ))
+ques_outliers <- boxplot(ques_data_imputed_subset, plot=FALSE)$out
 
 
-require(dplyr)# because Race is a factor of level 6
+
+
+
+require(dplyr)
 demo_subset_8_labeled <- demo_subset_8_labeled %>%
   mutate(Race = recode(Race, "1" = "Mexican_American",
                        "2" = "Other_Hispanic",
