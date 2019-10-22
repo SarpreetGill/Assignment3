@@ -1039,7 +1039,7 @@ ques_data_selected = ques_data75[ WorkingColm_ques_data ]
 ques_data_selected[, Catcolmn_ques_data] <- sapply(ques_data_selected[, Catcolmn_ques_data], as.numeric)
 ques_data_selected[, Catcolmn_Nul_ques_data] <- sapply(ques_data_selected[, Catcolmn_Nul_ques_data], as.factor)
 ques_data_selected[, Numcolmn_ques_data] <- sapply(ques_data_selected[, Numcolmn_ques_data], as.numeric)
-ques_data_selected$SMQ870 <- as.numeric(ques_data_selected$SMQ870)
+
 #Look the dataset structure.
 
 
@@ -1129,9 +1129,16 @@ ques_data_imputed_subset[ , ques_Yes_No_NO_SEQN ][ ques_data_imputed_subset[ , q
 
 
 
-ques_data_numeric5 <-c("CBD070", "CBD110","CBD120","CBD130")
-ques_data_imputed_subset[ , ques_data_numeric5 ][ ques_data_imputed_subset[ , ques_data_numeric5 ] == "777777" ] <- "Refused"
-ques_data_imputed_subset[ , ques_data_numeric5 ][ ques_data_imputed_subset[ , ques_data_numeric5 ] == "999999" ] <- "Unknown"
+ques_data_numeric1 <-c("CBD070", "CBD110","CBD120","CBD130")
+ques_data_imputed_subset[ , ques_data_numeric1 ][ ques_data_imputed_subset[ , ques_data_numeric1 ] == "777777" ] <- "Refused"
+ques_data_imputed_subset[ , ques_data_numeric1 ][ ques_data_imputed_subset[ , ques_data_numeric1 ] == "999999" ] <- "Unknown"
+
+
+ques_data_numeric2 <-c("DBD895", "DBD905","DBD910","CBD130")
+ques_data_imputed_subset[ , ques_data_numeric2 ][ ques_data_imputed_subset[ , ques_data_numeric2 ] == "0" ] <- "None"
+ques_data_imputed_subset[ , ques_data_numeric2 ][ ques_data_imputed_subset[ , ques_data_numeric2 ] == "7777" ] <- "Refused"
+ques_data_imputed_subset[ , ques_data_numeric2 ][ ques_data_imputed_subset[ , ques_data_numeric2 ] == "9999" ] <- "Unknown"
+ques_data_imputed_subset[ , "DBD895" ][ ques_data_imputed_subset[ , "DBD895" ] == "5555" ] <- "More than 21 meals per week"
 
 
 ques_data_imputed_subset <- ques_data_imputed_subset %>%
@@ -1155,24 +1162,6 @@ ques_data_imputed_subset <- ques_data_imputed_subset %>%
                           "7"=	"Refused",
                           "9"=	"Unknown"))
 
-ques_data_imputed_subset <- ques_data_imputed_subset %>%
-  mutate(DBD895  = recode(DBD895 ,
-                          "0"=	"None",
-                          "5555"=	"More than 21 meals per week",
-                          "7777"=	"Refused",
-                          "9999"=	"Unknown"))
-
-ques_data_imputed_subset <- ques_data_imputed_subset %>%
-  mutate(DBD905  = recode(DBD905 ,
-                          "0"=	"None",
-                          "7777"=	"Refused",
-                          "9999"=	"Unknown"))
-
-ques_data_imputed_subset <- ques_data_imputed_subset %>%
-  mutate(DBD910  = recode(DBD910 ,
-                          "0"=	"Never",
-                          "7777"=	"Refused",
-                          "9999"=	"Unknown"))
 
 ques_data_imputed_subset <- ques_data_imputed_subset %>%
   mutate(HUQ041  = recode(HUQ041 ,
@@ -1281,7 +1270,7 @@ ques_data_imputed_subset <- ques_data_imputed_subset %>%
                           "13"=	"13 or more",
                           "777"=	"Refused",	
                           "999"=	"Unknown"	))
-s
+
 
 
 ques_subset_labelled <- ques_data_imputed_subset
