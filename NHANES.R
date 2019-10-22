@@ -984,8 +984,8 @@ ques_data_with_outliers <- select(ques_data75, ques_Yes_No)
 ques_data_without_outliers <- select(ques_data75, -ques_Yes_No_NO_SEQN)
 
 remove_outliers_col <- function(x, na.rm = TRUE, ...) {
-  ques_probs <- quantile(x, probs=c(.25, .75), na.rm = na.rm, ...)
-  ques_Lim <- 1.5 * IQR(x, na.rm = na.rm)
+  ques_probs <- quantile(x, probs=c(0, .75), na.rm = na.rm, ...)
+    ques_Lim <- 1.5 * IQR(x, na.rm = na.rm)
   ques_outlier <- x
   ques_outlier[x < (ques_probs[1] - ques_Lim)] <- NA
   ques_outlier[x > (ques_probs[2] + ques_Lim)] <- NA
@@ -1000,6 +1000,9 @@ remove_all_outliers_Fn <- function(In){
 ques_data_pro_outliers <- remove_all_outliers_Fn(ques_data_with_outliers)
 
 ques_data_na_process<-merge(x=ques_data_without_outliers,y=ques_data_pro_outliers,by="SEQN")
+
+
+write.csv(ques_data75,file = "Data/Labels/ques_data75.csv")
 
 
 #######################################  Creating Index for firther use
@@ -1145,22 +1148,13 @@ ques_data_imputed_subset = subset(ques_data_imputed,select=ques_sel_Feat )
 ques_Yes_No_NO_SEQN
 #("HSQ500","HSQ510","HSQ520","DIQ010","DIQ050","DLQ010","DLQ020","DLQ040","FSD151","FSQ162","HIQ011","HIQ210","HUQ090","MCQ010","MCQ053","MCQ300B","SMQ870")
 
-#Rename_multiple_ques <- function(x, na.rm = TRUE, ...) {
-#  mutate(x = recode(x, 
-#                    "1" = "Yes",
-#                    "2" = "No"))
-#  x
-#}
-  
-  
-   
-#Rename_Yes_No <- function(Rn){
-#  # We only want the numeric columns
-##  Rn[,sapply(Rn, is.numeric)] <- lapply(Rn[,sapply(Rn, is.numeric)], Rename_multiple_ques)
-#  Rn
-#}
 
+ques_data_imputed_subset[ , ques_Yes_No_NO_SEQN ][ ques_data_imputed_subset[ , ques_Yes_No_NO_SEQN ] == "1" ] <- "Yes"
 
+summary(ques_data_major$HSQ500)
+summary(ques_data_imputed$HSQ500)
+
+summary(ques_data_imputed_subset)
 
 
 ques_data_imputed_subset <- ques_data_imputed_subset %>%
