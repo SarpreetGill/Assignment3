@@ -1062,7 +1062,7 @@ WorkingColm_ques_data <- c(Catcolmn_Nul_ques_data, Numcolmn_ques_data, Catcolmn_
 
 #ques_data_selected = subset(ques_data75,select= WorkingColm )
 
-ques_data_selected = ques_data75[ WorkingColm_ques_data ]
+ques_data_selected = ques_data_na_process[ WorkingColm_ques_data ]
 
 ques_data_selected[, Catcolmn_ques_data] <- sapply(ques_data_selected[, Catcolmn_ques_data], as.numeric)
 ques_data_selected[, Catcolmn_Nul_ques_data] <- sapply(ques_data_selected[, Catcolmn_Nul_ques_data], as.factor)
@@ -1123,7 +1123,10 @@ ques_data_imputed<- complete(imputed_ques_data)
 #Check for missings in the imputed dataset.
 sapply(ques_data_imputed, function(x) sum(is.na(x)))
 
-
+freq(ques_data_imputed$HSQ500)
+summary(ques_data_imputed$HSQ500)
+summary(ques_data_selected$HSQ500)
+summary(ques_data_na_process$HSQ500)
 
 #######################################  Saving Impute
 
