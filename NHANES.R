@@ -974,6 +974,7 @@ colSums(is.na(ques_data75))
 ques_data75 %>% summarise_all(~(sum(is.na(.))/n()*100))
 
  
+
 #######################################  Removing Outliers
 
 # Select interesting Questions
@@ -984,7 +985,7 @@ ques_data_with_outliers <- select(ques_data75, ques_Yes_No)
 ques_data_without_outliers <- select(ques_data75, -ques_Yes_No_NO_SEQN)
 
 remove_outliers_col <- function(x, na.rm = TRUE, ...) {
-  ques_probs <- quantile(x, probs=c(0, .75), na.rm = na.rm, ...)
+  ques_probs <- quantile(x, probs=c(0, .95), na.rm = na.rm, ...)
     ques_Lim <- 1.5 * IQR(x, na.rm = na.rm)
   ques_outlier <- x
   ques_outlier[x < (ques_probs[1] - ques_Lim)] <- NA
@@ -1002,6 +1003,7 @@ ques_data_pro_outliers <- remove_all_outliers_Fn(ques_data_with_outliers)
 ques_data_na_process<-merge(x=ques_data_without_outliers,y=ques_data_pro_outliers,by="SEQN")
 
 
+summary(ques_data_pro_outliers)
 
 #######################################  Creating Index for firther use
 
@@ -1067,10 +1069,8 @@ ques_data_selected = ques_data_na_process[ WorkingColm_ques_data ]
 ques_data_selected[, Catcolmn_ques_data] <- sapply(ques_data_selected[, Catcolmn_ques_data], as.numeric)
 ques_data_selected[, Catcolmn_Nul_ques_data] <- sapply(ques_data_selected[, Catcolmn_Nul_ques_data], as.factor)
 ques_data_selected[, Numcolmn_ques_data] <- sapply(ques_data_selected[, Numcolmn_ques_data], as.numeric)
-
+ques_data_selected$SMQ870 <- as.numeric(ques_data_selected$SMQ870)
 #Look the dataset structure.
-
-sapply(ques_data_selected, function(x) sum(is.na(x)))
 
 
 #==========================  IMPUTATION( MICE package)   =======================
@@ -1123,10 +1123,6 @@ ques_data_imputed<- complete(imputed_ques_data)
 #Check for missings in the imputed dataset.
 sapply(ques_data_imputed, function(x) sum(is.na(x)))
 
-freq(ques_data_imputed$HSQ500)
-summary(ques_data_imputed$HSQ500)
-summary(ques_data_selected$HSQ500)
-summary(ques_data_na_process$HSQ500)
 
 #######################################  Saving Impute
 
@@ -1142,6 +1138,11 @@ ques_data_imputed   = read.csv("Data/Working/ques_data_imputed.csv", header = TR
 ques_sel_Feat <- c("SEQN","CBD070","CBD110","CBD120","CBD130","HSQ500","HSQ510","HSQ520","DIQ010","DIQ050","DBQ197","DBD895","DBD905","DBD910","DLQ010","DLQ020","DLQ040","FSD151","FSQ162","HIQ011","HIQ210","HOD050","HUQ010","HUQ041","HUQ051","HUQ090","IND235","MCQ010","MCQ053","MCQ300B","OHQ030","PAQ710","PAQ715","SMD460","SMQ870")
 
 ques_data_imputed_subset = subset(ques_data_imputed,select=ques_sel_Feat )
+sapply(ques_data_imputed_subset, function(x) sum(is.na(x)))
+
+
+write.csv(ques_data_imputed_subset , "Data/Working/ques_data_imputed_subset.csv")
+ques_data_imputed_subset   = read.csv("Data/Working/ques_data_imputed_subset.csv", header = TRUE, na.strings = c("NA","","#NA"))
 
 
 #### Labeling the dataset 
