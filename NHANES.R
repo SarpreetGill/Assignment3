@@ -993,7 +993,6 @@ remove_outliers_col <- function(x, na.rm = TRUE, ...) {
 }
 
 remove_all_outliers_Fn <- function(In){
-  # We only want the numeric columns
   In[,sapply(In, is.numeric)] <- lapply(In[,sapply(In, is.numeric)], remove_outliers_col)
   In
 }
@@ -1161,7 +1160,11 @@ ques_Yes_No_NO_SEQN
 #  Rn
 #}
 
-ques_data_imputed_subset$%>%ques_Yes_No_NO_SEQN
+ques_data_imputed_subset[ , ques_Yes_No_NO_SEQN ][ ques_data_imputed_subset[ , ques_Yes_No_NO_SEQN ] == "1" ] 
+
+
+ques_data_imputed_subset <- df.Rep(data, c("var1","var2"), 4, 10)
+
 
 ques_data_imputed_subset <- ques_data_imputed_subset %>%
   mutate(ques_data_imputed_subset, .data[ques_Yes_No_NO_SEQN] = recode(ques_Yes_No_NO_SEQN, 
