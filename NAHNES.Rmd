@@ -9,13 +9,13 @@ author:
     affiliation: York University School of Continuing Studies
 date: "Oct 6, 2019"
 output:
+  pdf_document:
+    toc: yes
   html_document:
     toc: true
     toc_float:
       collapsed: true
       smooth_scroll: true
-  pdf_document:
-    toc: yes
 ---
 ```{r setup, include=FALSE, warning = F}
 knitr::opts_chunk$set(echo = TRUE, fig.align="center")
