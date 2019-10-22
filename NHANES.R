@@ -983,7 +983,6 @@ ques_Yes_No_NO_SEQN <- c("HSQ500","HSQ510","HSQ520","DIQ010","DIQ050","DLQ010","
 ques_data_with_outliers <- select(ques_data75, ques_Yes_No)
 ques_data_without_outliers <- select(ques_data75, -ques_Yes_No_NO_SEQN)
 
-# Remove outliers from a column
 remove_outliers_col <- function(x, na.rm = TRUE, ...) {
   ques_probs <- quantile(x, probs=c(.25, .75), na.rm = na.rm, ...)
   ques_Lim <- 1.5 * IQR(x, na.rm = na.rm)
@@ -992,7 +991,7 @@ remove_outliers_col <- function(x, na.rm = TRUE, ...) {
   ques_outlier[x > (ques_probs[2] + ques_Lim)] <- NA
   ques_outlier
 }
-# Removes all outliers from a data set
+
 remove_all_outliers_Fn <- function(In){
   # We only want the numeric columns
   In[,sapply(In, is.numeric)] <- lapply(In[,sapply(In, is.numeric)], remove_outliers_col)
@@ -1146,7 +1145,21 @@ ques_data_imputed_subset = subset(ques_data_imputed,select=ques_sel_Feat )
 
 ques_Yes_No_NO_SEQN
 
-Rename_Yes_No 
+Rename_multiple_ques <- function(x, na.rm = TRUE, ...) {
+  ques_probs <- quantile(x, probs=c(.25, .75), na.rm = na.rm, ...)
+  ques_Lim <- 1.5 * IQR(x, na.rm = na.rm)
+  ques_outlier <- x
+  ques_outlier[x < (ques_probs[1] - ques_Lim)] <- NA
+  ques_outlier[x > (ques_probs[2] + ques_Lim)] <- NA
+  ques_outlier
+}
+
+
+Rename_Yes_No <- function(Rn){
+  # We only want the numeric columns
+  Rn[,sapply(Rn, is.numeric)] <- lapply(Rn[,sapply(Rn, is.numeric)], Rename_multiple_ques)
+  Rn
+}
 
 ques_data_imputed_subset <- ques_data_imputed_subset %>%
   mutate(ques_Yes_No_NO_SEQN = recode(ques_Yes_No_NO_SEQN, 
