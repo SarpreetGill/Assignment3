@@ -1144,21 +1144,11 @@ ques_data_imputed_subset = subset(ques_data_imputed,select=ques_sel_Feat )
 
 #### Labeling the dataset 
 
-demo_subset_8_labeled <- demo_subset_8_labeled %>%
-  mutate(Race = recode(Race, "1" = "Mexican_American",
-                       "2" = "Other_Hispanic",
-                       "3" = "White",
-                       "4" = "Black",
-                       "6" = "Asian",
-                       "7" = "multiracial"))
+ques_data_imputed_subset <- ques_data_imputed_subset %>%
+  mutate(ques_Yes_No_with_SEQN = recode(ques_Yes_No_with_SEQN, "1" = "Yes",
+                                        "2" = "No"))
 
-#demo_subset_8_processed <- demo_subset_8_processed %>% 
-# mutate(Race = replace(Race, Race == 1, "Mexican_American")) %>%
-# mutate(Race = replace(Race, Race == 2, "Other_Hispanic")) %>%
-#  mutate(Race = replace(Race, Race == 3, "White")) %>%
-#  mutate(Race = replace(Race, Race == 4, "Black")) %>%
-#  mutate(Race = replace(Race, Race == 6, "Asian")) %>%
-#  mutate(Race = replace(Race, Race == 7, "multiracial")) 
+ 
 
 
 demo_subset_8_labeled <- demo_subset_8_labeled %>%
