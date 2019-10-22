@@ -1144,25 +1144,27 @@ ques_data_imputed_subset = subset(ques_data_imputed,select=ques_sel_Feat )
 #### Labeling the dataset 
 
 ques_Yes_No_NO_SEQN
+#("HSQ500","HSQ510","HSQ520","DIQ010","DIQ050","DLQ010","DLQ020","DLQ040","FSD151","FSQ162","HIQ011","HIQ210","HUQ090","MCQ010","MCQ053","MCQ300B","SMQ870")
 
-Rename_multiple_ques <- function(x, na.rm = TRUE, ...) {
-  ques_probs <- quantile(x, probs=c(.25, .75), na.rm = na.rm, ...)
-  ques_Lim <- 1.5 * IQR(x, na.rm = na.rm)
-  ques_outlier <- x
-  ques_outlier[x < (ques_probs[1] - ques_Lim)] <- NA
-  ques_outlier[x > (ques_probs[2] + ques_Lim)] <- NA
-  ques_outlier
-}
+#Rename_multiple_ques <- function(x, na.rm = TRUE, ...) {
+#  mutate(x = recode(x, 
+#                    "1" = "Yes",
+#                    "2" = "No"))
+#  x
+#}
+  
+  
+   
+#Rename_Yes_No <- function(Rn){
+#  # We only want the numeric columns
+##  Rn[,sapply(Rn, is.numeric)] <- lapply(Rn[,sapply(Rn, is.numeric)], Rename_multiple_ques)
+#  Rn
+#}
 
-
-Rename_Yes_No <- function(Rn){
-  # We only want the numeric columns
-  Rn[,sapply(Rn, is.numeric)] <- lapply(Rn[,sapply(Rn, is.numeric)], Rename_multiple_ques)
-  Rn
-}
+ques_data_imputed_subset$%>%ques_Yes_No_NO_SEQN
 
 ques_data_imputed_subset <- ques_data_imputed_subset %>%
-  mutate(ques_Yes_No_NO_SEQN = recode(ques_Yes_No_NO_SEQN, 
+  mutate(ques_data_imputed_subset, .data[ques_Yes_No_NO_SEQN] = recode(ques_Yes_No_NO_SEQN, 
                                         "1" = "Yes",
                                         "2" = "No"))
 
