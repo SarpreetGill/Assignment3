@@ -1002,8 +1002,6 @@ ques_data_pro_outliers <- remove_all_outliers_Fn(ques_data_with_outliers)
 ques_data_na_process<-merge(x=ques_data_without_outliers,y=ques_data_pro_outliers,by="SEQN")
 
 
-write.csv(ques_data75,file = "Data/Labels/ques_data75.csv")
-
 
 #######################################  Creating Index for firther use
 
