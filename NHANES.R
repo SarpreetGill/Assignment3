@@ -1160,10 +1160,7 @@ ques_Yes_No_NO_SEQN
 #  Rn
 #}
 
-ques_data_imputed_subset[ , ques_Yes_No_NO_SEQN ][ ques_data_imputed_subset[ , ques_Yes_No_NO_SEQN ] == "1" ] 
 
-
-ques_data_imputed_subset <- df.Rep(data, c("var1","var2"), 4, 10)
 
 
 ques_data_imputed_subset <- ques_data_imputed_subset %>%
