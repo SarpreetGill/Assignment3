@@ -543,7 +543,46 @@ str(imputed_diet_subset_complete)
 sapply(imputed_diet_subset_complete, function(x) sum(is.na(x)))
 write.csv(imputed_diet_subset_complete, "diet_subset_processed.csv")
 
+# Further Feature selection
+# Reduce diet subset to 10 attributes 
+       
+ ten_attributes_diet = c("SEQN", "DR1TCARB","DR1TSUGR", "DR1TFIBE","DR1TTFAT","DR1TSFAT", "DR1TZINC","DR1TCOPP","DR1TSODI","DR1TPOTA","DR1TSELE" )
+ten_attributes_diet_subset = subset(imputed_diet_subset_complete, select=ten_attributes_diet)
+str(ten_attributes_diet_subset)
+sapply(ten_attributes_diet_subset, function(x) sum(is.na(x)))
 
+
+#"SEQN" - ID
+#"DR1TCARB" - Carbs
+#"DR1TSUGR" - Sugar
+#"DR1TFIBE" - Fiber
+#"DR1TTFAT" - Trans Fat
+#"DR1TSFAT" - Saturated Fat
+#"DR1TZINC" - Zinc
+#"DR1TCOPP" - Copper
+#"DR1TSODI" - Sodium 
+#"DR1TPOTA" - Potatssium
+#"DR1TSELE" - Selenium
+
+ten_attributes_diet_subset <- ten_attributes_diet_subset %>% 
+  rename("ID"                =         "SEQN",  
+         "Carbs_diet"        =     "DR1TCARB",  
+         "Sugar_diet"        =     "DR1TSUGR",  
+         "Fiber_diet"        =     "DR1TFIBE",  
+         "transfat_diet"     =     "DR1TTFAT",  
+         "satfat_diet"       =     "DR1TSFAT",   
+         "zinc_diet"         =     "DR1TZINC",  
+         "copper_diet"       =     "DR1TCOPP",  
+         "sodium_diet"       =     "DR1TSODI",  
+         "pota_diet"         =     "DR1TPOTA", 
+         "selenium_diet"     =     "DR1TSELE"  )
+
+
+sapply(ten_attributes_diet_subset, function(x) sum(is.na(x)))
+str(ten_attributes_diet_subset)
+
+write.csv(imputed_diet_subset_complete, "diet_subset_10_attributes_processed.csv")
+    
 ########################################### Examination###############################
 
 # Import libraries
