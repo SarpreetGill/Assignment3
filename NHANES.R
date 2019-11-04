@@ -11,9 +11,9 @@ lapply(c("plyr",
         "factoextra",
         "AMR",
         "RColorBrewer",
-        "caret",
-),
-require, character.only=TRUE)
+        "caret"
+        ),
+        require, character.only=TRUE)
 
 ########################################### Reading files ###########################
 
