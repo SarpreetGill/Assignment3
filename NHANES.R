@@ -60,11 +60,7 @@ demographic_MS_plot
 #aggr(demographic,only.miss=TRUE,numbers=TRUE,sortVar=TRUE)
 
 ##################   diet_MS : MS stand for missing data      ####################
-#=======
-##################   diet_MS : MS stand for missing data###################################
 
-
-#>>>>>>> ffc62e6b80ea63248a4d851391542e470f9e7ed9
 diet_MS <- diet %>% summarise_all(~(sum(is.na(.))/n()))
 diet_MS <- gather(diet_MS, key = "variables", value = "percent_missing")
 diet_MS <- diet_MS[diet_MS$percent_missing > 0.0, ] 
@@ -129,9 +125,6 @@ ggplot(labs_MS, aes(x = reorder(variables, percent_missing), y = percent_missing
   coord_flip()+ 
   #theme_fivethirtyeight() +
   ggtitle(" Labs Missing Data By Columns")
-
-#sapply(labs, function(x) sum(is.na(x)))
-
 
 
 ################## questionnaire_MS : MS stand for missing data ##################
