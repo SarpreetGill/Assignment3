@@ -1,24 +1,19 @@
-#setwd("~/Documents/ML-UYork/ML1000/Asignement2")
-#setwd ("c:/Users/sarpr/Desktop/Machine Learning/Assignments/Assignment2")
-#setwd("E:\\_Git\\ML1000\\Assignment2")
-library(plyr)
-library(dplyr)
-library(tidyr)
-#library(tidyverse)
-library(knitr)    # For knitting document and include_graphics function
-library(ggplot2)  # For plotting
-library(mice)
-library(scales)
-library(randomForest)
-library(psych)
-library(factoextra)
-library(AMR)
-
-
-# Reading files
-#=======
-library(RColorBrewer)
-library(caret)
+lapply(c("plyr",
+        "dplyr",
+        "tidyr",
+        "tidyverse",
+        "knitr",    
+        "ggplot2",  
+        "mice",
+        "scales",
+        "randomForest",
+        "psych",
+        "factoextra",
+        "AMR",
+        "RColorBrewer",
+        "caret",
+),
+require, character.only=TRUE)
 
 ########################################### Reading files ###########################
 
