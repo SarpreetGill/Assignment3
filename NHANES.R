@@ -174,6 +174,7 @@ demographic_MS_less25 <- demographic_MS[demographic_MS$percent_missing < 0.25, ]
 
 demographic_MS_less25
 
+
 list_demo_MS_less25 <- list(demographic_MS_less25$variables)
 list_demo_MS_less25
 
@@ -192,14 +193,8 @@ list_demo_MS_less25
  
 demo_subset_8_list = c("RIAGENDR", "RIDAGEYR", "RIDRETH3", "DMDBORN4",
                         "DMDCITZN", "DMDFMSIZ", "DMDHRMAR", "INDFMIN2")
-
-
 demo_subset_8  <- demographic%>% 
   select("SEQN",demo_subset_8_list)
-
-head(demo_subset_8)
-
-
 demo_subset_8<- demo_subset_8 %>% 
   rename("ID"                 =         "SEQN",  
          "Gender"             =     "RIAGENDR",  
@@ -496,17 +491,6 @@ ggsave(plot = Race_plot, dpi = 300,
        filename = "Figures/Race_plot.png")
 
 
-
-
-################################################################################
-########################  diabete and medication   #############################
-################################################################################
-
-
-
-################################################################################
-########################    diabete and diet       #############################
-################################################################################
 
 
 ############################################## Diet####################################
