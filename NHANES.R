@@ -11,7 +11,10 @@ lapply(c("plyr",
         "factoextra",
         "AMR",
         "RColorBrewer",
-        "caret"
+        "caret",
+        "AMR",
+        "mice",
+        "randomForest"
         ),
         require, character.only=TRUE)
 
@@ -505,7 +508,7 @@ str(diet$DR1TACAR)
 sapply(diet_subset, function(x) sum(is.na(x)))
 str(diet_subset)
 
-imputed_diet_subset <- mice(diet_subset, m=5, maxit= 50, method = 'pmm', seed=501)
+imputed_diet_subset <- mice(diet_subset, m=5, maxit= 5, method = 'pmm', seed=501)
 imputed_diet_subset_complete <- mice::complete(imputed_diet_subset, 2)
 imputed_diet_subset$method
 
@@ -550,15 +553,11 @@ ten_attributes_diet_subset <- ten_attributes_diet_subset %>%
 
 sapply(ten_attributes_diet_subset, function(x) sum(is.na(x)))
 str(ten_attributes_diet_subset)
+write.csv(demo_subset_8_imputed , "Data/Clean_Imputes/imputed_diet_subset_complete.csv")
 
-write.csv(imputed_diet_subset_complete, "diet_subset_10_attributes_processed.csv")
+#write.csv(imputed_diet_subset_complete, "diet_subset_10_attributes_processed.csv")
     
 ######################## Examination###############################
-
-# Import libraries
-require(AMR)
-require(mice)
-require(randomForest)
 
 # Import the raw dataset
 examination = read.csv(file.choose(), header = TRUE, na.strings = c("NA","","#NA"))
@@ -1335,6 +1334,80 @@ write.csv(data_selected,file = "Data/Working/data_selected.csv")
 
 
 #Evaluate the model
+
+
+
+
+
+# Combining Data ##########
+
+
+malaria_dataset_clean = read.csv("Data/Working/working_malaria_data.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
+Other_Species_with_Country   = read.csv("Data/Working/Other_Species_with_Country.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+species_recoded <-malaria_dataset_clean[,c(10:35)] 
+species_recoded = as.data.frame(ifelse((species_recoded)=="Yes", 1, 0))
+malaria_dataset_clean[,c(10:35)] = species_recoded
+rm(species_recoded)
+colSums(is.na(malaria_dataset_clean))
+malaria_dataset_clean <- malaria_dataset_clean[,-36]
+species_recoded <-Other_Species_with_Country[,c(5:391)] 
+species_recoded = as.data.frame(ifelse((species_recoded)=="0", 0, 1))
+Other_Species_with_Country[,c(5:391)] = species_recoded
+rm(species_recoded)
+colSums(is.na(Other_Species_with_Country))
+
+
+Combined_Raw <- merge.data.frame(malaria_dataset_clean, Other_Species_with_Country, by = c("Country","Locality","Lat", "Long"))
+colSums(is.na(Combined_Raw))
+rm(malaria_dataset_clean,Other_Species_with_Country)
+
+#write.csv(Combined_Raw , "Data/Working/Combined_Raw.csv", row.names = FALSE)
+Combined_Raw   = read.csv("Data/Working/Combined_Raw.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+Growth_with_Country   = read.csv("Data/Working/Growth_with_Country.csv", header = TRUE, na.strings = c("NA","","#NA"))
+species_recoded <-Growth_with_Country[,c(5:9)] 
+species_recoded = as.data.frame(ifelse(is.na(species_recoded), 0, 1))
+Growth_with_Country[,c(5:9)] = species_recoded
+rm(species_recoded)
+colSums(is.na(Growth_with_Country))
+Growth_with_Country$larve <- apply( Growth_with_Country[ , c(5,6,8) ] , 1 , function(x) sum(x) )
+Growth_with_Country <- Growth_with_Country[,-c(5,6,8)]
+Combined_Raw2 <- merge(Combined_Raw, Growth_with_Country, by = c("Country","Locality","Lat", "Long" ))
+colSums(is.na(Combined_Raw2))
+rm(Growth_with_Country,Combined_Raw)
+#write.csv(Combined_Raw2 , "Data/Working/Combined_Raw2.csv", row.names = FALSE)
+Combined_Raw2   = read.csv("Data/Working/Combined_Raw2.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+Sample_with_Country   = read.csv("Data/Working/Sample_with_Country.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+species_recoded <-Sample_with_Country[,c(5:250)] 
+species_recoded = as.data.frame(ifelse(is.na(species_recoded), 0, 1))
+Sample_with_Country[,c(5:250)] = species_recoded
+rm(species_recoded)
+colSums(is.na(Sample_with_Country))
+Combined_Raw3 <- merge(Combined_Raw2, Sample_with_Country, by = c("Country","Locality","Lat", "Long" ))
+colSums(is.na(Combined_Raw3))
+#write.csv(Combined_Raw3 , "Data/Working/Combined_Raw3.csv", row.names = FALSE)
+Combined_Raw3   = read.csv("Data/Working/Combined_Raw3.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+Identity_with_Country   = read.csv("Data/Working/Identity_with_Country.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+species_recoded <-Identity_with_Country[,c(5:42)] 
+species_recoded = as.data.frame(ifelse(is.na(species_recoded), 0, 1))
+Identity_with_Country[,c(5:42)] = species_recoded
+rm(species_recoded)
+colSums(is.na(Identity_with_Country))
+Combined_Raw4 <- merge(Combined_Raw3, Identity_with_Country, by = c("Country","Locality","Lat", "Long" ))
+colSums(is.na(Combined_Raw4))
+#write.csv(Combined_Raw4 , "Data/Working/Combined_Raw4.csv", row.names = FALSE)
+Combined_Raw4   = read.csv("Data/Working/Combined_Raw4.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+
+
+
+
+
 
 
 
