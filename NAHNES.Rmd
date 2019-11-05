@@ -1,11 +1,11 @@
 ---
 title: 'ML Assignment 2: NHANES data'
 author:
+  - name: Imran Aziz
   - name: Conrard G. T. Feugmo
   - name: Andre Schardong
   - name: Milton Segura
   - name: Sarpreet Gill
-  - name: Imran Aziz
     affiliation: York University School of Continuing Studies
 date: "Nov 15, 2019"
 output:
