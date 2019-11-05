@@ -15,7 +15,7 @@ lapply(c("plyr",
         ),
         require, character.only=TRUE)
 
-########################################### Reading files ###########################
+################## Reading files ###########################
 
 
 demographic   = read.csv("Data/Raw/demographic.csv", header = TRUE, na.strings = c("NA","","#NA"))
@@ -26,7 +26,7 @@ medications   = read.csv("Data/Raw/medications.csv", header = TRUE, na.strings =
 questionnaire = read.csv("Data/Raw/questionnaire.csv", header = TRUE, na.strings = c("NA","","#NA"))
 Dictionary    = read.csv("Data/Raw/Dictionary.csv", header = TRUE, na.strings = c("NA","","#NA"))
 
-############################################## Merging & Combining files###################
+##################  Merging & Combining files###################
 
 data_List = list(demographic,examination,diet,labs,questionnaire,medications)
 Data_joined = join_all(data_List) 
@@ -35,7 +35,7 @@ Data_joined = join_all(data_List)
 #write.csv(Data_joined,file = "Data/Raw_Joined/Data_joined.csv")
 
 
-########################################## Stats on each of the datasets ######################
+################## Stats on each of the datasets ######################
 
 ################## demographic_MS : MS stand for missing data ###############################
 
@@ -112,7 +112,7 @@ ggsave(plot = medications_MS_plot, width = 8, height = 3,  dpi = 300,
 medications_MS_plot
 
 
-############################## labs_MS : MS stand for missing data ####################
+################## labs_MS : MS stand for missing data ####################
 
 
 
@@ -165,8 +165,7 @@ questionnaire_MS_less75
 
 
 ################################################################################
-########################           demographics    #############################
-################################################################################
+######################## Demographics    #############################
 
 demographic_MS <- demographic %>% summarise_all(~(sum(is.na(.))/n()))
 demographic_MS <- gather(demographic_MS, key = "variables", value = "percent_missing")
@@ -224,7 +223,7 @@ demo_subset_8$Marital_status <- as.factor(demo_subset_8$Marital_status)
 str(demo_subset_8)
 
 
-#==========================  IMPUTATION( MICE package)   =======================
+# IMPUTATION( MICE package)   
 #recisely, the methods used by this package are:
 #1)-PMM (Predictive Mean Matching) — For numeric variables
 #2)-logreg(Logistic Regression) — For Binary Variables( with 2 levels)
@@ -232,7 +231,6 @@ str(demo_subset_8)
 #4)-Proportional odds model (ordered, >= 2 levels)
 #5)-cart  Classification and regression trees (any) 
 #6)rf Random forest imputations (any)
-#==============================================================================
 require(mice)
 init = mice(demo_subset_8, maxit=0)
 meth = init$method
@@ -348,7 +346,7 @@ demo_subset_8_imputed$Family_income <- as.factor(demo_subset_8_imputed$Family_in
 
 write.csv(demo_subset_8_labeled,file = "Data/Working/demo_subset_8_labeled.csv")
 
-##########################  Gender #############
+############################## Gender #############
 Gender  <- demo_subset_8_labeled %>%
   group_by(Gender) %>%
   summarize(count=n()) %>%
@@ -384,7 +382,7 @@ Gender_plot
 
 ggsave(plot = Gender_plot,dpi = 300, 
      filename = "Figures/Gender_plot.png")
-##########################  Country_of_birth #############
+############################## Country_of_birth #############
 Country_of_birth  <- demo_subset_8_labeled %>%
   group_by(Country_of_birth) %>%
   summarize(count=n()) %>%
@@ -418,7 +416,7 @@ ggsave(plot = Birth_plot, dpi = 300,
        filename = "Figures/Birth_plot.png")
 
 
-########################  Marital_status  #######################
+############################## Marital_status  #######################
 
 Marital_status  <- demo_subset_8_labeled %>%
   group_by(Marital_status) %>%
@@ -454,7 +452,7 @@ ggsave(plot = Marital_plot, dpi = 300,
 
 Marital_plot
 
-########################  Race  #######################
+############################## Race  #######################
 
 Race  <- demo_subset_8_labeled %>%
   group_by(Race) %>%
@@ -493,7 +491,7 @@ ggsave(plot = Race_plot, dpi = 300,
 
 
 
-############################################## Diet####################################
+######################## Diet####################################
 
 nrow(diet)
 ncol(diet)
@@ -555,7 +553,7 @@ str(ten_attributes_diet_subset)
 
 write.csv(imputed_diet_subset_complete, "diet_subset_10_attributes_processed.csv")
     
-########################################### Examination###############################
+######################## Examination###############################
 
 # Import libraries
 require(AMR)
@@ -641,7 +639,7 @@ examination_labeled = mutate(
 
 
 
-############################################ Labs###############################################
+######################## Labs###############################################
 
 nrow(examination)
 ncol(examination)
@@ -767,7 +765,7 @@ labs_subset_labelled = labs_subset_labelled %>%
 str(labs_subset_labelled)
 write.csv(labs_subset_labelled,file = "labs_subset_labelled.csv")
 
-############################################### Medications######################################
+######################## Medications######################################
 
 nrow(medications)
 ncol(medications)
@@ -775,18 +773,15 @@ summary(medications)
 str(medications)
 
 
-##################################### ZV/NZV feature remove #########################
-
+##################################### ZV/NZV feature remove 
 
 medsdata_major <- medications
 
 if (length(nearZeroVar(medsdata_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
                        names = FALSE, foreach = FALSE, allowParallel = TRUE)) > 0){
   medsdata_major <- medsdata_major[, -nearZeroVar(medsdata_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
-                                                  names = FALSE, foreach = FALSE, allowParallel = TRUE)] 
-  
-}
-
+                                                names = FALSE, foreach = FALSE, allowParallel = TRUE)] 
+  }
 
 #######################################  Check the data for missing values.
 
@@ -797,11 +792,9 @@ medsdata_major %>% summarise_all(~(sum(is.na(.))/n()*100))
 #######################################  Removing data having greater than 32 % missing values
 
 
-
 Null_Num_medsdata <- apply(medsdata_major, 2, function(x) length(which(x == "" | is.na(x) | x == "NA" | x == "-999" ))/length(x))
 Null_Colms_medsdata <- colnames(medsdata_major)[Null_Num_medsdata > 0.33]
 medsdata68 <- select(medsdata_major, -Null_Colms_medsdata)
-
 colSums(is.na(medsdata68))
 medsdata68 %>% summarise_all(~(sum(is.na(.))/n()*100))
 
@@ -876,7 +869,8 @@ medsdata_selected[, Numcolmn_medsdata] <- sapply(medsdata_selected[, Numcolmn_me
 sapply(medsdata_selected, function(x) sum(is.na(x)))
 
 
-#==========================  IMPUTATION( MICE package)   =======================
+#  IMPUTATION( MICE package) 
+
 #recisely, the methods used by this package are:
 #1)-PMM (Predictive Mean Matching) — For numeric variables
 #2)-logreg(Logistic Regression) — For Binary Variables( with 2 levels)
@@ -884,7 +878,7 @@ sapply(medsdata_selected, function(x) sum(is.na(x)))
 #4)-Proportional odds model (ordered, >= 2 levels)
 #5)-cart  Classification and regression trees (any) 
 #6)rf Random forest imputations (any)
-#==============================================================================
+
 
 meth_medsdata=
   init_medsdata=
@@ -943,7 +937,7 @@ write.csv(meds_subset_labelled,file = "Data/Working/meds_subset_labelled.csv")
 
 
 
-#################################### Questionnaire#############################################
+######################## Questionnaire#############################################
 
 
 nrow(questionnaire)
@@ -953,7 +947,7 @@ str(questionnaire)
 
 
 
-##################################### ZV/NZV feature remove #########################
+##################################### ZV/NZV feature remove 
 
 
 ques_data_major <- questionnaire
@@ -1016,7 +1010,6 @@ write.csv(ques_data_Col_Labels,file = "Data/Labels/ques_data_Col_Labels.csv")
 
 
 
-###################################################################################
 # We have to now enter categorization of Factor/Numeric/ 'Computation not required' in the excel file generated
 ### Only to be done in 3rd column
 ## Code is 
@@ -1026,7 +1019,7 @@ write.csv(ques_data_Col_Labels,file = "Data/Labels/ques_data_Col_Labels.csv")
 
 # Please write Column name for the category as "Cat"
 
-#######################################  Reading Index again##########################
+#######################################  Reading Index again
 
 
 ques_data_Col_Labels   = read.csv("Data/Labels/ques_data_Col_Labels.csv", header = TRUE, na.strings = c("NA","","#NA"))
@@ -1054,7 +1047,7 @@ ques_data_selected[, Numcolmn_ques_data] <- sapply(ques_data_selected[, Numcolmn
 #Look the dataset structure.
 
 
-#==========================  IMPUTATION( MICE package)   =======================
+#  IMPUTATION( MICE package)   
 #recisely, the methods used by this package are:
 #1)-PMM (Predictive Mean Matching) — For numeric variables
 #2)-logreg(Logistic Regression) — For Binary Variables( with 2 levels)
@@ -1062,7 +1055,6 @@ ques_data_selected[, Numcolmn_ques_data] <- sapply(ques_data_selected[, Numcolmn
 #4)-Proportional odds model (ordered, >= 2 levels)
 #5)-cart  Classification and regression trees (any) 
 #6)rf Random forest imputations (any)
-#==============================================================================
 
 meth_ques_data=
   init_ques_data=
