@@ -1316,7 +1316,7 @@ write.csv(ques_subset_labelled,file = "Data/Working/ques_subset_labelled.csv")
 ```
 
 
-## Combine the clean datasets 
+## Combine the clean datasets (IMPORTANT REQUIRED)
 
 We need to enter the code to combine all cleaned datasets here.
 
@@ -1350,7 +1350,6 @@ Visuals against the cleaned dataset
 
 Visuals against the cleaned dataset 
 
-
 ## Visualization for Questionnaire
 
 Visuals against the cleaned dataset 
@@ -1359,20 +1358,19 @@ Visuals against the cleaned dataset
 ## Visualization for union of datsets 
 
 
+# Models against sub-datasets (OPTIONAL)
 
-# Models against sub-datasets 
+## Cluster Model for Demographic (OPTIONAL)
 
-## Cluster Model for Demographic
+## Cluster Model for Diet (OPTIONAL)
 
-## Cluster Model for Diet
+## Cluster Model for Examination  (OPTIONAL)
 
-## Cluster Model for Examination 
+## Cluster Model for Labs (OPTIONAL)
 
-## Cluster Model for Labs 
+## Cluster Model for Medications (OPTIONAL)
 
-## Cluster Model for Medications
-
-## Cluster Model for Questionanaire 
+## Cluster Model for Questionanaire (OPTIONAL)
 
 # Problem 0: Supervised model to predict disease (OPTIONAL) 
 
@@ -1380,12 +1378,6 @@ Visuals against the cleaned dataset
 
 In this section, we will combine all the datasets and perform clustering algorithms.  
 
-
-
-```{r, eval=FALSE, echo=TRUE}
-```
-
-# Problem 1: Clustering
 ```{r, eval=FALSE, echo=TRUE}
 ```
 ##  PCA
@@ -1400,7 +1392,7 @@ In this section, we will combine all the datasets and perform clustering algorit
 ##  Summary of models
 ```{r, eval=FALSE, echo=TRUE}
 ```
-# Problem 2: Association
+# Problem 2: Association (OPTIONAL)
 
 Time Permitting
 ```{r, eval=FALSE, echo=TRUE}
