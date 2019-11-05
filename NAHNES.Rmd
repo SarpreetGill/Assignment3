@@ -1322,21 +1322,43 @@ We need to enter the code to combine all cleaned datasets here.
 
 # Visualization
 
-## Visualisition for 
-It is useful to show histograms of all numeric columns.
-```{r, eval=FALSE, echo=TRUE}
-```
-## Visualising correlation
-```{r, eval=FALSE, echo=TRUE}
-```
-## Exploring by location
-```{r, eval=FALSE, echo=TRUE}
-```
-## Exploring by age 
-```{r, eval=FALSE, echo=TRUE}
-```
+Perform visualization against the clean datasets and the union of the cleaned datasets
 
-## Visualization against
+## Visualization for Demographic
+
+Visuals against the cleaned dataset 
+
+### Demographic: Correlation 
+
+### Demographic: pick something
+
+## Visualization for Diet
+
+Visuals against the cleaned dataset 
+
+
+## Visualization for Examination 
+
+Visuals against the cleaned dataset 
+
+## Visualization for Labs  
+
+Visuals against the cleaned dataset 
+
+
+## Visualization for Mediciation 
+
+Visuals against the cleaned dataset 
+
+
+## Visualization for Questionnaire
+
+Visuals against the cleaned dataset 
+
+
+## Visualization for union of datsets 
+
+
 
 # Models against sub-datasets 
 
@@ -1351,6 +1373,8 @@ It is useful to show histograms of all numeric columns.
 ## Cluster Model for Medications
 
 ## Cluster Model for Questionanaire 
+
+# Problem 0: Supervised model to predict disease (OPTIONAL) 
 
 # Problem 1: Clustering
 
