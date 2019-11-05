@@ -1381,3 +1381,13 @@ In this section, we will combine all the datasets and perform clustering algorit
 Time Permitting
 ```{r, eval=FALSE, echo=TRUE}
 ```
+
+# Shiny App
+
+## Models for Shiny
+
+## Link for ShinyApp
+
+# Conclusion 
+
+
