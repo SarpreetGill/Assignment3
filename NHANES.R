@@ -1287,10 +1287,27 @@ colnames(ques_subset_labelled) <- with(Dictionary,
 write.csv(ques_subset_labelled,file = "Data/Working/ques_subset_labelled.csv")
 
 
+## Combine the clean datasets (IMPORTANT REQUIRED)
+#Dataset Merge & select attribute
 
+data1 = read.csv("Data/Working/demo_subset_8_labeled.csv", header = TRUE, na.strings = c("NA","","#NA"))
+data2 = read.csv("Data/Working/diet_subset_processed.csv", header = TRUE, na.strings = c("NA","","#NA"))
+data3 = read.csv("Data/Working/examination_labeled.csv", header = TRUE, na.strings = c("NA","","#NA"))
+data4 = read.csv("Data/Working/labs_subset_labelled.csv", header = TRUE, na.strings = c("NA","","#NA"))
+data5 = read.csv("Data/Working/meds_subset_labelled.csv", header = TRUE, na.strings = c("NA","","#NA"))
+data5 = read.csv("Data/Working/ques_subset_labelled.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+#data_selected <- merge(data1, data2, data3, data4, data5, by="ID")
+
+data2['ID'] <- NULL
+data3['ID'] <- NULL
+data4['ID'] <- NULL
+data5['ID'] <- NULL
+
+data_selected <- rbind(data1, data2, data3, data4, data5)
 #Classifications 
 
-
+write.csv(data_selected,file = "Data/Working/data_selected.csv")
 
 #Define the predictors
 
