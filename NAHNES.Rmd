@@ -1,11 +1,11 @@
 ---
 title: 'ML Assignment 2: NHANES data'
 author:
-  - name: Imran Aziz
   - name: Conrard G. T. Feugmo
   - name: Andre Schardong
   - name: Milton Segura
   - name: Sarpreet Gill
+  - name: Imran Aziz
     affiliation: York University School of Continuing Studies
 date: "Nov 15, 2019"
 output:
@@ -1315,9 +1315,14 @@ colnames(ques_subset_labelled) <- with(Dictionary,
 write.csv(ques_subset_labelled,file = "Data/Working/ques_subset_labelled.csv")
 ```
 
+
+## Combine the clean datasets 
+
+We need to enter the code to combine all cleaned datasets here.
+
 # Visualization
 
-## Visualising all numeric columns
+## Visualisition for 
 It is useful to show histograms of all numeric columns.
 ```{r, eval=FALSE, echo=TRUE}
 ```
@@ -1331,7 +1336,30 @@ It is useful to show histograms of all numeric columns.
 ```{r, eval=FALSE, echo=TRUE}
 ```
 
+## Visualization against
+
 # Models against sub-datasets 
+
+## Cluster Model for Demographic
+
+## Cluster Model for Diet
+
+## Cluster Model for Examination 
+
+## Cluster Model for Labs 
+
+## Cluster Model for Medications
+
+## Cluster Model for Questionanaire 
+
+# Problem 1: Clustering
+
+In this section, we will combine all the datasets and perform clustering algorithms.  
+
+
+
+```{r, eval=FALSE, echo=TRUE}
+```
 
 # Problem 1: Clustering
 ```{r, eval=FALSE, echo=TRUE}
@@ -1349,5 +1377,7 @@ It is useful to show histograms of all numeric columns.
 ```{r, eval=FALSE, echo=TRUE}
 ```
 # Problem 2: Association
+
+Time Permitting
 ```{r, eval=FALSE, echo=TRUE}
 ```
