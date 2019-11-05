@@ -1303,7 +1303,7 @@ data3['ID'] <- NULL
 data4['ID'] <- NULL
 data5['ID'] <- NULL
 
-data_selected <- rbind(data1, data2, data3, data4, data5)
+data_selected <- cbind(data1, data2, data3, data4, data5)
 #Classifications 
 
 write.csv(data_selected,file = "Data/Working/data_selected.csv")

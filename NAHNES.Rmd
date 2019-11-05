@@ -1333,7 +1333,7 @@ data3['ID'] <- NULL
 data4['ID'] <- NULL
 data5['ID'] <- NULL
 
-data_selected <- rbind(data1, data2, data3, data4, data5)
+data_selected <- cbind(data1, data2, data3, data4, data5)
 
 ```
 We need to enter the code to combine all cleaned datasets here.
