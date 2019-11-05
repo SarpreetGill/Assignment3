@@ -1336,7 +1336,6 @@ Visuals against the cleaned dataset
 
 Visuals against the cleaned dataset 
 
-
 ## Visualization for Examination 
 
 Visuals against the cleaned dataset 
@@ -1344,7 +1343,6 @@ Visuals against the cleaned dataset
 ## Visualization for Labs  
 
 Visuals against the cleaned dataset 
-
 
 ## Visualization for Mediciation 
 
@@ -1354,9 +1352,7 @@ Visuals against the cleaned dataset
 
 Visuals against the cleaned dataset 
 
-
 ## Visualization for union of datsets 
-
 
 # Models against sub-datasets (OPTIONAL)
 
