@@ -49,17 +49,25 @@ The company is interested in developing new drugs for the following health condi
 
 The company, aware of our Machine Learning skills, approached us for help on the following problems:
 
-## First Problem: 
-What types of symptoms, medications, diet, demographics are common among various "health conditions"? For example: The type of dietary factors are commonly found with diabetes.
 
-## Second Problem: 
-Are there any commonalities between various people with the same health conditions? For example: The similarities that subjects have if they share a health condition.
+##  First Problem: Development of Drugs
+
+The company has a mature R&D function in relation to other pharmaceutical companies.  However, the researchers are looking for any type of edge or extra tidbit of information that might be beneficial to the researchers to develop their drugs for diabetes, hypertension, and cancer.   Also, the clinical trials are increasingly expensive for the development of new drugs for the treatment of diseases.  Is there anything in the data that could help us lower the costs? 
+
+## Second Problem: Marketing
+
+The marketing department is struggling with high costs of television advertisements and is interested in ways to reduce their costs while still hitting their target markets for both the advertisement of drugs and attracting candidates for trails.
+
+## Third Problem: Reduce lab costs and create referral lists
+
+For candidates already enrolled in Diabetes program, is there a way to tell if they have other diseases such as cancer or hypertension with the minimum amount of questions?  The cost of performing  lab costs could be reduced and if the candidates does have another disease, they could be used as a referral into another drug testing plan for that disease.  
 
 The company would ask us about possible wraping the model as a robust, easy to use App that could be present to managment and corporate to assist with the decision making, based on a few user inputs.
 
 \pagebreak
 
 # Analytical Reframing for the Business Case.  
+
 The **first business problem** involves using “health condition” features and finding related features. This is an association problem and we will need a model using an association algorithm.
 
 * What features are associated with “health condition” features?
