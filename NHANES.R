@@ -197,8 +197,9 @@ demo_subset_8_list = c("RIAGENDR", "RIDAGEYR", "RIDRETH3", "DMDBORN4",
                         "DMDCITZN", "DMDFMSIZ", "DMDHRMAR", "INDFMIN2")
 demo_subset_8  <- demographic%>% 
   select("SEQN",demo_subset_8_list)
+head(demo_subset_8)
 demo_subset_8<- demo_subset_8 %>% 
-  rename("ID"                 =         "SEQN",  
+  dplyr::rename("ID"                 =         "SEQN",  
          "Gender"             =     "RIAGENDR",  
          "Age"                =     "RIDAGEYR",  
          "Race"               =     "RIDRETH3",  
@@ -270,7 +271,7 @@ demo_subset_8_imputed<- complete(imputed)
 #Check for missings in the imputed dataset.
 sapply(demo_subset_8_imputed, function(x) sum(is.na(x)))
 
-write.csv(demo_subset_8_imputed , "Data/Working/demographic_major_imputed.csv")
+#write.csv(demo_subset_8_imputed , "Data/Working/demographic_major_imputed.csv")
 
 #write.csv(demo_subset_8_imputed,file = "Data/Working/demo_subset_8_imputed.csv")
 
@@ -538,7 +539,7 @@ sapply(ten_attributes_diet_subset, function(x) sum(is.na(x)))
 #"DR1TSELE" - Selenium
 
 ten_attributes_diet_subset <- ten_attributes_diet_subset %>% 
-  rename("ID"                =         "SEQN",  
+  dplyr::rename("ID"                =         "SEQN",  
          "Carbs_diet"        =     "DR1TCARB",  
          "Sugar_diet"        =     "DR1TSUGR",  
          "Fiber_diet"        =     "DR1TFIBE",  
@@ -570,7 +571,7 @@ examination_subset = subset(
   )
 
 # Rename columns to meaningful names
-examination_renamed = rename(
+examination_renamed = dplyr::rename(
   examination_subset,
   "ID"                  = "SEQN",
   "BP_test_time_exam"        = "PEASCTM1",
@@ -651,10 +652,10 @@ labs <- read.csv(file.choose(), header = TRUE, na.strings = c("NA","","#NA"))
 sapply(labs, function(x) sum(is.na(x)))
 str(labs)
 
-str(labs_subset)
-sapply(labs_subset, function(x) sum(is.na(x)))
-imputed_labs_subset <- mice(diet_subset, m=5, maxit= 50, method = 'pmm', seed=501)
-sapply(labs_subset, function(x) sum(is.na(x)))
+str(labs)
+sapply(labs, function(x) sum(is.na(x)))
+imputed_labs <- mice(diet_subset, m=5, maxit= 50, method = 'pmm', seed=501)
+sapply(imputed_labs, function(x) sum(is.na(x)))
 
 
 select_columns_labs <- c("SEQN", "LBXWBCSI", "LBXRBCSI", "PHQ020", "PHQ030", "PHQ060", "LBXHA", "LBXHBC", "LBXTC" )
@@ -663,7 +664,7 @@ labs_subset = subset(labs, select=select_columns_labs)
 # Relabel the columns to meaningful names.  
 
 labs_subset <- labs_subset %>% 
-  rename("ID"                =         "SEQN",  
+  dplyr::rename("ID"                =         "SEQN",  
          "White_blood_cells_labs" =     "LBXWBCSI",  
          "Red_bloods_cells_labs"  =     "LBXRBCSI",  
          "Caffeine_labs"          =     "PHQ020",  
@@ -1289,24 +1290,33 @@ write.csv(ques_subset_labelled,file = "Data/Working/ques_subset_labelled.csv")
 ## Combine the clean datasets (IMPORTANT REQUIRED)
 #Dataset Merge & select attribute
 
-data1 = read.csv("Data/Working/demo_subset_8_labeled.csv", header = TRUE, na.strings = c("NA","","#NA"))
-data2 = read.csv("Data/Working/diet_subset_processed.csv", header = TRUE, na.strings = c("NA","","#NA"))
-data3 = read.csv("Data/Working/examination_labeled.csv", header = TRUE, na.strings = c("NA","","#NA"))
-data4 = read.csv("Data/Working/labs_subset_labelled.csv", header = TRUE, na.strings = c("NA","","#NA"))
-data5 = read.csv("Data/Working/meds_subset_labelled.csv", header = TRUE, na.strings = c("NA","","#NA"))
-data5 = read.csv("Data/Working/ques_subset_labelled.csv", header = TRUE, na.strings = c("NA","","#NA"))
+data1 = read.csv("Data/Working/demo_subset_8_labeled.csv", header = TRUE, na.strings = c("NA","","#NA")) [-1]
+data2 = read.csv("Data/Working/diet_subset_processed.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
+data3 = read.csv("Data/Working/examination_labeled.csv", header = TRUE, na.strings = c("NA","","#NA")) [-1]
+data4 = read.csv("Data/Working/labs_subset_labelled.csv", header = TRUE, na.strings = c("NA","","#NA")) [-1]
+data5 = read.csv("Data/Working/meds_subset_labelled.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
+data5 = read.csv("Data/Working/ques_subset_labelled.csv", header = TRUE, na.strings = c("NA","","#NA"))[-c(1,2)]
 
-#data_selected <- merge(data1, data2, data3, data4, data5, by="ID")
+# Rename columns to meaningful names
+data2 = dplyr::rename(
+  data2,
+  "ID"                  = "SEQN")
+  
+data_selected <- merge(data1, data2,by="ID")
+data_selected <- merge(data_selected, data3,by="ID")
+data_selected <- merge(data_selected, data4,by="ID")
+data_selected <- merge(data_selected, data5,by="ID")
 
-data2['ID'] <- NULL
-data3['ID'] <- NULL
-data4['ID'] <- NULL
-data5['ID'] <- NULL
+rm(data_selected) 
+#data2['ID'] <- NULL
+#data3['ID'] <- NULL
+#data4['ID'] <- NULL
+#data5['ID'] <- NULL
 
-data_selected <- cbind(data1, data2, data3, data4, data5)
+#data_selected <- cbind(data1, data2, data3, data4, data5)
 #Classifications 
 
-write.csv(data_selected,file = "Data/Working/data_selected.csv")
+#write.csv(data_selected,file = "Data/Working/data_selected.csv")
 
 #Define the predictors
 
