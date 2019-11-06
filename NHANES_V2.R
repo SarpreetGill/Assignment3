@@ -1723,11 +1723,9 @@ data_selected <- merge(data_selected, data6,by="ID")
 
 write.csv(data_selected,file = "Data/Labeled_Imputed/Data_Combined.csv")
 
-rm(data_selected) 
-data2['ID'] <- NULL
-#data3['ID'] <- NULL
-#data4['ID'] <- NULL
-#data5['ID'] <- NULL
+
+sapply(data_selected, function(x) ((sum(is.na(x))))*.01) %>%
+  stack %>% rev %>% filter(values > 0) %>% setNames(nm=c("variable", "missing"))
 
 
 #Classifications 
