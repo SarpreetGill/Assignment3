@@ -45,7 +45,7 @@ The data gettered is spread into six distinct files (CSV format): Demographics, 
 # Business Case
 Our client wants to develop new drugs that primary intent to improve the quality of life of the individuals survived. The company is interested as to whether existing data on subjects and their associated health conditions could provide advice and insight to their researcher. They have obtained the NHANES dataset and requested our assistance to perform the intended analysis.  This dataset contains individuals data along with various information, including health conditions.  
 
-The company is interested in developing new drugs for the following health conditions: diabetes and hypertension/cholesterol and cancer. <we can add or remove health conditions later.  At the very least, let’s keep diabetes or something>
+The company is interested in developing new drugs for the following health conditions: diabetes, hypertension (blood pressure), and cancer. <we can add or remove health conditions later.  At the very least, let’s keep diabetes or something>
 
 The company, aware of our Machine Learning skills, approached us for help on the following problems:
 
