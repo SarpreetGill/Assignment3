@@ -45,34 +45,43 @@ The data gettered is spread into six distinct files (CSV format): Demographics, 
 # Business Case
 Our client wants to develop new drugs that primary intent to improve the quality of life of the individuals survived. The company is interested as to whether existing data on subjects and their associated health conditions could provide advice and insight to their researcher. They have obtained the NHANES dataset and requested our assistance to perform the intended analysis.  This dataset contains individuals data along with various information, including health conditions.  
 
-The company is interested in developing new drugs for the following health conditions: diabetes and hypertension/cholesterol and cancer. <we can add or remove health conditions later.  At the very least, let’s keep diabetes or something>
+The company is interested in developing new drugs for the following health conditions: diabetes, hypertension (blood pressure), and cancer. <we can add or remove health conditions later.  At the very least, let’s keep diabetes or something>
 
 The company, aware of our Machine Learning skills, approached us for help on the following problems:
 
-## First Problem: 
-What types of symptoms, medications, diet, demographics are common among various "health conditions"? For example: The type of dietary factors are commonly found with diabetes.
 
-## Second Problem: 
-Are there any commonalities between various people with the same health conditions? For example: The similarities that subjects have if they share a health condition.
+##  First Problem: Development of Drugs
+
+The company has a mature R&D function in relation to other pharmaceutical companies.  However, the researchers are looking for any type of edge or extra tidbit of information that might be beneficial to the researchers to develop their drugs for diabetes, hypertension, and cancer.   Also, the clinical trials are increasingly expensive for the development of new drugs for the treatment of diseases.  Is there anything in the data that could help us lower the costs? 
+
+## Second Problem: Marketing
+
+The marketing department is struggling with high costs of television advertisements and is interested in ways to reduce their costs while still hitting their target markets for both the advertisement of drugs and attracting candidates for trails.
+
+## Third Problem: Reduce lab costs and create referral lists
+
+For candidates already enrolled in Diabetes program, is there a way to tell if they have other diseases such as cancer or hypertension with the minimum amount of questions?  The cost of performing  lab costs could be reduced and if the candidates does have another disease, they could be used as a referral into another drug testing plan for that disease.  
 
 The company would ask us about possible wraping the model as a robust, easy to use App that could be present to managment and corporate to assist with the decision making, based on a few user inputs.
 
 \pagebreak
 
 # Analytical Reframing for the Business Case.  
-The **first business problem** involves using “health condition” features and finding related features. This is an association problem and we will need a model using an association algorithm.
 
-* What features are associated with “health condition” features?
-* We’re comparing the rows of the dataset.
+The **first business problem** involves finding commonality between individuals. This is a clustering problem and we will need a model using a clustering algorithm. We need to determine whether the business’s presumption is accurate:
 
-The **second business problem** involves finding commonality between individuals. This is a clustering problem and we will need a model using a clustering algorithm. We need to determine whether the business’s presumption is accurate:
-
-* According to their health conditions, can subjects be divided into discrete groups that could provide meaningful data for the drug researchers?
+* According to their health conditions, can subjects be divided into discrete groups that could provide meaningful data for the drug researchers?  
+* Can this information be useful to reduce the costs of clinical trials?  
 * We’re comparing the columns of the dataset.
 
 If this is the case, we need to find clusters of subjects that segregate the data by health conditions and report these findings to the business.  
 
-On the contrary, if there is too much commonality between “health condition” features and other features, we will also report this finding and note the clusters we did find.   
+The **second business problem** involves using “health condition” features and finding related features. This is an association problem and we will need a model using an association algorithm.  For this, we only need to use diet and demographic data potentially.  This is a marketing problem so other attributes may not be applicable.  
+
+* What features are associated with “health condition” features?
+* We’re comparing the rows of the dataset.
+
+The **third business problem** is a supervised machine learning problem.  Using the least amount of information, if a individual has diabetes, can we predict whether they have either hypertension or cancer (or both)?  
 
 ## How do we define "health condition" features within the dataset ? 
 For the association problem, we will need to see which attributes are tied to the "health condition" features. In order to achieve this, we are postulating that the following columns/features of the Questionnaire dataset indicate that an individual has a "health condition":
@@ -1388,8 +1397,6 @@ Visuals against the cleaned dataset
 
 ## Cluster Model for Questionanaire (OPTIONAL)
 
-# Problem 0: Supervised model to predict disease (OPTIONAL) 
-
 # Problem 1: Clustering
 
 In this section, we will combine all the datasets and perform clustering algorithms.  
@@ -1408,7 +1415,15 @@ In this section, we will combine all the datasets and perform clustering algorit
 ##  Summary of models
 ```{r, eval=FALSE, echo=TRUE}
 ```
-# Problem 2: Association (OPTIONAL)
+# Problem 2: Unsupervised Association 
+
+Find associations with diseases and diet/demographics data.  
+
+# Problem 3: Supervised 
+
+Target attributes need to be added examinations dataset.   
+
+Given an individual has diabetes, predict individual has cancer or hypertension.  Use the less amount of data possible to keep costs low.  
 
 Time Permitting
 ```{r, eval=FALSE, echo=TRUE}
@@ -1422,4 +1437,16 @@ Time Permitting
 
 # Conclusion 
 
+With our models, we aim to present the following to the business regarding applications of our models to assist with drug deployment: 
+
+Firstly, for different diseases, our models can help identify related attributes/values (clusters) for a given disease.  
+This will help select suitable patients for trials.  Trial process can be costly.  And we reduce the cost. 
+ Additionally, this information can also be used to provide hints to researchers on drug treatments on the what might could helpful.    
+(PROVIDE EXAMPLE WHEN AVAILABLE)
+
+For different diseases, our app can different types of non-medical (diet/demographics) which are related.  
+- This can help with directed marketing of our current and future drugs for those diseases.    
+- This could also assist with marketing to attract potential candidates for trails.
+
+(PROVIDE EXAMPLE WHEN AVAILABLE)
 
