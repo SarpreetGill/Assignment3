@@ -1397,8 +1397,6 @@ Visuals against the cleaned dataset
 
 ## Cluster Model for Questionanaire (OPTIONAL)
 
-# Problem 0: Supervised model to predict disease (OPTIONAL) 
-
 # Problem 1: Clustering
 
 In this section, we will combine all the datasets and perform clustering algorithms.  
@@ -1417,7 +1415,15 @@ In this section, we will combine all the datasets and perform clustering algorit
 ##  Summary of models
 ```{r, eval=FALSE, echo=TRUE}
 ```
-# Problem 2: Association (OPTIONAL)
+# Problem 2: Unsupervised Association 
+
+Find associations with diseases and diet/demographics data.  
+
+# Problem 3: Supervised 
+
+Target attributes need to be added examinations dataset.   
+
+Given an individual has diabetes, predict individual has cancer or hypertension.  Use the less amount of data possible to keep costs low.  
 
 Time Permitting
 ```{r, eval=FALSE, echo=TRUE}
@@ -1438,8 +1444,9 @@ This will help select suitable patients for trials.  Trial process can be costly
  Additionally, this information can also be used to provide hints to researchers on drug treatments on the what might could helpful.    
 (PROVIDE EXAMPLE WHEN AVAILABLE)
 
-For different diseases, what types of non-medical (diet/demographics) are related.  
--  This can help with directed marketing of our current and future drugs for those diseases.    
-- This could also assist with marketing to attract potential for scientific trails.   
+For different diseases, our app can different types of non-medical (diet/demographics) which are related.  
+- This can help with directed marketing of our current and future drugs for those diseases.    
+- This could also assist with marketing to attract potential candidates for trails.
+
 (PROVIDE EXAMPLE WHEN AVAILABLE)
 
