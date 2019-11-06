@@ -1308,6 +1308,8 @@ data_selected <- merge(data_selected, data3,by="ID")
 data_selected <- merge(data_selected, data4,by="ID")
 data_selected <- merge(data_selected, data5,by="ID")
 
+#sapply(data_selected, function(x) sum(is.na(x)))
+
 rm(data_selected) 
 #data2['ID'] <- NULL
 #data3['ID'] <- NULL
