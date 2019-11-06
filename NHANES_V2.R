@@ -1679,38 +1679,57 @@ colnames(ques_subset_labelled) <- with(Dictionary,
 
 
 
+
+########################################### Reading Imputed (Unlabelled) files ###########################
+
+
+demographic_imputed   = read.csv("Data/Clean_Imputes/demographic_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
+diet_imputed   = read.csv("Data/Clean_Imputes/diet_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
+exam_imputed   = read.csv("Data/Clean_Imputes/exam_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
+labsdata_imputed   = read.csv("Data/Clean_Imputes/labsdata_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
+medsdata_imputed   = read.csv("Data/Clean_Imputes/medsdata_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
+ques_data_imputed   = read.csv("Data/Clean_Imputes/ques_data_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+
+
 ############################################## Combining Imputed & Imputing Target NA ###################################
 
 
 ## Combine the clean datasets (IMPORTANT REQUIRED)
 #Dataset Merge & select attribute
 
-data1 = read.csv("Data/Working/demo_subset_8_labeled.csv", header = TRUE, na.strings = c("NA","","#NA")) [-1]
-data2 = read.csv("Data/Working/diet_subset_processed.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
-data3 = read.csv("Data/Working/examination_labeled.csv", header = TRUE, na.strings = c("NA","","#NA")) [-1]
-data4 = read.csv("Data/Working/labs_subset_labelled.csv", header = TRUE, na.strings = c("NA","","#NA")) [-1]
-data5 = read.csv("Data/Working/meds_subset_labelled.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
-data5 = read.csv("Data/Working/ques_subset_labelled.csv", header = TRUE, na.strings = c("NA","","#NA"))[-c(1,2)]
 
-# Rename columns to meaningful names
-data2 = dplyr::rename(
-  data2,
-  "ID"                  = "SEQN")
+data1   = read.csv("Data/Labeled_Imputed/demo_subset_8_labeled.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
+data2   = read.csv("Data/Labeled_Imputed/diet_labeled.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
+data3   = read.csv("Data/Labeled_Imputed/exam_labeled.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
+data4   = read.csv("Data/Labeled_Imputed/labs_labeled.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
+data5   = read.csv("Data/Labeled_Imputed/meds_subset_labelled.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
+data6   = read.csv("Data/Labeled_Imputed/ques_subset_labelled.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
+
+
+
+data3 = dplyr::rename(data3,"ID"="SEQN")
+data4 = dplyr::rename(data4, "ID"="SEQN")
+data4 = dplyr::rename(data4,"SEQN"="ID")
+colnames(data5)[1] <- "ID"
+colnames(data6)[1] <- "ID"
 
 data_selected <- merge(data1, data2,by="ID")
 data_selected <- merge(data_selected, data3,by="ID")
 data_selected <- merge(data_selected, data4,by="ID")
 data_selected <- merge(data_selected, data5,by="ID")
+data_selected <- merge(data_selected, data6,by="ID")
+
+
+write.csv(data_selected,file = "Data/Labeled_Imputed/Data_Combined.csv")
 
 rm(data_selected) 
-#data2['ID'] <- NULL
+data2['ID'] <- NULL
 #data3['ID'] <- NULL
 #data4['ID'] <- NULL
 #data5['ID'] <- NULL
 
-#data_selected <- cbind(data1, data2, data3, data4, data5)
 
-#data_selected <- cbind(data1, data2, data3, data4, data5)
 #Classifications 
 
 #write.csv(data_selected,file = "Data/Working/data_selected.csv")
