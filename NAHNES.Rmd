@@ -87,19 +87,23 @@ The **third business problem** is a supervised machine learning problem.  Using 
 For the association problem, we will need to see which attributes are tied to the "health condition" features. In order to achieve this, we are postulating that the following columns/features of the Questionnaire dataset indicate that an individual has a "health condition":
 
 ### Diabetes
-* **DID040** - "How old {was SP/were you} when a doctor or other health professional first told {you/him/her} that {you/he/she} had diabetes or sugar diabetes?"
+DIQ010 - Doctor told you have diabetes
+https://wwwn.cdc.gov/Nchs/Nhanes/2013-2014/DIQ_H.htm
+The next questions are about specific medical conditions. {Other than during pregnancy, {have you/has SP}/{Have you/Has SP}} ever been told by a doctor or health professional that {you have/{he/she/SP} has} diabetes or sugar diabetes?
 
-* **DID060** - "For how long {have you/has SP} been taking insulin?"
+### Hypertension(bllod pressure)
+ BPQ020 - Ever told you had high blood pressure
+ https://wwwn.cdc.gov/Nchs/Nhanes/2013-2014/BPQ_H.htm
+{Have you/Has SP} ever been told by a doctor or other health professional that {you/s/he} had hypertension, also called high blood pressure?
 
-NA in the above features might indicate the subject does not have diabetes.  
+### Cancer
+ MCQ220 - Ever told you had cancer or malignancy
+ https://wwwn.cdc.gov/Nchs/Nhanes/2013-2014/MCQ_H.htm#MCQ220
+ {Have you/Has SP} ever been told by a doctor or other health professional that {you/s/he} had cancer or a malignancy (ma-lig-nan-see) of any kind?
 
-### Blood Pressure
-* **BPD035** - How old {were you/was SP} when {you were/he/she was} first told that {you/he/she} had hypertension or high blood pressure?
 
-* **BPQ020** - {Have you/Has SP} ever been told by a doctor or other health professional that {you/s/he} had hypertension, also called high blood pressure?
 
-### Cancer 
-* **MCQ220** - {Have you/Has SP} ever been told by a doctor or other health professional that {you/s/he} had cancer or a malignancy (ma-lig-nan-see) of any kind?  
+
 
 \pagebreak
 
