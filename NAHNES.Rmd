@@ -1426,6 +1426,34 @@ In this section, we will combine all the datasets and perform clustering algorit
 
 Find associations with diseases and diet/demographics data.  
 
+I've started work on association 
+
+```{r eval=FALSE, echo=TRUE}
+library(arules)
+library(arulesViz)
+association_dataset <- data_selected
+association_target_dataset <- target_disease_dataset[ -c(2,3,4)]
+summary(association_target_dataset)
+summary(association_dataset)
+
+association_target_dataset = dplyr::rename(
+  association_target_dataset,
+  "ID"                  = "SEQN")
+
+#Combine targets with labelled datasets 
+association_dataset <- merge(association_dataset, association_target_dataset,by="ID")
+association_dataset <- lapply(association_dataset, function(x){as.factor(x)})
+str(association_dataset)
+
+write.csv(association_dataset, "Data/Working/association_dataset.csv")
+# Convert into matrix
+association_dataset$const = TRUE
+association_matrix <- as.matrix(association_dataset)
+
+#This code to turn the dataset into a transactional database is not working.  
+association_dataset_transactional <- as(association_matrix, "transactions")
+```
+
 # Problem 3: Supervised 
 
 Target attributes need to be added .   
