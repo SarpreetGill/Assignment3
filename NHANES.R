@@ -1321,6 +1321,18 @@ rm(data_selected)
 
 #write.csv(data_selected,file = "Data/Working/data_selected.csv")
 
+
+#####################   Demographie Model  ###############
+
+#++++++++++++++++++++++++  PCA  ++++++++++++++++++++++++++++++++++++++++++
+
+#++++++++++++++++++++++++  k-means  +++++++++++++++++++++++++++++++++++++++
+
+
+#+++++++++++++++++++  Hierarchical Agglomerative++++++++++++++++++++++++++++++++
+
+
+
 #Define the predictors
 
 
