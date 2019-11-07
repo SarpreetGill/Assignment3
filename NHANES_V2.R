@@ -1681,7 +1681,7 @@ colnames(ques_subset_labelled) <- with(Dictionary,
 
 
 ########################################### Reading Imputed (Unlabelled) files ###########################
-
+rm(list=ls())
 
 demographic_imputed   = read.csv("Data/Clean_Imputes/demographic_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
 diet_imputed   = read.csv("Data/Clean_Imputes/diet_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
@@ -1692,8 +1692,12 @@ ques_data_imputed   = read.csv("Data/Clean_Imputes/ques_data_imputed.csv", heade
 
 
 
+
+
+
 ############################################## Combining Imputed & Imputing Target NA ###################################
 
+rm(list=ls())
 
 ## Combine the clean datasets (IMPORTANT REQUIRED)
 #Dataset Merge & select attribute
@@ -1722,6 +1726,7 @@ data_selected <- merge(data_selected, data6,by="ID")
 
 
 write.csv(data_selected,file = "Data/Labeled_Imputed/Data_Combined.csv")
+data_selected   = read.csv("Data/Labeled_Imputed/Data_Combined.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
 
 
 sapply(data_selected, function(x) ((sum(is.na(x))))*.01) %>%
