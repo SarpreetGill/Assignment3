@@ -1319,6 +1319,47 @@ rm(data_selected)
 
 #write.csv(data_selected,file = "Data/Working/data_selected.csv")
 
+########################################################################
+### Code for creating target dataset for 
+#DIQ010 - Doctor told you have diabetes
+#https://wwwn.cdc.gov/Nchs/Nhanes/2013-2014/DIQ_H.htm
+#The next questions are about specific medical conditions. {Other than during pregnancy, {have you/has SP}/{Have you/Has SP}} ever been told by a doctor or health professional that {you have/{he/she/SP} has} diabetes or sugar diabetes?
+
+# BPQ020 - Ever told you had high blood pressure
+# https://wwwn.cdc.gov/Nchs/Nhanes/2013-2014/BPQ_H.htm
+# {Have you/Has SP} ever been told by a doctor or other health professional that {you/s/he} had hypertension, also called high blood pressure?
+
+# MCQ220 - Ever told you had cancer or malignancy
+# https://wwwn.cdc.gov/Nchs/Nhanes/2013-2014/MCQ_H.htm#MCQ220
+# {Have you/Has SP} ever been told by a doctor or other health professional that {you/s/he} had cancer or a malignancy (ma-lig-nan-see) of any kind?
+
+# Create the target dataset for the Supervised problem.
+temp_questionnaire = read.csv("Data/Raw/questionnaire.csv", header = TRUE, na.strings = c("NA","","#NA"))
+summary(temp_questionnaire)
+target_columns <- c("SEQN","DIQ010","BPQ020","MCQ220")
+target_disease_dataset = subset(temp_questionnaire, select=target_columns)
+
+# Change disease indicators into factors
+target_disease_dataset$MCQ220 <- as.factor(target_disease_dataset$MCQ220)
+target_disease_dataset$DIQ010 <- as.factor(target_disease_dataset$DIQ010)
+target_disease_dataset$BPQ020 <- as.factor(target_disease_dataset$BPQ020)
+
+#Create new column for target values
+target_disease_dataset = cbind(target_disease_dataset, HAS_DIABETES= ifelse(target_disease_dataset$DIQ010 == 1, "YES", "NO" ) )
+target_disease_dataset= cbind(target_disease_dataset, HAS_HYPERTENSION= ifelse(target_disease_dataset$BPQ020 == 1, "YES", "NO" ) )
+target_disease_dataset = cbind(target_disease_dataset, HAS_CANCER= ifelse(target_disease_dataset$MCQ220 == 1, "YES", "NO" ) )
+summary(target_disease_dataset)
+
+# With new target values, set "NA" to "NO"
+target_disease_dataset$HAS_DIABETES[is.na(target_disease_dataset$HAS_DIABETES)] <- "NO"
+target_disease_dataset$HAS_HYPERTENSION[is.na(target_disease_dataset$HAS_HYPERTENSION)] <- "NO"
+target_disease_dataset$HAS_CANCER[is.na(target_disease_dataset$HAS_CANCER)] <- "NO"
+summary(target_disease_dataset)
+
+write.csv(target_disease_dataset,file = "Data/Working/target_disease_dataset.csv")
+####################################################
+       
+       
 #Define the predictors
 
 
