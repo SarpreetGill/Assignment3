@@ -554,10 +554,9 @@ ten_attributes_diet_subset <- ten_attributes_diet_subset %>%
 
 sapply(ten_attributes_diet_subset, function(x) sum(is.na(x)))
 str(ten_attributes_diet_subset)
-write.csv(demo_subset_8_imputed , "Data/Clean_Imputes/imputed_diet_subset_complete.csv")
-
-#write.csv(imputed_diet_subset_complete, "diet_subset_10_attributes_processed.csv")
-    
+write.csv(imputed_diet_subset_complete, "diet_subset_10_attributes_processed.csv")
+### THis is actually labelled data!
+write.csv(imputed_diet_subset_complete, "diet_subset_10_attributes_labelled.csv")
 ######################## Examination###############################
 
 # Import the raw dataset
