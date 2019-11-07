@@ -1291,16 +1291,18 @@ write.csv(ques_subset_labelled,file = "Data/Working/ques_subset_labelled.csv")
 #Dataset Merge & select attribute
 
 data1 = read.csv("Data/Working/demo_subset_8_labeled.csv", header = TRUE, na.strings = c("NA","","#NA")) [-1]
-data2 = read.csv("Data/Working/diet_subset_processed.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
+#data2 = read.csv("Data/Working/diet_subset_processed.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
+# Replace diet_subset_processed.csv with ten_attributes_diet_subset  
+data2 = read.csv("Data/Working/ten_attributes_diet_subset_labelled.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
 data3 = read.csv("Data/Working/examination_labeled.csv", header = TRUE, na.strings = c("NA","","#NA")) [-1]
 data4 = read.csv("Data/Working/labs_subset_labelled.csv", header = TRUE, na.strings = c("NA","","#NA")) [-1]
 data5 = read.csv("Data/Working/meds_subset_labelled.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
 data5 = read.csv("Data/Working/ques_subset_labelled.csv", header = TRUE, na.strings = c("NA","","#NA"))[-c(1,2)]
 
-# Rename columns to meaningful names
-data2 = dplyr::rename(
-  data2,
-  "ID"                  = "SEQN")
+# Rename columns to meaningful names (NOT REQUIRED AS dataset for diet has been recoded)
+#data2 = dplyr::rename(
+#  data2,
+#  "ID"                  = "SEQN")
   
 data_selected <- merge(data1, data2,by="ID")
 data_selected <- merge(data_selected, data3,by="ID")
