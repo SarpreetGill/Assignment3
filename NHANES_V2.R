@@ -1717,7 +1717,7 @@ corrplot(demo_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt 
 
 
 ####### Using PCA 
-Test_Data<-demographic_imputed
+Test_Data<-scale(demographic_imputed)
 
 ## Divide Data into Train and Test
 set.seed(1)
@@ -1743,11 +1743,11 @@ PCH <- c(1,16)
 op <- par(mar=c(4,4,1,1), ps=10)
 pc <- c(1:5) 
 op <- par(mar=c(4,4,1,1), ps=10)
-plot(pcmp$scores[,pc], col=COLOR[Test_Data.train$Country], cex=PCH[1], 
+plot(pcmp$scores[,pc], col=COLOR[Test_Data.train$SEQN], cex=PCH[1], 
      xlab=paste0("PC ", pc[1], " (", prexpl[pc[1]], "%)"), 
      ylab=paste0("PC ", pc[2], " (", prexpl[pc[2]], "%)")
 )
-points(pred[,pc], col=COLOR[Test_Data.valid$Country], pch=PCH[2])
+points(pred[,pc], col=COLOR[Test_Data.train$SEQN], pch=PCH[2])
 legend("topleft", legend=c("training data", "validation data"), col=1, pch=PCH)
 par(op)
 
