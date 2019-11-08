@@ -1712,8 +1712,46 @@ colnames(ques_subset_labelled) <- with(Dictionary,
 ########################################### Reading Imputed (Unlabelled) files ###########################
 rm(list=ls())
 demographic_imputed   = read.csv("Data/Clean_Imputes/demographic_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
-demo_cor=rcorr(as.matrix(demographic_imputed))
-corrplot(demo_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt = 45)
+diet_imputed   = read.csv("Data/Clean_Imputes/diet_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
+exam_imputed   = read.csv("Data/Clean_Imputes/exam_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
+labsdata_imputed   = read.csv("Data/Clean_Imputes/labsdata_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
+medsdata_imputed   = read.csv("Data/Clean_Imputes/medsdata_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
+ques_data_imputed   = read.csv("Data/Clean_Imputes/ques_data_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+
+
+impute_combi <- merge(demographic_imputed, diet_imputed,by="SEQN")
+impute_combi <- merge(impute_combi, exam_imputed,by="SEQN")
+impute_combi <- merge(impute_combi, labsdata_imputed,by="SEQN")
+impute_combi <- merge(impute_combi, medsdata_imputed,by="SEQN")
+impute_combi <- merge(impute_combi, ques_data_imputed,by="SEQN")
+rm(demographic_imputed,exam_imputed,labsdata_imputed,medsdata_imputed,ques_data_imputed,diet_imputed)
+
+#write.csv(impute_combi,file = "Data/Clean_Imputes/impute_combi.csv")
+impute_combi   = read.csv("Data/Clean_Imputes/impute_combi.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
+
+imp_target_data = cbind(impute_combi, Diabetes = ifelse(
+  impute_combi$LBXGH >= 5.7,
+  "Yes", "No" ))
+summary(imp_target_data$Diabetes)
+imp_target_data = cbind(imp_target_data, Target = ifelse(
+  imp_target_data$Diabetes == "Yes",
+  1, 0 ))
+imp_target_data <- imp_target_data[,c(1,371,372,2:370)]
+
+#write.csv(imp_target_data,file = "Data/Clean_Imputes/imp_target_data.csv")
+imp_target_data   = read.csv("Data/Clean_Imputes/imp_target_data.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
+
+#######################################  Check the data for missing values.
+
+sapply(imp_target_data, function(x) ((sum(is.na(x))))*.01) %>%
+  stack %>% rev %>% filter(values > 0) %>% setNames(nm=c("variable", "missing"))
+summary(imp_target_data)
+
+combi_cor=rcorr(as.matrix(imp_target_data))
+corrplot(combi_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt = 45)
+
+
 
 
 ####### Using PCA 
@@ -1726,10 +1764,14 @@ Test_Data.train <- Test_Data[samp,]
 Test_Data.valid <- Test_Data[-samp,]
 
 
-
-pcmp <- princomp(Test_Data.train[,-1],retx=TRUE, center=TRUE, scale=TRUE)
+pcmp <- prcomp(Test_Data.train[,-1],retx=TRUE, center=TRUE, scale=TRUE)
+#pcmp <- princomp(Test_Data.train[,-1],retx=TRUE, center=TRUE, scale=TRUE)
 prexpl <- round(pcmp$sdev^2/sum(pcmp$sdev^2)*100)
 prexpl
+biplot(pcmp,scale=0)
+summary(pcmp)
+#pcmp$loadings
+pcmp$rotation[,1:5]
 plot(pcmp, main = "PCA for Species", col.axis="blue")
 plot(pcmp, type = "l", main = "PCA for Species", col.axis="blue")
 pairs(pcmp$loadings, col = c("red","green", "blue", "cornflowerblue", "purple"),pch = c(8, 18, 1))
@@ -1754,14 +1796,6 @@ par(op)
 
 
 
-
-diet_imputed   = read.csv("Data/Clean_Imputes/diet_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
-exam_imputed   = read.csv("Data/Clean_Imputes/exam_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
-labsdata_imputed   = read.csv("Data/Clean_Imputes/labsdata_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
-medsdata_imputed   = read.csv("Data/Clean_Imputes/medsdata_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
-ques_data_imputed   = read.csv("Data/Clean_Imputes/ques_data_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
-
-summary(medsdata_imputed)
 
 
 
