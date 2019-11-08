@@ -1794,14 +1794,6 @@ legend("topleft", legend=c("training data", "validation data"), col=1, pch=PCH)
 par(op)
 
 
-
-
-
-
-
-
-
-
 ############################################## Combining Imputed & Imputing Target NA ###################################
 
 rm(list=ls())
@@ -1934,29 +1926,6 @@ summary(Working_Data$LBXGH)
 
 
 
-############################################## Marking Target IDS ###########################
-
-
-
-
-summary(imp_data_imputed$LBXGH)
-
-imp_target_Data = cbind(imp_data_imputed, Diabetes = ifelse(
-  imp_data_imputed$LBXGH >= 5.7,
-  "Yes", "No" ))
-summary(imp_target_Data$Diabetes)
-imp_target_Data = cbind(imp_target_Data, Target = ifelse(
-  imp_target_Data$Diabetes == "Yes",
-  1, 0 ))
-summary(imp_target_Data$Target)
-str(imp_target_Data$Target)
-
-
-
-#######################################  Saving Impute
-
-write.csv(imp_target_Data , "Data/Working/imp_target_Data.csv")
-imp_target_Data   = read.csv("Data/Working/imp_target_Data.csv", header = TRUE, na.strings = c("NA","","#NA"))
 
 
 ################################# Extrating Target #################################
