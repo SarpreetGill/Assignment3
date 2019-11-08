@@ -14,7 +14,9 @@ lapply(c("plyr",
          "caret",
          "AMR",
          "mice",
-         "randomForest"
+         "randomForest",
+         "data.table",
+         "car"
 ),
 require, character.only=TRUE)
 
@@ -795,6 +797,12 @@ exam75 %>% summarise_all(~(sum(is.na(.))/n()*100))
 
 rm(exam_major)
 
+#examrn <- data.table(exam75,stringsAsFactors = FALSE)
+#examrn[, 70:97 := lapply(.SD, recode, ("'D'=1;'E'=2;'J'=3;'K'=4;'M'=5;'P'=6;'Q'=7;'R'=8;'S'=9;'T'=10;'U'=11;'X'=12;'Y'=13;'Z'=14")), .SDcols = 70:97]
+exam75 <- data.frame(exam75,stringsAsFactors = FALSE)
+exam75[ , 70:97]  <- lapply(exam75[ ,70:97] , FUN = function(x) recode(x, "'D'=1;'E'=2;'J'=3;'K'=4;'M'=5;'P'=6;'Q'=7;'R'=8;'S'=9;'T'=10;'U'=11;'X'=12;'Y'=13;'Z'=14"))
+
+
 #######################################  Creating Index for firther use
 
 
@@ -830,8 +838,8 @@ exam_Col_Labels <- data.frame("Code"=c(colnames(exam75)),
 
 Cat_exam <- c(0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
               1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-              1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
-              2,2,2,2,2,2,2,2,2,2)
+              1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+              1,1,1,1,1,1,1,1,1,1)
 exam_Col_Labels <- data.frame(exam_Col_Labels,Cat = Cat_exam)
 
 #write.csv(exam_Col_Labels,file = "Data/Labels/exam_Col_Labels.csv")
@@ -856,7 +864,7 @@ rm(exam_indexed, exam_Col_Labels)
 
 exam_selected = exam75[ WorkingColm_exam ]
 
-rm(exam75,examination)
+rm(exam75)
 exam_selected[, Catcolmn_exam] <- sapply(exam_selected[, Catcolmn_exam], as.factor)
 exam_selected[, Catcolmn_Nul_exam] <- sapply(exam_selected[, Catcolmn_Nul_exam], as.numeric)
 exam_selected[, Numcolmn_exam] <- sapply(exam_selected[, Numcolmn_exam], as.numeric)
@@ -950,9 +958,10 @@ exam_labeled = mutate(
                               "3"="Neither")
 )
 
+exam_labeled[ , 70:97]  <- lapply(exam_labeled[ ,70:97] , FUN = function(x) recode(x, "1='D';2='E';3='J';4='K';5='M';6='P';7='Q';8='R';9='S';10='T';11='U';12='X';13='Y';14='Z'"))
 
 
-write.csv(exam_labeled,file = "Data/Labeled_Imputed/exam_labeled.csv")
+#write.csv(exam_labeled,file = "Data/Labeled_Imputed/exam_labeled.csv")
 
 ############################################## Labs###############################################
 
@@ -1202,7 +1211,7 @@ rm(medications)
 
 sapply(medsdata_major, function(x) ((sum(is.na(x))))*.01) %>%
   stack %>% rev %>% filter(values > 25) %>% setNames(nm=c("variable", "missing"))
-
+summary(medsdata_major)
 #######################################  Removing data having greater than 32 % missing values
 
 
@@ -1211,7 +1220,25 @@ Null_Colms_medsdata <- colnames(medsdata_major)[Null_Num_medsdata > 0.33]
 medsdata68 <- select(medsdata_major, -Null_Colms_medsdata)
 colSums(is.na(medsdata68))
 medsdata68 %>% summarise_all(~(sum(is.na(.))/n()*100))
+cols = c(3,4,7,8)
+DT = as.data.table(medsdata68)
+medsdata68 <- as.data.frame(DT[i = RXDUSE==2,j = (cols) := .('Not applicable')])
+medsdata68 <- as.data.frame(DT[i = RXDUSE==7,j = (cols) := .('Refused')])
+medsdata68 <- as.data.frame(DT[i = RXDUSE==9,j = (cols) := .('Dont know')])
+cols = c(4,7,8)
+medsdata68 <- as.data.frame(DT[i = RXDUSE==1 & RXDDRUG == 55555,j = (cols) := .('Unknown')])
+medsdata68 <- as.data.frame(DT[i = RXDUSE==1 & RXDDRUG == 77777,j = (cols) := .('Refused')])
+medsdata68 <- as.data.frame(DT[i = RXDUSE==1 & RXDDRUG == 99999,j = (cols) := .('Dont know')])
+medsdata68 <- as.data.frame(DT[i = RXDUSE==1 & RXDDRUG == 'ANTI-INFECTIVES - UNSPECIFIED',j = (cols) := .('ANTI-INFECTIVES - UNSPECIFIED')])
+medsdata68 <- as.data.frame(DT[i = RXDUSE==1 & RXDDRUG == 'ESTROGENS - UNSPECIFIED',j = (cols) := .('ESTROGENS - UNSPECIFIED')])
+medsdata68 <- as.data.frame(DT[i = RXDUSE==1 & RXDRSC1 == 55555 ,j = RXDRSD1 := .('Unknown')])
+medsdata68 <- as.data.frame(DT[i = RXDUSE==1 & RXDRSC1 == 77777 ,j = RXDRSD1 := .('Refused')])
+medsdata68 <- as.data.frame(DT[i = RXDUSE==1 & RXDRSC1 == 99999 ,j = RXDRSD1 := .('Dont know')])
 
+
+#sapply(medsdata68, function(x) ((sum(is.na(x))))*.01) %>%
+#  stack %>% rev %>% filter(values > 0) %>% setNames(nm=c("variable", "missing"))
+#medsdata68[is.na(medsdata68$RXDRSD1),]
 
 medsdata_indexed <- medsdata68
 colnames(medsdata_indexed) <- with(Dictionary,
@@ -1335,7 +1362,7 @@ colnames(meds_subset_labelled) <- with(Dictionary,
                                        )])
 
 str(meds_subset_labelled)
-write.csv(meds_subset_labelled,file = "Data/Labeled_Imputed/meds_subset_labelled.csv")
+#write.csv(meds_subset_labelled,file = "Data/Labeled_Imputed/meds_subset_labelled.csv")
 
 
 ############################################## Questionnaire#############################################
@@ -1690,9 +1717,12 @@ labsdata_imputed   = read.csv("Data/Clean_Imputes/labsdata_imputed.csv", header 
 medsdata_imputed   = read.csv("Data/Clean_Imputes/medsdata_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
 ques_data_imputed   = read.csv("Data/Clean_Imputes/ques_data_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
 
+summary(medsdata_imputed)
 
-
-
+freq(medsdata_imputed$RXDDRUG)
+freq(medsdata_imputed$RXDDRGID)
+freq(medsdata_imputed$RXDRSC1)
+freq(medsdata_imputed$RXDRSD1)
 
 
 ############################################## Combining Imputed & Imputing Target NA ###################################
