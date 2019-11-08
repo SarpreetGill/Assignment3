@@ -16,7 +16,9 @@ lapply(c("plyr",
          "mice",
          "randomForest",
          "data.table",
-         "car"
+         "car",
+         "corrplot",
+         "Hmisc"
 ),
 require, character.only=TRUE)
 
@@ -1709,8 +1711,50 @@ colnames(ques_subset_labelled) <- with(Dictionary,
 
 ########################################### Reading Imputed (Unlabelled) files ###########################
 rm(list=ls())
-
 demographic_imputed   = read.csv("Data/Clean_Imputes/demographic_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
+demo_cor=rcorr(as.matrix(demographic_imputed))
+corrplot(demo_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt = 45)
+
+
+####### Using PCA 
+Test_Data<-demographic_imputed
+
+## Divide Data into Train and Test
+set.seed(1)
+samp <- sample(nrow(Test_Data), nrow(Test_Data)*0.75)
+Test_Data.train <- Test_Data[samp,]
+Test_Data.valid <- Test_Data[-samp,]
+
+
+
+pcmp <- princomp(Test_Data.train[,-1],retx=TRUE, center=TRUE, scale=TRUE)
+prexpl <- round(pcmp$sdev^2/sum(pcmp$sdev^2)*100)
+prexpl
+plot(pcmp, main = "PCA for Species", col.axis="blue")
+plot(pcmp, type = "l", main = "PCA for Species", col.axis="blue")
+pairs(pcmp$loadings, col = c("red","green", "blue", "cornflowerblue", "purple"),pch = c(8, 18, 1))
+
+
+# Prediction of PCs for validation dataset
+pred <- predict(pcmp, newdata=Test_Data.valid[,-1])
+
+COLOR <- c(1:5)
+PCH <- c(1,16)
+op <- par(mar=c(4,4,1,1), ps=10)
+pc <- c(1:5) 
+op <- par(mar=c(4,4,1,1), ps=10)
+plot(pcmp$scores[,pc], col=COLOR[Test_Data.train$Country], cex=PCH[1], 
+     xlab=paste0("PC ", pc[1], " (", prexpl[pc[1]], "%)"), 
+     ylab=paste0("PC ", pc[2], " (", prexpl[pc[2]], "%)")
+)
+points(pred[,pc], col=COLOR[Test_Data.valid$Country], pch=PCH[2])
+legend("topleft", legend=c("training data", "validation data"), col=1, pch=PCH)
+par(op)
+
+
+
+
+
 diet_imputed   = read.csv("Data/Clean_Imputes/diet_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
 exam_imputed   = read.csv("Data/Clean_Imputes/exam_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
 labsdata_imputed   = read.csv("Data/Clean_Imputes/labsdata_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
@@ -1719,10 +1763,9 @@ ques_data_imputed   = read.csv("Data/Clean_Imputes/ques_data_imputed.csv", heade
 
 summary(medsdata_imputed)
 
-freq(medsdata_imputed$RXDDRUG)
-freq(medsdata_imputed$RXDDRGID)
-freq(medsdata_imputed$RXDRSC1)
-freq(medsdata_imputed$RXDRSD1)
+
+
+
 
 
 ############################################## Combining Imputed & Imputing Target NA ###################################
