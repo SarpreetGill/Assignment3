@@ -554,10 +554,9 @@ ten_attributes_diet_subset <- ten_attributes_diet_subset %>%
 
 sapply(ten_attributes_diet_subset, function(x) sum(is.na(x)))
 str(ten_attributes_diet_subset)
-write.csv(demo_subset_8_imputed , "Data/Clean_Imputes/imputed_diet_subset_complete.csv")
-
-#write.csv(imputed_diet_subset_complete, "diet_subset_10_attributes_processed.csv")
-    
+write.csv(imputed_diet_subset_complete, "diet_subset_10_attributes_processed.csv")
+### THis is actually labelled data!
+write.csv(imputed_diet_subset_complete, "diet_subset_10_attributes_labelled.csv")
 ######################## Examination###############################
 
 # Import the raw dataset
@@ -1292,16 +1291,18 @@ write.csv(ques_subset_labelled,file = "Data/Working/ques_subset_labelled.csv")
 #Dataset Merge & select attribute
 
 data1 = read.csv("Data/Working/demo_subset_8_labeled.csv", header = TRUE, na.strings = c("NA","","#NA")) [-1]
-data2 = read.csv("Data/Working/diet_subset_processed.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
+#data2 = read.csv("Data/Working/diet_subset_processed.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
+# Replace diet_subset_processed.csv with ten_attributes_diet_subset  
+data2 = read.csv("Data/Working/ten_attributes_diet_subset_labelled.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
 data3 = read.csv("Data/Working/examination_labeled.csv", header = TRUE, na.strings = c("NA","","#NA")) [-1]
 data4 = read.csv("Data/Working/labs_subset_labelled.csv", header = TRUE, na.strings = c("NA","","#NA")) [-1]
 data5 = read.csv("Data/Working/meds_subset_labelled.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
 data5 = read.csv("Data/Working/ques_subset_labelled.csv", header = TRUE, na.strings = c("NA","","#NA"))[-c(1,2)]
 
-# Rename columns to meaningful names
-data2 = dplyr::rename(
-  data2,
-  "ID"                  = "SEQN")
+# Rename columns to meaningful names (NOT REQUIRED AS dataset for diet has been recoded)
+#data2 = dplyr::rename(
+#  data2,
+#  "ID"                  = "SEQN")
   
 data_selected <- merge(data1, data2,by="ID")
 data_selected <- merge(data_selected, data3,by="ID")
@@ -1321,6 +1322,7 @@ rm(data_selected)
 
 #write.csv(data_selected,file = "Data/Working/data_selected.csv")
 
+<<<<<<< HEAD:NHANES.R
 
 #####################   Demographie Model  ###############
 
@@ -1333,6 +1335,49 @@ rm(data_selected)
 
 
 
+=======
+########################################################################
+### Code for creating target dataset for 
+#DIQ010 - Doctor told you have diabetes
+#https://wwwn.cdc.gov/Nchs/Nhanes/2013-2014/DIQ_H.htm
+#The next questions are about specific medical conditions. {Other than during pregnancy, {have you/has SP}/{Have you/Has SP}} ever been told by a doctor or health professional that {you have/{he/she/SP} has} diabetes or sugar diabetes?
+
+# BPQ020 - Ever told you had high blood pressure
+# https://wwwn.cdc.gov/Nchs/Nhanes/2013-2014/BPQ_H.htm
+# {Have you/Has SP} ever been told by a doctor or other health professional that {you/s/he} had hypertension, also called high blood pressure?
+
+# MCQ220 - Ever told you had cancer or malignancy
+# https://wwwn.cdc.gov/Nchs/Nhanes/2013-2014/MCQ_H.htm#MCQ220
+# {Have you/Has SP} ever been told by a doctor or other health professional that {you/s/he} had cancer or a malignancy (ma-lig-nan-see) of any kind?
+
+# Create the target dataset for the Supervised problem.
+temp_questionnaire = read.csv("Data/Raw/questionnaire.csv", header = TRUE, na.strings = c("NA","","#NA"))
+summary(temp_questionnaire)
+target_columns <- c("SEQN","DIQ010","BPQ020","MCQ220")
+target_disease_dataset = subset(temp_questionnaire, select=target_columns)
+
+# Change disease indicators into factors
+target_disease_dataset$MCQ220 <- as.factor(target_disease_dataset$MCQ220)
+target_disease_dataset$DIQ010 <- as.factor(target_disease_dataset$DIQ010)
+target_disease_dataset$BPQ020 <- as.factor(target_disease_dataset$BPQ020)
+
+#Create new column for target values
+target_disease_dataset = cbind(target_disease_dataset, HAS_DIABETES= ifelse(target_disease_dataset$DIQ010 == 1, "YES", "NO" ) )
+target_disease_dataset= cbind(target_disease_dataset, HAS_HYPERTENSION= ifelse(target_disease_dataset$BPQ020 == 1, "YES", "NO" ) )
+target_disease_dataset = cbind(target_disease_dataset, HAS_CANCER= ifelse(target_disease_dataset$MCQ220 == 1, "YES", "NO" ) )
+summary(target_disease_dataset)
+
+# With new target values, set "NA" to "NO"
+target_disease_dataset$HAS_DIABETES[is.na(target_disease_dataset$HAS_DIABETES)] <- "NO"
+target_disease_dataset$HAS_HYPERTENSION[is.na(target_disease_dataset$HAS_HYPERTENSION)] <- "NO"
+target_disease_dataset$HAS_CANCER[is.na(target_disease_dataset$HAS_CANCER)] <- "NO"
+summary(target_disease_dataset)
+
+write.csv(target_disease_dataset,file = "Data/Working/target_disease_dataset.csv")
+####################################################
+       
+       
+>>>>>>> fba9689aa2946995605250c2ea479648992e1ca2:NHANES_V1(old).R
 #Define the predictors
 
 
