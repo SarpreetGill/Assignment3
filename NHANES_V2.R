@@ -1768,9 +1768,9 @@ pcmp <- prcomp(Test_Data.train[,-1],retx=TRUE, center=TRUE, scale=TRUE)
 #pcmp <- princomp(Test_Data.train[,-1],retx=TRUE, center=TRUE, scale=TRUE)
 prexpl <- round(pcmp$sdev^2/sum(pcmp$sdev^2)*100)
 prexpl
-biplot(pcmp,scale=0)
+
+cfffgg
 summary(pcmp)
-#pcmp$loadings
 pcmp$rotation[,1:5]
 plot(pcmp, main = "PCA for Species", col.axis="blue")
 plot(pcmp, type = "l", main = "PCA for Species", col.axis="blue")
