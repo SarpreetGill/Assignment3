@@ -1720,6 +1720,8 @@ ques_data_imputed   = read.csv("Data/Clean_Imputes/ques_data_imputed.csv", heade
 
 
 
+<<<<<<< HEAD
+=======
 impute_combi <- merge(demographic_imputed, diet_imputed,by="SEQN")
 impute_combi <- merge(impute_combi, exam_imputed,by="SEQN")
 impute_combi <- merge(impute_combi, labsdata_imputed,by="SEQN")
@@ -1793,6 +1795,7 @@ points(pred[,pc], col=COLOR[Test_Data.train$SEQN], pch=PCH[2])
 legend("topleft", legend=c("training data", "validation data"), col=1, pch=PCH)
 par(op)
 
+>>>>>>> d6058e7d97d51cb43613afdf972170122de2f839
 
 ############################################## Combining Imputed & Imputing Target NA ###################################
 
@@ -1823,6 +1826,7 @@ data_selected <- merge(data_selected, data4,by="ID")
 data_selected <- merge(data_selected, data5,by="ID")
 data_selected <- merge(data_selected, data6,by="ID")
 
+#rm(data1,data2,data3,data4,data5,data6)
 
 write.csv(data_selected,file = "Data/Labeled_Imputed/Data_Combined.csv")
 data_selected   = read.csv("Data/Labeled_Imputed/Data_Combined.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
@@ -1834,7 +1838,182 @@ sapply(data_selected, function(x) ((sum(is.na(x))))*.01) %>%
 
 #Classifications 
 
+
+##################### Demographics#######################################
+
+demo_subset_8   = read.csv("Data/Working/demo_subset_8_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
+target_disease_dataset   = read.csv("Data/Working/target_disease_dataset.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
+demographic_imputed   = read.csv("Data/Clean_Imputes/demographic_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
+#+++++++++++++++++++++++ PCA ++++++++++++++++++++++++++++++++
+
+library(devtools)
+#install_github("vqv/ggbiplot")
+library(ggbiplot)
+
+#+++++++++++++++++++++++++ full+++++++++++++++++++++++++++
+demographic_imputed.pca <- prcomp(demographic_imputed[,c(2:31)], center = TRUE,scale = TRUE)
+summary(demographic_imputed.pca)
+
+screeplot(demographic_imputed.pca, type = "l", npcs = 20, main = "Screeplot of the first 20 PCs")
+abline(h = 1, col="red", lty=5)
+legend("topright", legend=c("Eigenvalue = 1"),
+       col=c("red"), lty=5, cex=0.6)
+
+cumpro <- cumsum(demographic_imputed.pca$sdev^2 / sum(demographic_imputed.pca$sdev^2))
+plot(cumpro[0:20], xlab = "PC #", ylab = "Amount of explained variance", main = "Cumulative variance plot")
+abline(v = 11, col="blue", lty=5)
+abline(h = 0.7198, col="blue", lty=5)
+legend("topleft", legend=c("Cut-off @ PC11"),
+       col=c("blue"), lty=5, cex=0.6)
+
+
+
+library("factoextra")
+fviz_pca_ind(demographic_imputed.pca, geom.ind = "point", pointshape = 21, 
+             pointsize = 2, 
+             fill.ind = target_disease_dataset$HAS_DIABETES, 
+             col.ind = "black", 
+             palette = "jco", 
+             addEllipses = TRUE,
+             label = "var",
+             col.var = "black",
+             repel = TRUE,
+             legend.title = "HAS_DIABETES") +
+  ggtitle("2D PCA-plot from 30 feature dataset") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+
+#+++++++++++++++++++++ subset 8 ++++++++++++++++++++++++++++++++++++++
+demo_subset_8.pca <- prcomp(demo_subset_8[,c(2:9)], center = TRUE,scale = TRUE)
+summary(demo_subset_8.pca)
+str(demo_subset_8.pca)
 #write.csv(data_selected,file = "Data/Working/data_selected.csv")
+ggbiplot(demo_subset_8.pca)
+
+screeplot(demo_subset_8.pca, type = "l", npcs = 8, main = "Screeplot of the 8 PCs")
+abline(h = 1, col="red", lty=5)
+legend("topright", legend=c("Eigenvalue = 1"),
+       col=c("red"), lty=5, cex=0.6)
+
+#We notice is that the first 4 components has an Eigenvalue >1 
+#and explains almost 60% of variance, this is not great! 
+#We can not effectively reduce dimensionality from 8  to 4 becuase we will lose 
+# about 40% of variance!
+
+cumpro <- cumsum(demo_subset_8.pca$sdev^2 / sum(demo_subset_8.pca$sdev^2))
+plot(cumpro[0:8], xlab = "PC #", ylab = "Amount of explained variance", main = "Cumulative variance plot")
+abline(v = 4, col="blue", lty=5)
+abline(h = 0.5934, col="blue", lty=5)
+legend("topleft", legend=c("Cut-off @ PC4"),
+       col=c("blue"), lty=5, cex=0.6)
+
+
+
+library("factoextra")
+fviz_pca_ind(demo_subset_8.pca, geom.ind = "point", pointshape = 21, 
+             pointsize = 2, 
+             fill.ind = target_disease_dataset$HAS_DIABETES, 
+             col.ind = "black", 
+             palette = "jco", 
+             addEllipses = TRUE,
+             label = "var",
+             col.var = "black",
+             repel = TRUE,
+             legend.title = "HAS_DIABETES") +
+  ggtitle("2D PCA-plot from 8 feature dataset") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+
+fviz_pca_ind(demo_subset_8.pca, geom.ind = "point", pointshape = 21, 
+             pointsize = 2, 
+             fill.ind = target_disease_dataset$HAS_HYPERTENSION, 
+             col.ind = "black", 
+             palette = "jco", 
+             addEllipses = TRUE,
+             label = "var",
+             col.var = "black",
+             repel = TRUE,
+             legend.title = "HAS_HYPERTENSION") +
+  ggtitle("2D PCA-plot from 8 feature dataset") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+
+fviz_pca_ind(demo_subset_8.pca, geom.ind = "point", pointshape = 21, 
+             pointsize = 2, 
+             fill.ind = target_disease_dataset$HAS_CANCER, 
+             col.ind = "black", 
+             palette = "jco", 
+             addEllipses = TRUE,
+             label = "var",
+             col.var = "black",
+             repel = TRUE,
+             legend.title = "HAS_CANCER") +
+  ggtitle("2D PCA-plot from 8 feature dataset") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+
+
+
+#+++++++++++++++++++++++ K-means ++++++++++++++++++++++++++++++++
+
+#Elbow plot method.
+library(purrr)
+set.seed(226)
+# function to calculate total intra-cluster sum of square
+demo8_iss <- function(k) {
+  kmeans(demo_subset_8[,2:9],k,iter.max=100,nstart=100,algorithm="Lloyd" )$tot.withinss
+}
+k.values <- 1:10
+demo8_iss_values <- map_dbl(k.values, demo8_iss)
+plot(k.values, demo8_iss_values,
+     type="b", pch = 19, frame = FALSE,
+     xlab="Number of clusters K",
+     ylab="Total intra-clusters sum of squares")
+
+# From the above graph, we conclude that 6 is the appropriate number of clusters 
+#since it seems to be appearing at the bend in the elbow plot.
+
+
+# Now, let us take k = 6 as our optimal cluster –
+
+demo8_k6<-kmeans(demo_subset_8[,2:9],6,iter.max=100,nstart=50,algorithm="Lloyd")
+demo8_k6
+
+# Visualizing the Clustering Results using the First Two Principle Components
+
+pcclust=prcomp(demo_subset_8[,2:9],scale=TRUE) #principal component analysis
+summary(pcclust)
+pcclust$rotation[,1:2]
+
+set.seed(100)
+ggplot(demo_subset_8, aes(x =Gender, y = Age)) +
+  geom_point(stat = "identity", aes(color = as.factor(demo8_k6$cluster))) +
+  scale_color_discrete(name=" ",
+                       breaks=c("1", "2", "3", "4", "5","6"),
+                       labels=c("Cluster 1", "Cluster 2", "Cluster 3", "Cluster 4", "Cluster 5","Cluster 6")) +
+  ggtitle("Demographics Data ", subtitle = "Using K-means Clustering")
+
+#From the above visualization, we observe that in the clusters distribution 
+#both Male and female  have almost the same range of age 
+
+
+ggplot(demo_subset_8, aes(x =Marital_status, y = Family_income)) +
+  geom_point(stat = "identity", aes(color = as.factor(demo8_k6$cluster))) +
+  scale_color_discrete(name=" ",
+                       breaks=c("1", "2", "3", "4", "5","6"),
+                       labels=c("Cluster 1", "Cluster 2", "Cluster 3", "Cluster 4", "Cluster 5","Cluster 6")) +
+  ggtitle("Demographics Data ", subtitle = "Using K-means Clustering")
+
+ggplot(demo_subset_8, aes(x =Country_of_birth, y = Marital_status)) +
+  geom_point(stat = "identity", aes(color = as.factor(demo8_k6$cluster))) +
+  scale_color_discrete(name=" ",
+                       breaks=c("1", "2", "3", "4", "5","6"),
+                       labels=c("Cluster 1", "Cluster 2", "Cluster 3", "Cluster 4", "Cluster 5","Cluster 6")) +
+  ggtitle("Demographics Data ", subtitle = "Using K-means Clustering")
+
+
+
+#+++++++++++++++++++++++ K-means ++++++++++++++++++++++++++++++++
 
 
 

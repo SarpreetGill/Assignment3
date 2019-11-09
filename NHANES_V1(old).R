@@ -1309,6 +1309,8 @@ data_selected <- merge(data_selected, data3,by="ID")
 data_selected <- merge(data_selected, data4,by="ID")
 data_selected <- merge(data_selected, data5,by="ID")
 
+#sapply(data_selected, function(x) sum(is.na(x)))
+
 rm(data_selected) 
 #data2['ID'] <- NULL
 #data3['ID'] <- NULL
@@ -1320,6 +1322,20 @@ rm(data_selected)
 
 #write.csv(data_selected,file = "Data/Working/data_selected.csv")
 
+<<<<<<< HEAD:NHANES.R
+
+#####################   Demographie Model  ###############
+
+#++++++++++++++++++++++++  PCA  ++++++++++++++++++++++++++++++++++++++++++
+
+#++++++++++++++++++++++++  k-means  +++++++++++++++++++++++++++++++++++++++
+
+
+#+++++++++++++++++++  Hierarchical Agglomerative++++++++++++++++++++++++++++++++
+
+
+
+=======
 ########################################################################
 ### Code for creating target dataset for 
 #DIQ010 - Doctor told you have diabetes
@@ -1361,6 +1377,7 @@ write.csv(target_disease_dataset,file = "Data/Working/target_disease_dataset.csv
 ####################################################
        
        
+>>>>>>> fba9689aa2946995605250c2ea479648992e1ca2:NHANES_V1(old).R
 #Define the predictors
 
 
