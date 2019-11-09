@@ -1709,7 +1709,7 @@ colnames(ques_subset_labelled) <- with(Dictionary,
 
 
 
-########################################### Reading Imputed (Unlabelled) files ###########################
+########################################### SUPERVISED ###########################
 rm(list=ls())
 demographic_imputed   = read.csv("Data/Clean_Imputes/demographic_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
 diet_imputed   = read.csv("Data/Clean_Imputes/diet_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
@@ -1720,8 +1720,6 @@ ques_data_imputed   = read.csv("Data/Clean_Imputes/ques_data_imputed.csv", heade
 
 
 
-<<<<<<< HEAD
-=======
 impute_combi <- merge(demographic_imputed, diet_imputed,by="SEQN")
 impute_combi <- merge(impute_combi, exam_imputed,by="SEQN")
 impute_combi <- merge(impute_combi, labsdata_imputed,by="SEQN")
@@ -1766,36 +1764,31 @@ Test_Data.train <- Test_Data[samp,]
 Test_Data.valid <- Test_Data[-samp,]
 
 
-pcmp <- prcomp(Test_Data.train[,-1],retx=TRUE, center=TRUE, scale=TRUE)
-#pcmp <- princomp(Test_Data.train[,-1],retx=TRUE, center=TRUE, scale=TRUE)
+pcmp <- princomp(Test_Data.train[,-1],retx=TRUE, center=TRUE, scale=TRUE)
 prexpl <- round(pcmp$sdev^2/sum(pcmp$sdev^2)*100)
-prexpl
 
-cfffgg
-summary(pcmp)
-pcmp$rotation[,1:5]
+Demo_target2 <- as.data.frame(cbind(Demo_target2, pcmp$scores[,1:5]))
+
 plot(pcmp, main = "PCA for Species", col.axis="blue")
 plot(pcmp, type = "l", main = "PCA for Species", col.axis="blue")
-pairs(pcmp$loadings, col = c("red","green", "blue", "cornflowerblue", "purple"),pch = c(8, 18, 1))
 
 
-# Prediction of PCs for validation dataset
-pred <- predict(pcmp, newdata=Test_Data.valid[,-1])
+library("factoextra")
+fviz_pca_ind(pcmp, geom.ind = "point", pointshape = 21, 
+             pointsize = 2, 
+             fill.ind = Demo_target$HAS_DIABETES, 
+             col.ind = "black", 
+             palette = "jco", 
+             addEllipses = TRUE,
+             label = "var",
+             col.var = "black",
+             repel = TRUE,
+             legend.title = "HAS_DIABETES") +
+  ggtitle("2D PCA-plot from 30 feature dataset") +
+  theme(plot.title = element_text(hjust = 0.5))
 
-COLOR <- c(1:5)
-PCH <- c(1,16)
-op <- par(mar=c(4,4,1,1), ps=10)
-pc <- c(1:5) 
-op <- par(mar=c(4,4,1,1), ps=10)
-plot(pcmp$scores[,pc], col=COLOR[Test_Data.train$SEQN], cex=PCH[1], 
-     xlab=paste0("PC ", pc[1], " (", prexpl[pc[1]], "%)"), 
-     ylab=paste0("PC ", pc[2], " (", prexpl[pc[2]], "%)")
-)
-points(pred[,pc], col=COLOR[Test_Data.train$SEQN], pch=PCH[2])
-legend("topleft", legend=c("training data", "validation data"), col=1, pch=PCH)
-par(op)
 
->>>>>>> d6058e7d97d51cb43613afdf972170122de2f839
+
 
 ############################################## Combining Imputed & Imputing Target NA ###################################
 
@@ -2060,9 +2053,6 @@ write.csv(target_disease_dataset,file = "Data/Working/target_disease_dataset.csv
 
 
 
-
-
-
 #Define the predictors
 
 
@@ -2101,61 +2091,7 @@ write.csv(target_disease_dataset,file = "Data/Working/target_disease_dataset.csv
 summary(Working_Data$LBXGH)
 
 
-
-
-
-
-
-
-################################# Extrating Target #################################
-
-imp_target_Data   = read.csv("Data/Working/imp_target_Data.csv", header = TRUE, na.strings = c("NA","","#NA"))
-
-Working_Data <- imp_target_Data
-
-targetSeqn <- subset(Working_Data, select = c("SEQN","LBXGH", "Diabetes", "Target"))
-write.csv(targetSeqn , "Data/Working/targetSeqn.csv")
-
-targetSeqn   = read.csv("Data/Working/targetSeqn.csv", header = TRUE, na.strings = c("NA","","#NA"))
-
-
 ######################################## SELECT INTERESTING FEATURES (DEMOGRAPHIC) ######################
-demographic_imputed   = read.csv("Data/Working/demographic_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
-targetSeqn   = read.csv("Data/Working/targetSeqn.csv", header = TRUE, na.strings = c("NA","","#NA"))
-
-data_List3 = list(demographic_imputed,targetSeqn)
-Imputed_combined<-join_all(data_List3,by="SEQN")
-
-
-write.csv(Imputed_combined , "Data/Working/Imputed_combined.csv")
-sapply(Imputed_combined, function(x) sum(is.na(x)))
-
-
-
-labsdata_imputed   = read.csv("Data/Working/labsdata_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
-targetSeqn   = read.csv("Data/Working/targetSeqn.csv", header = TRUE, na.strings = c("NA","","#NA"))
-
-sapply(labsdata_imputed, function(x) sum(is.na(x)))
-
-
-data_List4 = list(labsdata_imputed,targetSeqn)
-Labs_with_Target<-join_all(data_List4,by="SEQN")
-
-sapply(Labs_with_Target, function(x) sum(is.na(x)))
-ncol(Labs_with_Target)
-x = Labs_with_Target.iloc[:0,83]
-
-which( colnames(Labs_with_Target)=="Target" )
-
-y = Labs_with_Target.iloc[:0,-83]
-
-labs_best <-SelectKBest(score=chi2,k=10)
-labs_fit = labs_best.fit
-
-
-
-
-
 
 
 summary(Working_Data$LBXGH)
@@ -2164,14 +2100,6 @@ summary(Working_Data$DID040)
 summary(Working_Data$BPQ020)
 summary(Working_Data$BPD035)
 summary(Working_Data$MCQ220)
-
-
-
-
-
-
-
-
 
 
 ############EXAMPLE form Hashman #######################
