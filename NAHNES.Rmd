@@ -1483,6 +1483,9 @@ fviz_pca_ind(demo_subset_8.pca, geom.ind = "point", pointshape = 21,
 ![](Figures/demo/demo8_PCA_hypertension.png){width=260px}
 ![](Figures/demo/demo8_PCA_cancer.png){width=260px}
 
+With just use the first two components, no diseases present separation between sick and healthy people 
+. This  clearly  indicate that the we can not do classification base only on the demographics data. 
+
 
 ```{r, eval=FALSE, echo=TRUE}
 
