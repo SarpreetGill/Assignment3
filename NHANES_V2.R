@@ -14,7 +14,11 @@ lapply(c("plyr",
          "caret",
          "AMR",
          "mice",
-         "randomForest"
+         "randomForest",
+         "data.table",
+         "car",
+         "corrplot",
+         "Hmisc"
 ),
 require, character.only=TRUE)
 
@@ -795,6 +799,12 @@ exam75 %>% summarise_all(~(sum(is.na(.))/n()*100))
 
 rm(exam_major)
 
+#examrn <- data.table(exam75,stringsAsFactors = FALSE)
+#examrn[, 70:97 := lapply(.SD, recode, ("'D'=1;'E'=2;'J'=3;'K'=4;'M'=5;'P'=6;'Q'=7;'R'=8;'S'=9;'T'=10;'U'=11;'X'=12;'Y'=13;'Z'=14")), .SDcols = 70:97]
+exam75 <- data.frame(exam75,stringsAsFactors = FALSE)
+exam75[ , 70:97]  <- lapply(exam75[ ,70:97] , FUN = function(x) recode(x, "'D'=1;'E'=2;'J'=3;'K'=4;'M'=5;'P'=6;'Q'=7;'R'=8;'S'=9;'T'=10;'U'=11;'X'=12;'Y'=13;'Z'=14"))
+
+
 #######################################  Creating Index for firther use
 
 
@@ -830,8 +840,8 @@ exam_Col_Labels <- data.frame("Code"=c(colnames(exam75)),
 
 Cat_exam <- c(0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
               1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-              1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
-              2,2,2,2,2,2,2,2,2,2)
+              1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+              1,1,1,1,1,1,1,1,1,1)
 exam_Col_Labels <- data.frame(exam_Col_Labels,Cat = Cat_exam)
 
 #write.csv(exam_Col_Labels,file = "Data/Labels/exam_Col_Labels.csv")
@@ -856,7 +866,7 @@ rm(exam_indexed, exam_Col_Labels)
 
 exam_selected = exam75[ WorkingColm_exam ]
 
-rm(exam75,examination)
+rm(exam75)
 exam_selected[, Catcolmn_exam] <- sapply(exam_selected[, Catcolmn_exam], as.factor)
 exam_selected[, Catcolmn_Nul_exam] <- sapply(exam_selected[, Catcolmn_Nul_exam], as.numeric)
 exam_selected[, Numcolmn_exam] <- sapply(exam_selected[, Numcolmn_exam], as.numeric)
@@ -950,9 +960,10 @@ exam_labeled = mutate(
                               "3"="Neither")
 )
 
+exam_labeled[ , 70:97]  <- lapply(exam_labeled[ ,70:97] , FUN = function(x) recode(x, "1='D';2='E';3='J';4='K';5='M';6='P';7='Q';8='R';9='S';10='T';11='U';12='X';13='Y';14='Z'"))
 
 
-write.csv(exam_labeled,file = "Data/Labeled_Imputed/exam_labeled.csv")
+#write.csv(exam_labeled,file = "Data/Labeled_Imputed/exam_labeled.csv")
 
 ############################################## Labs###############################################
 
@@ -1202,7 +1213,7 @@ rm(medications)
 
 sapply(medsdata_major, function(x) ((sum(is.na(x))))*.01) %>%
   stack %>% rev %>% filter(values > 25) %>% setNames(nm=c("variable", "missing"))
-
+summary(medsdata_major)
 #######################################  Removing data having greater than 32 % missing values
 
 
@@ -1211,7 +1222,25 @@ Null_Colms_medsdata <- colnames(medsdata_major)[Null_Num_medsdata > 0.33]
 medsdata68 <- select(medsdata_major, -Null_Colms_medsdata)
 colSums(is.na(medsdata68))
 medsdata68 %>% summarise_all(~(sum(is.na(.))/n()*100))
+cols = c(3,4,7,8)
+DT = as.data.table(medsdata68)
+medsdata68 <- as.data.frame(DT[i = RXDUSE==2,j = (cols) := .('Not applicable')])
+medsdata68 <- as.data.frame(DT[i = RXDUSE==7,j = (cols) := .('Refused')])
+medsdata68 <- as.data.frame(DT[i = RXDUSE==9,j = (cols) := .('Dont know')])
+cols = c(4,7,8)
+medsdata68 <- as.data.frame(DT[i = RXDUSE==1 & RXDDRUG == 55555,j = (cols) := .('Unknown')])
+medsdata68 <- as.data.frame(DT[i = RXDUSE==1 & RXDDRUG == 77777,j = (cols) := .('Refused')])
+medsdata68 <- as.data.frame(DT[i = RXDUSE==1 & RXDDRUG == 99999,j = (cols) := .('Dont know')])
+medsdata68 <- as.data.frame(DT[i = RXDUSE==1 & RXDDRUG == 'ANTI-INFECTIVES - UNSPECIFIED',j = (cols) := .('ANTI-INFECTIVES - UNSPECIFIED')])
+medsdata68 <- as.data.frame(DT[i = RXDUSE==1 & RXDDRUG == 'ESTROGENS - UNSPECIFIED',j = (cols) := .('ESTROGENS - UNSPECIFIED')])
+medsdata68 <- as.data.frame(DT[i = RXDUSE==1 & RXDRSC1 == 55555 ,j = RXDRSD1 := .('Unknown')])
+medsdata68 <- as.data.frame(DT[i = RXDUSE==1 & RXDRSC1 == 77777 ,j = RXDRSD1 := .('Refused')])
+medsdata68 <- as.data.frame(DT[i = RXDUSE==1 & RXDRSC1 == 99999 ,j = RXDRSD1 := .('Dont know')])
 
+
+#sapply(medsdata68, function(x) ((sum(is.na(x))))*.01) %>%
+#  stack %>% rev %>% filter(values > 0) %>% setNames(nm=c("variable", "missing"))
+#medsdata68[is.na(medsdata68$RXDRSD1),]
 
 medsdata_indexed <- medsdata68
 colnames(medsdata_indexed) <- with(Dictionary,
@@ -1335,7 +1364,7 @@ colnames(meds_subset_labelled) <- with(Dictionary,
                                        )])
 
 str(meds_subset_labelled)
-write.csv(meds_subset_labelled,file = "Data/Labeled_Imputed/meds_subset_labelled.csv")
+#write.csv(meds_subset_labelled,file = "Data/Labeled_Imputed/meds_subset_labelled.csv")
 
 
 ############################################## Questionnaire#############################################
@@ -1681,8 +1710,7 @@ colnames(ques_subset_labelled) <- with(Dictionary,
 
 
 ########################################### Reading Imputed (Unlabelled) files ###########################
-
-
+rm(list=ls())
 demographic_imputed   = read.csv("Data/Clean_Imputes/demographic_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
 diet_imputed   = read.csv("Data/Clean_Imputes/diet_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
 exam_imputed   = read.csv("Data/Clean_Imputes/exam_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
@@ -1692,9 +1720,86 @@ ques_data_imputed   = read.csv("Data/Clean_Imputes/ques_data_imputed.csv", heade
 
 
 
+<<<<<<< HEAD
+=======
+impute_combi <- merge(demographic_imputed, diet_imputed,by="SEQN")
+impute_combi <- merge(impute_combi, exam_imputed,by="SEQN")
+impute_combi <- merge(impute_combi, labsdata_imputed,by="SEQN")
+impute_combi <- merge(impute_combi, medsdata_imputed,by="SEQN")
+impute_combi <- merge(impute_combi, ques_data_imputed,by="SEQN")
+rm(demographic_imputed,exam_imputed,labsdata_imputed,medsdata_imputed,ques_data_imputed,diet_imputed)
+
+#write.csv(impute_combi,file = "Data/Clean_Imputes/impute_combi.csv")
+impute_combi   = read.csv("Data/Clean_Imputes/impute_combi.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
+
+imp_target_data = cbind(impute_combi, Diabetes = ifelse(
+  impute_combi$LBXGH >= 5.7,
+  "Yes", "No" ))
+summary(imp_target_data$Diabetes)
+imp_target_data = cbind(imp_target_data, Target = ifelse(
+  imp_target_data$Diabetes == "Yes",
+  1, 0 ))
+imp_target_data <- imp_target_data[,c(1,371,372,2:370)]
+
+#write.csv(imp_target_data,file = "Data/Clean_Imputes/imp_target_data.csv")
+imp_target_data   = read.csv("Data/Clean_Imputes/imp_target_data.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
+
+#######################################  Check the data for missing values.
+
+sapply(imp_target_data, function(x) ((sum(is.na(x))))*.01) %>%
+  stack %>% rev %>% filter(values > 0) %>% setNames(nm=c("variable", "missing"))
+summary(imp_target_data)
+
+combi_cor=rcorr(as.matrix(imp_target_data))
+corrplot(combi_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt = 45)
+
+
+
+
+####### Using PCA 
+Test_Data<-scale(demographic_imputed)
+
+## Divide Data into Train and Test
+set.seed(1)
+samp <- sample(nrow(Test_Data), nrow(Test_Data)*0.75)
+Test_Data.train <- Test_Data[samp,]
+Test_Data.valid <- Test_Data[-samp,]
+
+
+pcmp <- prcomp(Test_Data.train[,-1],retx=TRUE, center=TRUE, scale=TRUE)
+#pcmp <- princomp(Test_Data.train[,-1],retx=TRUE, center=TRUE, scale=TRUE)
+prexpl <- round(pcmp$sdev^2/sum(pcmp$sdev^2)*100)
+prexpl
+biplot(pcmp,scale=0)
+summary(pcmp)
+#pcmp$loadings
+pcmp$rotation[,1:5]
+plot(pcmp, main = "PCA for Species", col.axis="blue")
+plot(pcmp, type = "l", main = "PCA for Species", col.axis="blue")
+pairs(pcmp$loadings, col = c("red","green", "blue", "cornflowerblue", "purple"),pch = c(8, 18, 1))
+
+
+# Prediction of PCs for validation dataset
+pred <- predict(pcmp, newdata=Test_Data.valid[,-1])
+
+COLOR <- c(1:5)
+PCH <- c(1,16)
+op <- par(mar=c(4,4,1,1), ps=10)
+pc <- c(1:5) 
+op <- par(mar=c(4,4,1,1), ps=10)
+plot(pcmp$scores[,pc], col=COLOR[Test_Data.train$SEQN], cex=PCH[1], 
+     xlab=paste0("PC ", pc[1], " (", prexpl[pc[1]], "%)"), 
+     ylab=paste0("PC ", pc[2], " (", prexpl[pc[2]], "%)")
+)
+points(pred[,pc], col=COLOR[Test_Data.train$SEQN], pch=PCH[2])
+legend("topleft", legend=c("training data", "validation data"), col=1, pch=PCH)
+par(op)
+
+>>>>>>> d6058e7d97d51cb43613afdf972170122de2f839
 
 ############################################## Combining Imputed & Imputing Target NA ###################################
 
+rm(list=ls())
 
 ## Combine the clean datasets (IMPORTANT REQUIRED)
 #Dataset Merge & select attribute
@@ -1724,6 +1829,7 @@ data_selected <- merge(data_selected, data6,by="ID")
 #rm(data1,data2,data3,data4,data5,data6)
 
 write.csv(data_selected,file = "Data/Labeled_Imputed/Data_Combined.csv")
+data_selected   = read.csv("Data/Labeled_Imputed/Data_Combined.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
 
 
 sapply(data_selected, function(x) ((sum(is.na(x))))*.01) %>%
@@ -1999,29 +2105,6 @@ summary(Working_Data$LBXGH)
 
 
 
-############################################## Marking Target IDS ###########################
-
-
-
-
-summary(imp_data_imputed$LBXGH)
-
-imp_target_Data = cbind(imp_data_imputed, Diabetes = ifelse(
-  imp_data_imputed$LBXGH >= 5.7,
-  "Yes", "No" ))
-summary(imp_target_Data$Diabetes)
-imp_target_Data = cbind(imp_target_Data, Target = ifelse(
-  imp_target_Data$Diabetes == "Yes",
-  1, 0 ))
-summary(imp_target_Data$Target)
-str(imp_target_Data$Target)
-
-
-
-#######################################  Saving Impute
-
-write.csv(imp_target_Data , "Data/Working/imp_target_Data.csv")
-imp_target_Data   = read.csv("Data/Working/imp_target_Data.csv", header = TRUE, na.strings = c("NA","","#NA"))
 
 
 ################################# Extrating Target #################################
