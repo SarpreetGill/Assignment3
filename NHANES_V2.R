@@ -1868,7 +1868,7 @@ plot(k.values, demo8_iss_values,
 #since it seems to be appearing at the bend in the elbow plot.
 
 
-# Now, let us take k = 8 as our optimal cluster –
+# Now, let us take k = 6 as our optimal cluster –
 
 demo8_k6<-kmeans(demo_subset_8[,2:9],6,iter.max=100,nstart=50,algorithm="Lloyd")
 demo8_k6
@@ -1887,8 +1887,8 @@ ggplot(demo_subset_8, aes(x =Gender, y = Age)) +
                        labels=c("Cluster 1", "Cluster 2", "Cluster 3", "Cluster 4", "Cluster 5","Cluster 6")) +
   ggtitle("Demographics Data ", subtitle = "Using K-means Clustering")
 
-# From the above visualization, we observe that there is a distribution of 6 clusters as follows
-# both Gender have almost the same age cluster
+#From the above visualization, we observe that in the clusters distribution 
+#both Male and female  have almost the same range of age 
 
 
 ggplot(demo_subset_8, aes(x =Marital_status, y = Family_income)) +
