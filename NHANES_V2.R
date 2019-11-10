@@ -1719,58 +1719,67 @@ medsdata_imputed   = read.csv("Data/Clean_Imputes/medsdata_imputed.csv", header 
 ques_data_imputed   = read.csv("Data/Clean_Imputes/ques_data_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
 
 
-
 impute_combi <- merge(demographic_imputed, diet_imputed,by="SEQN")
 impute_combi <- merge(impute_combi, exam_imputed,by="SEQN")
 impute_combi <- merge(impute_combi, labsdata_imputed,by="SEQN")
 impute_combi <- merge(impute_combi, medsdata_imputed,by="SEQN")
 impute_combi <- merge(impute_combi, ques_data_imputed,by="SEQN")
 rm(demographic_imputed,exam_imputed,labsdata_imputed,medsdata_imputed,ques_data_imputed,diet_imputed)
-
 #write.csv(impute_combi,file = "Data/Clean_Imputes/impute_combi.csv")
 impute_combi   = read.csv("Data/Clean_Imputes/impute_combi.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
 
-imp_target_data = cbind(impute_combi, Diabetes = ifelse(
-  impute_combi$LBXGH >= 5.7,
-  "Yes", "No" ))
-summary(imp_target_data$Diabetes)
-imp_target_data = cbind(imp_target_data, Target = ifelse(
-  imp_target_data$Diabetes == "Yes",
-  1, 0 ))
-imp_target_data <- imp_target_data[,c(1,371,372,2:370)]
 
-#write.csv(imp_target_data,file = "Data/Clean_Imputes/imp_target_data.csv")
-imp_target_data   = read.csv("Data/Clean_Imputes/imp_target_data.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
+### Code for creating target dataset for 
+#DIQ010 - Doctor told you have diabetes
+#https://wwwn.cdc.gov/Nchs/Nhanes/2013-2014/DIQ_H.htm
+#The next questions are about specific medical conditions. {Other than during pregnancy, {have you/has SP}/{Have you/Has SP}} ever been told by a doctor or health professional that {you have/{he/she/SP} has} diabetes or sugar diabetes?
 
-#######################################  Check the data for missing values.
+# Create the target dataset for the Supervised problem.
+ques_data_imputed   = read.csv("Data/Clean_Imputes/ques_data_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
+target_columns <- c("SEQN","DIQ010")
+Diabetes_dataset = subset(ques_data_imputed, select=target_columns)
+# Change disease indicators into factors
+Diabetes_dataset$DIQ010 <- as.numeric(Diabetes_dataset$DIQ010)
+#Create new column for target values
+Diabetes_dataset = cbind(Diabetes_dataset, HAS_DIABETES= ifelse(Diabetes_dataset$DIQ010 == 1, "YES", "NO" ) )
+Diabetes_dataset = cbind(Diabetes_dataset, TARGET= ifelse(Diabetes_dataset$DIQ010 == 1,1,0))
+Diabetes_dataset<- Diabetes_dataset[,-2]
+rm(ques_data_imputed)
+#write.csv(Diabetes_dataset,file = "Data/Working/Diabetes_dataset.csv",row.names = FALSE)
+Diabetes_dataset   = read.csv("Data/Working/Diabetes_dataset.csv", header = TRUE, na.strings = c("NA","","#NA"))
 
-sapply(imp_target_data, function(x) ((sum(is.na(x))))*.01) %>%
-  stack %>% rev %>% filter(values > 0) %>% setNames(nm=c("variable", "missing"))
-summary(imp_target_data)
+############## TARGET WITH DEMOGRAPHICS ############
 
-combi_cor=rcorr(as.matrix(imp_target_data))
+rm(list=ls())
+demographic_imputed   = read.csv("Data/Clean_Imputes/demographic_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
+Diabetes_dataset   = read.csv("Data/Working/Diabetes_dataset.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+Demo_target <- merge(Diabetes_dataset, demographic_imputed,by="SEQN")
+
+#write.csv(Demo_target,file = "Data/Target Datasets/Demo_target.csv",row.names=F)
+Demo_target   = read.csv("Data/Target Datasets/Demo_target.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+
+# Correlation for Demo
+combi_cor=rcorr(as.matrix(Demo_target[,-c(1,2)]))
 corrplot(combi_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt = 45)
 
 
 
-
 ####### Using PCA 
-Test_Data<-scale(demographic_imputed)
-
-## Divide Data into Train and Test
-set.seed(1)
-samp <- sample(nrow(Test_Data), nrow(Test_Data)*0.75)
-Test_Data.train <- Test_Data[samp,]
-Test_Data.valid <- Test_Data[-samp,]
-
-
-pcmp <- princomp(Test_Data.train[,-1],retx=TRUE, center=TRUE, scale=TRUE)
-prexpl <- round(pcmp$sdev^2/sum(pcmp$sdev^2)*100)
+Test_Data<-scale(Demo_target[,-c(1,2)])
+Demo_target2 <-Demo_target
+pcmp <- princomp(Test_Data,retx=TRUE, cor =TRUE, center=TRUE, scale=TRUE)
 
 Demo_target2 <- as.data.frame(cbind(Demo_target2, pcmp$scores[,1:5]))
 
 plot(pcmp, main = "PCA for Species", col.axis="blue")
 plot(pcmp, type = "l", main = "PCA for Species", col.axis="blue")
+
+ggplot(Demo_target2, aes(Comp.1, Comp.2, Comp.3, col = HAS_DIABETES, fill = HAS_DIABETES)) +
+  stat_ellipse(geom = "polygon", col = "black", alpha = 0.5) +
+  geom_point(shape = 21, col = "black")+
+  ggtitle("Before Feature selection ", subtitle = "Using PCA")
 
 
 library("factoextra")
@@ -1787,6 +1796,338 @@ fviz_pca_ind(pcmp, geom.ind = "point", pointshape = 21,
   ggtitle("2D PCA-plot from 30 feature dataset") +
   theme(plot.title = element_text(hjust = 0.5))
 
+
+Demo_select_colns <- c("SEQN","HAS_DIABETES","TARGET","WTINT2YR","WTMEC2YR","DMDHHSZE","DMDHRAGE","RIDAGEYR","SIAPROXY","DMDHHSZA","DMDHRMAR","DMDHREDU","DMDHRGND","RIDEXMON")
+
+Demo_target_final <- subset(Demo_target2, select = Demo_select_colns)
+#write.csv(Demo_target_final,file = "Data/Target Datasets/Demo_target_final.csv",row.names = FALSE)
+Demo_target_final   = read.csv("Data/Target Datasets/Demo_target_final.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+pcmp_demo_final <- princomp(Demo_target_final[,-c(1,2)],retx=TRUE, cor =TRUE, center=TRUE, scale=TRUE)
+
+library("factoextra")
+fviz_pca_ind(pcmp_demo_final, geom.ind = "point", pointshape = 21, 
+             pointsize = 2, 
+             fill.ind = Demo_target_final$HAS_DIABETES, 
+             col.ind = "black", 
+             palette = "jco", 
+             addEllipses = TRUE,
+             label = "var",
+             col.var = "black",
+             repel = TRUE,
+             legend.title = "HAS_DIABETES") +
+  ggtitle("2D PCA-plot from 8 feature dataset") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+
+############## TARGET WITH DIET ############
+
+rm(list=ls())
+diet_imputed   = read.csv("Data/Clean_Imputes/diet_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
+Diabetes_dataset   = read.csv("Data/Working/Diabetes_dataset.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+Diet_target <- merge(Diabetes_dataset, diet_imputed,by="SEQN")
+#write.csv(Diet_target,file = "Data/Target Datasets/Diet_target.csv",row.names = F)
+Diet_target   = read.csv("Data/Target Datasets/Diet_target.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+Test_Data<-scale(Diet_target[,-c(1,2)])
+Diet_target2 <-Diet_target
+
+# Correlation for Diet
+#combi_cor=rcorr(as.matrix(Diet_target[,-c(1,2)]))
+
+combi_cor=rcorr(as.matrix(Test_Data))
+corrplot(combi_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt = 55)
+
+
+####### Using PCA 
+
+pcmp <- princomp(Test_Data,retx=TRUE, cor =TRUE, center=TRUE, scale=TRUE)
+
+Diet_target2 <- as.data.frame(cbind(Diet_target2, pcmp$scores[,1:2]))
+
+plot(pcmp, main = "PCA for Species", col.axis="blue")
+plot(pcmp, type = "l", main = "PCA for Species", col.axis="blue")
+
+ggplot(Diet_target2, aes(Comp.1, Comp.2, col = HAS_DIABETES, fill = HAS_DIABETES)) +
+  stat_ellipse(geom = "polygon", col = "black", alpha = 0.5) +
+  geom_point(shape = 21, col = "black")+
+  ggtitle("Before Feature selection ", subtitle = "Using PCA")
+
+
+library("factoextra")
+fviz_pca_ind(pcmp, geom.ind = "point", pointshape = 21, 
+             pointsize = 2, 
+             fill.ind = Diet_target$HAS_DIABETES, 
+             col.ind = "black", 
+             palette = "jco", 
+             addEllipses = TRUE,
+             label = "var",
+             col.var = "black",
+             repel = TRUE,
+             legend.title = "HAS_DIABETES") +
+  ggtitle("2D PCA-plot from 88 feature dataset") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+Diet_select_colns <- c("SEQN","HAS_DIABETES","TARGET","DR1TSFAT","DR1TS040","DR1TS060","DR1TS100","DR1TS140","DR1TS160","DR1TS180","DR1DRSTZ","DRDINT","DR1STY","DRQSDIET","DRD340","DRD360")
+
+Diet_target_final <- subset(Diet_target2, select = Diet_select_colns)
+#write.csv(Diet_target_final,file = "Data/Target Datasets/Diet_target_final.csv",row.names = FALSE)
+Diet_target_final   = read.csv("Data/Target Datasets/Diet_target_final.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+
+pcmp_Diet_final <- princomp(Diet_target_final[,-c(1,2)],retx=TRUE, cor =TRUE, center=TRUE, scale=TRUE)
+
+
+library("factoextra")
+fviz_pca_ind(pcmp_Diet_final, geom.ind = "point", pointshape = 21, 
+             pointsize = 2, 
+             fill.ind = Diet_target_final$HAS_DIABETES, 
+             col.ind = "black", 
+             palette = "jco", 
+             addEllipses = TRUE,
+             label = "var",
+             col.var = "black",
+             repel = TRUE,
+             legend.title = "HAS_DIABETES") +
+  ggtitle("2D PCA-plot from 10 feature dataset") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+
+############## TARGET WITH EXAMINATION ############
+
+rm(list=ls())
+exam_imputed   = read.csv("Data/Clean_Imputes/exam_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
+Diabetes_dataset   = read.csv("Data/Working/Diabetes_dataset.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+Exam_target <- merge(Diabetes_dataset, exam_imputed,by="SEQN")
+
+#write.csv(Exam_target,file = "Data/Target Datasets/Exam_target.csv",row.names = F)
+Exam_target   = read.csv("Data/Target Datasets/Exam_target.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+Test_Data<-scale(Exam_target[,-c(1,2)])
+Exam_target2 <-Exam_target
+
+
+# Correlation for Exam
+#combi_cor=rcorr(as.matrix(Exam_target[,-c(1,2)]))
+combi_cor=rcorr(as.matrix(Test_Data))
+corrplot(combi_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt = 45)
+
+
+####### Using PCA 
+
+pcmp <- princomp(Test_Data,retx=TRUE, cor =TRUE, center=TRUE, scale=TRUE)
+
+Exam_target2 <- as.data.frame(cbind(Exam_target2, pcmp$scores[,1:2]))
+
+plot(pcmp, main = "PCA for Species", col.axis="blue")
+plot(pcmp, type = "l", main = "PCA for Species", col.axis="blue")
+
+ggplot(Exam_target2, aes(Comp.1, Comp.2, col = HAS_DIABETES, fill = HAS_DIABETES)) +
+  stat_ellipse(geom = "polygon", col = "black", alpha = 0.5) +
+  geom_point(shape = 21, col = "black")+
+  ggtitle("Before Feature selection ", subtitle = "Using PCA")
+
+
+library("factoextra")
+fviz_pca_ind(pcmp, geom.ind = "point", pointshape = 21, 
+             pointsize = 2, 
+             fill.ind = Exam_target$HAS_DIABETES, 
+             col.ind = "black", 
+             palette = "jco", 
+             addEllipses = TRUE,
+             label = "var",
+             col.var = "black",
+             repel = TRUE,
+             legend.title = "HAS_DIABETES") +
+  ggtitle("2D PCA-plot from 88 feature dataset") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+
+Exam_select_colns <- c("SEQN","HAS_DIABETES","TARGET","BPXML1","BPXSY2","BPXSY3","PEASCST1","OHDEXSTS","OHDDESTS","OHX04CTC","OHX31CTC","OHX06TC","OHX11TC","OHX29CTC","OHX13CTC","OHX20CTC","OHX29TC","BPXDI2","OHX05CTC","OHX18CTC","OHX22TC","OHX27TC","OHX02CTC","OHX15CTC","OHX20TC","OHX04TC","OHX12CTC","OHX13TC","OHX09TC","OHX10TC","OHX26TC","OHX12TC")
+
+
+Exam_target_final <- subset(Exam_target2, select = Exam_select_colns)
+
+#write.csv(Exam_target_final,file = "Data/Target Datasets/Exam_target_final.csv",row.names = FALSE)
+Exam_target_final   = read.csv("Data/Target Datasets/Exam_target_final.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+pcmp_Exam_final <- princomp(Exam_target_final[,-c(1,2)],retx=TRUE, cor =TRUE, center=TRUE, scale=TRUE)
+
+
+library("factoextra")
+fviz_pca_ind(pcmp_Exam_final, geom.ind = "point", pointshape = 21, 
+             pointsize = 2, 
+             fill.ind = Exam_target_final$HAS_DIABETES, 
+             col.ind = "black", 
+             palette = "jco", 
+             addEllipses = TRUE,
+             label = "var",
+             col.var = "black",
+             repel = TRUE,
+             legend.title = "HAS_DIABETES") +
+  ggtitle("2D PCA-plot from 10 feature dataset") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+Exam_target_final_pca <-as.data.frame(cbind(Exam_target_final, pcmp_Exam_final$scores[,1:4]))
+
+ggplot(Exam_target_final_pca, aes(Comp.1, Comp.2, col = HAS_DIABETES, fill = HAS_DIABETES)) +
+  stat_ellipse(geom = "polygon", col = "black", alpha = 0.5) +
+  geom_point(shape = 21, col = "black")+
+  ggtitle("Before Feature selection ", subtitle = "Using PCA")
+
+############## TARGET WITH Labs ############
+
+rm(list=ls())
+labsdata_imputed   = read.csv("Data/Clean_Imputes/labsdata_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
+Diabetes_dataset   = read.csv("Data/Working/Diabetes_dataset.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+Labs_target <- merge(Diabetes_dataset, labsdata_imputed,by="SEQN")
+
+#write.csv(Labs_target,file = "Data/Target Datasets/Labs_target.csv",row.names = F)
+Labs_target   = read.csv("Data/Target Datasets/Labs_target.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+Test_Data<-scale(Labs_target[,-c(1,2)])
+Labs_target2 <-Labs_target
+
+
+# Correlation for Labs
+#combi_cor=rcorr(as.matrix(Labs_target[,-c(1,2)]))
+combi_cor=rcorr(as.matrix(Test_Data))
+corrplot(combi_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt = 45)
+
+
+####### Using PCA 
+
+pcmp <- princomp(Test_Data,retx=TRUE, cor =TRUE, center=TRUE, scale=TRUE)
+
+Labs_target2 <- as.data.frame(cbind(Labs_target2, pcmp$scores[,1:6]))
+
+plot(pcmp, main = "PCA for Species", col.axis="blue")
+plot(pcmp, type = "l", main = "PCA for Species", col.axis="blue")
+
+ggplot(Labs_target2, aes(Comp.1, Comp.2, col = HAS_DIABETES, fill = HAS_DIABETES)) +
+  stat_ellipse(geom = "polygon", col = "black", alpha = 0.5) +
+  geom_point(shape = 21, col = "black")+
+  ggtitle("Before Feature selection ", subtitle = "Using PCA")
+
+
+library("factoextra")
+fviz_pca_ind(pcmp, geom.ind = "point", pointshape = 21, 
+             pointsize = 2, 
+             fill.ind = Labs_target$HAS_DIABETES, 
+             col.ind = "black", 
+             palette = "jco", 
+             addEllipses = TRUE,
+             label = "var",
+             col.var = "black",
+             repel = TRUE,
+             legend.title = "HAS_DIABETES") +
+  ggtitle("2D PCA-plot from 88 feature dataset") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+
+Labs_select_colns <- c("SEQN","HAS_DIABETES","TARGET","LBXGH","LBXSGL","LBXHGB","TARGET","LBXSOSSI","LBXSNASI","URXCRS","LBXHCT","URXUCR.x","LBDSGBSI","LBXMC","LBDHDDSI","LBXSGB","LBDHDD","URXVOL1","URDFLOW1","LBDLYMNO","LBXLYPCT","LBXSCLSI","LBXNEPCT")
+
+Labs_target_final <- subset(Labs_target2, select = Labs_select_colns)
+
+#write.csv(Labs_target_final,file = "Data/Target Datasets/Labs_target_final.csv",row.names = FALSE)
+Labs_target_final   = read.csv("Data/Target Datasets/Labs_target_final.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+pcmp_Labs_final <- princomp(Labs_target_final[,-c(1,2)],retx=TRUE, cor =TRUE, center=TRUE, scale=TRUE)
+
+
+library("factoextra")
+fviz_pca_ind(pcmp_Labs_final, geom.ind = "point", pointshape = 21, 
+             pointsize = 2, 
+             fill.ind = Labs_target_final$HAS_DIABETES, 
+             col.ind = "black", 
+             palette = "jco", 
+             addEllipses = TRUE,
+             label = "var",
+             col.var = "black",
+             repel = TRUE,
+             legend.title = "HAS_DIABETES") +
+  ggtitle("2D PCA-plot from - Using Varimax more") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+
+############## TARGET WITH Ques ############
+
+rm(list=ls())
+ques_data_imputed   = read.csv("Data/Clean_Imputes/ques_data_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
+Diabetes_dataset   = read.csv("Data/Working/Diabetes_dataset.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+ques_target <- merge(Diabetes_dataset, ques_data_imputed,by="SEQN")
+
+#write.csv(ques_target,file = "Data/Target Datasets/ques_target.csv",row.names = F)
+ques_target   = read.csv("Data/Target Datasets/ques_target.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+Test_Data<-scale(ques_target[,-c(1,2)])
+ques_target2 <-ques_target
+
+
+# Correlation for ques
+#combi_cor=rcorr(as.matrix(ques_target[,-c(1,2)]))
+combi_cor=rcorr(as.matrix(Test_Data))
+corrplot(combi_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt = 45)
+
+
+####### Using PCA 
+
+pcmp <- princomp(Test_Data,retx=TRUE, cor =TRUE, center=TRUE, scale=TRUE)
+
+ques_target2 <- as.data.frame(cbind(ques_target2, pcmp$scores[,1:2]))
+
+plot(pcmp, main = "PCA for Species", col.axis="blue")
+plot(pcmp, type = "l", main = "PCA for Species", col.axis="blue")
+
+ggplot(ques_target2, aes(Comp.1, Comp.2, col = HAS_DIABETES, fill = HAS_DIABETES)) +
+  stat_ellipse(geom = "polygon", col = "black", alpha = 0.5) +
+  geom_point(shape = 21, col = "black")+
+  ggtitle("Before Feature selection ", subtitle = "Using PCA")
+
+
+library("factoextra")
+fviz_pca_ind(pcmp, geom.ind = "point", pointshape = 21, 
+             pointsize = 2, 
+             fill.ind = ques_target$HAS_DIABETES, 
+             col.ind = "black", 
+             palette = "jco", 
+             addEllipses = TRUE,
+             label = "var",
+             col.var = "black",
+             repel = TRUE,
+             legend.title = "HAS_DIABETES") +
+  ggtitle("2D PCA-plot from 88 feature dataset") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+
+ques_select_colns <- c("SEQN","HAS_DIABETES","TARGET","PAAQUEX","SMAQUEX.x","DBD910","TARGET","FSDAD","DBD895","FSDHH","DIQ010","DBD905","FSD032B","FSD032C","FSD032A","DLQ050","DIQ050","HSAQUEX","DLQ060")
+
+ques_target_final <- subset(ques_target2, select = ques_select_colns)
+
+#write.csv(ques_target_final,file = "Data/Target Datasets/ques_target_final.csv",row.names = FALSE)
+ques_target_final   = read.csv("Data/Target Datasets/ques_target_final.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+
+pcmp_ques_final <- princomp(ques_target_final[,-c(1,2)],retx=TRUE, cor =TRUE, center=TRUE, scale=TRUE)
+
+
+library("factoextra")
+fviz_pca_ind(pcmp_ques_final, geom.ind = "point", pointshape = 21, 
+             pointsize = 2, 
+             fill.ind = ques_target_final$HAS_DIABETES, 
+             col.ind = "black", 
+             palette = "jco", 
+             addEllipses = TRUE,
+             label = "var",
+             col.var = "black",
+             repel = TRUE,
+             legend.title = "HAS_DIABETES") +
+  ggtitle("2D PCA-plot from 10 feature dataset") +
+  theme(plot.title = element_text(hjust = 0.5))
 
 
 
