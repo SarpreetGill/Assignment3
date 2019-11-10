@@ -1615,33 +1615,131 @@ In this section, we will combine all the datasets and perform clustering algorit
 
 Find associations with diseases and diet/demographics data.  
 
-I've started work on association 
+## Introduction
+Associating mining if often used with market basket analysis.  However, for healthcare dataset used NHANES, we will explore the associations between the data and attempt to provide value to addressing marketing business problems for the pharmedical company in adversiting their drugs and attracting individuals to clinical trails.  
+
+## Preparing the data for association algorithms.
+
+Our first task is to prepare the data for associating mining algorithms.  
 
 ```{r eval=FALSE, echo=TRUE}
-library(arules)
-library(arulesViz)
+
+# Take interesting attributes from "data_selected" data
+# "data_selected" is a subset of all the dataset combined.
 association_dataset <- data_selected
 association_target_dataset <- target_disease_dataset[ -c(2,3,4)]
-summary(association_target_dataset)
-summary(association_dataset)
 
-association_target_dataset = dplyr::rename(
-  association_target_dataset,
-  "ID"                  = "SEQN")
-
-#Combine targets with labelled datasets 
+# Merge our association data with the target dataset 
+# Target dataset contains all diseases (diabetes, cancer, hypertension)
 association_dataset <- merge(association_dataset, association_target_dataset,by="ID")
-association_dataset <- lapply(association_dataset, function(x){as.factor(x)})
-str(association_dataset)
 
-write.csv(association_dataset, "Data/Working/association_dataset.csv")
-# Convert into matrix
-association_dataset$const = TRUE
-association_matrix <- as.matrix(association_dataset)
-
-#This code to turn the dataset into a transactional database is not working.  
-association_dataset_transactional <- as(association_matrix, "transactions")
 ```
+
+Since the associations rules will reference the values of the attributes.  If a value says "Yes", it might be ambigious what this means.  However, if the value was, "US Citizen", then the meaning would be  precise.    Below are a couple of examples where, we have re-coded the values for attributes as shown below:
+
+```{r eval=FALSE, echo=TRUE}
+association_dataset <- association_dataset %>%
+  mutate(Milk_30   = recode(Milk_30 ,
+                                      "Never" =	"Does not drink milk",	
+                                      "Often-once a day or more?"  =	"Drinks milk multiple times a day",	
+                                      "Rarely-less than once a week "  =	"Drinks milk once a week",
+                                      "Refused" = "Might be a milk drinker",
+                                      "Sometimes-once a week or more, but less than once a day" = "Drinks milk multiple times a week",
+                                      "Varied"  = "Might be a milk drinker"
+  ) )
+
+association_dataset <- association_dataset %>%
+  mutate(Food_assistance   = recode(Food_assistance ,
+                            "No" =	"Has not requested emergency food assistance",	
+                            "Refused"  =	"Unknown if emergency food assistance was requested",	
+                            "Yes"  =	"Has requested emergency food assistance"
+  ) )
+
+association_dataset <- association_dataset %>%
+  mutate(Insurance_current   = recode(Insurance_current ,
+                                    "No" =	"No health insurance coverage",	
+                                    "Refused"  =	"Health insurance coverage unknown",	
+                                    "Unknown"  =	"Health insurance coverage unknown",
+                                    "Yes"    = "Has health insurance coverage"
+  ) )
+
+
+association_dataset <- association_dataset %>%
+  mutate(HAS_CANCER   = recode(HAS_CANCER ,
+                                 "YES" =	"HAS CANCER",	
+                                 "NO"  =	"NO CANCER"
+  ) )
+
+```
+
+The above recoding was performed for 18 attributes.  Within the association dataset, we selected 18 attributes.  We focused on attributes that were categorial values.  For the purpose of association mining, numerical values may not add value unless they are binned into categories. For now, we have focused on 18 attributes that were available in the cleaned dataset. Sincer, the dataset is rich with many attributes.  In the future, more attributes could be added into association mining algorithms if the business finds value in the suggestions of this type of analysis.
+
+## Transform dataset into a transactional dataset
+
+In order to apply association algorithms, the dataset has to transformed into a tranactional dataset.  First, we need to merge all categorical values requiring for mining into a single description attriubte:
+
+```{r eval=FALSE, echo=TRUE}
+
+# Select columns required for mining analysis
+association_test_columns <- c("ID", "Gender", "Race", "Country_of_birth", "Citizenship_status",
+                              'Marital_status', "Family_income", "Dominant_hand_exam", "Milk_30", "Food_assistance",
+                              "Insurance_current", "Health_institution", "Gaming_hours", "Smoking_relatives", "Ride_motor_vehicle",
+                              'HAS_DIABETES', 'HAS_CANCER', 'HAS_HYPERTENSION')
+
+subset_association = subset(association_dataset, select=association_test_columns)
+
+# Add a description attribute with all the attributes requried for unsupervised association mining analysis 
+subset_association <- subset_association %>% 
+  mutate(description= paste(subset_association$Race, ",",
+                            subset_association$Gender, ",",
+                            subset_association$Country_of_birth, ",",
+                            subset_association$Citizenship_status, ",",
+                            subset_association$Marital_status, ",",
+                            subset_association$Family_income, ",",
+                            subset_association$Dominant_hand_exam, ",",
+                            subset_association$Milk_30, ",",
+                            subset_association$Food_assistance, ",", 
+                            subset_association$Insurance_current, ",",
+                            subset_association$Health_institution, ",",
+                            subset_association$Gaming_hours, ",",
+                            subset_association$Smoking_relatives, ",",
+                            subset_association$Ride_motor_vehicle, "," ,
+                            subset_association$HAS_DIABETES, ",",
+                            subset_association$HAS_CANCER, ",", 
+                            subset_association$HAS_HYPERTENSION
+                            ))
+
+#Group descriptions by individual IDs and place into transactionData dataset.
+transactionData <- ddply(subset_association, c("ID"),
+                         function(subset_association)paste(subset_association$description))
+
+# Remove the ID from the transaction dataset as it is not used.
+transactionData$ID <- NULL
+
+# Write the transaction dataset
+write.csv(transactionData, "Data/Working/transactiondata.csv", quote=FALSE , row.names = FALSE)
+
+# Read in the transaction dataset for use with the unsupervised algorithms
+individuals_transaction_class <- read.transactions('Data/Working/transactiondata.csv', format = 'basket',sep=',')
+```
+
+## Apply Association algorithms to the data 
+
+Now data is prepared, we can apply the association algorithms.  
+
+### Frequent values 
+
+First, we create association rules against the dataset.  
+
+```{r eval=FALSE, echo=TRUE}
+
+# Create mining rules for all values.  This will tell us which values are likely to be found together
+rules_for_individuals <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.85, maxlen=5))
+```
+
+
+We plot the 20 most frequent values found within the data. 
+
 
 # Problem 3: Supervised 
 
