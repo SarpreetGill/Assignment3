@@ -183,7 +183,8 @@ questionnaire_MS_less50
 questionnaire_MS_less75
 
 
-######################### Demographics#############################################
+############################# IMPUTE MISSING VALUES ##############
+############################################ Demographics#############################################
 
 
 # ZV/NZV feature remove
@@ -1709,7 +1710,7 @@ colnames(ques_subset_labelled) <- with(Dictionary,
 
 
 
-########################################### SUPERVISED ###########################
+############################# SUPERVISED DIABETES ###########################
 rm(list=ls())
 demographic_imputed   = read.csv("Data/Clean_Imputes/demographic_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
 diet_imputed   = read.csv("Data/Clean_Imputes/diet_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
@@ -1748,7 +1749,7 @@ rm(ques_data_imputed)
 #write.csv(Diabetes_dataset,file = "Data/Working/Diabetes_dataset.csv",row.names = FALSE)
 Diabetes_dataset   = read.csv("Data/Working/Diabetes_dataset.csv", header = TRUE, na.strings = c("NA","","#NA"))
 
-############## TARGET WITH DEMOGRAPHICS ############
+########################################## TARGET WITH DEMOGRAPHICS ############
 
 rm(list=ls())
 demographic_imputed   = read.csv("Data/Clean_Imputes/demographic_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
@@ -1820,7 +1821,7 @@ fviz_pca_ind(pcmp_demo_final, geom.ind = "point", pointshape = 21,
   theme(plot.title = element_text(hjust = 0.5))
 
 
-############## TARGET WITH DIET ############
+########################################## TARGET WITH DIET ############
 
 rm(list=ls())
 diet_imputed   = read.csv("Data/Clean_Imputes/diet_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
@@ -1894,7 +1895,7 @@ fviz_pca_ind(pcmp_Diet_final, geom.ind = "point", pointshape = 21,
   theme(plot.title = element_text(hjust = 0.5))
 
 
-############## TARGET WITH EXAMINATION ############
+########################################## TARGET WITH EXAMINATION ############
 
 rm(list=ls())
 exam_imputed   = read.csv("Data/Clean_Imputes/exam_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
@@ -1977,7 +1978,7 @@ ggplot(Exam_target_final_pca, aes(Comp.1, Comp.2, col = HAS_DIABETES, fill = HAS
   geom_point(shape = 21, col = "black")+
   ggtitle("Before Feature selection ", subtitle = "Using PCA")
 
-############## TARGET WITH Labs ############
+########################################## TARGET WITH Labs ############
 
 rm(list=ls())
 labsdata_imputed   = read.csv("Data/Clean_Imputes/labsdata_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
@@ -2053,7 +2054,7 @@ fviz_pca_ind(pcmp_Labs_final, geom.ind = "point", pointshape = 21,
   theme(plot.title = element_text(hjust = 0.5))
 
 
-############## TARGET WITH Ques ############
+########################################## TARGET WITH Ques ############
 
 rm(list=ls())
 ques_data_imputed   = read.csv("Data/Clean_Imputes/ques_data_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
@@ -2130,12 +2131,189 @@ fviz_pca_ind(pcmp_ques_final, geom.ind = "point", pointshape = 21,
   theme(plot.title = element_text(hjust = 0.5))
 
 
+##########################################  Combined & Labelled_Dataset #####
+rm(list=ls())
+Demo_target_final   = read.csv("Data/Target Datasets/Demo_target_final.csv", header = TRUE, na.strings = c("NA","","#NA"))
+Diet_target_final   = read.csv("Data/Target Datasets/Diet_target_final.csv", header = TRUE, na.strings = c("NA","","#NA"))
+Exam_target_final   = read.csv("Data/Target Datasets/Exam_target_final.csv", header = TRUE, na.strings = c("NA","","#NA"))
+Labs_target_final   = read.csv("Data/Target Datasets/Labs_target_final.csv", header = TRUE, na.strings = c("NA","","#NA"))
+medsdata_imputed   = read.csv("Data/Clean_Imputes/medsdata_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
+ques_target_final   = read.csv("Data/Target Datasets/ques_target_final.csv", header = TRUE, na.strings = c("NA","","#NA"))
 
-############################################## Combining Imputed & Imputing Target NA ###################################
+
+impute_combi <- merge(Demo_target_final, Diet_target_final[,-c(2,3)],by="SEQN")
+impute_combi <- merge(impute_combi, Exam_target_final[,-c(2,3)],by="SEQN")
+impute_combi <- merge(impute_combi, Labs_target_final[,-c(2,3)],by="SEQN")
+impute_combi <- merge(impute_combi, medsdata_imputed,by="SEQN")
+impute_combi <- merge(impute_combi, ques_target_final[,-c(2,3)],by="SEQN")
+rm(Demo_target_final,Diet_target_final,Exam_target_final,Labs_target_final,medsdata_imputed,ques_target_final)
+#write.csv(impute_combi,file = "Data/Target Datasets/Diabetes_combi.csv")
+combined_target  = read.csv("Data/Target Datasets/Diabetes_combi.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
+rm(impute_combi)
+
+# PCA on combined
+Test_Data<-scale(combined_target[,-c(1,2,77:81)])
+combined_target2 <-combined_target[,-c(77:81)]
+
+
+# Correlation for combined
+combi_cor=rcorr(as.matrix(Test_Data))
+corrplot(combi_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt = 45)
+
+
+####### Using PCA 
+
+pcmp <- princomp(Test_Data,retx=TRUE, cor =TRUE, center=TRUE, scale=TRUE)
+
+combined_target2 <- as.data.frame(cbind(combined_target2, pcmp$scores[,1:2]))
+
+plot(pcmp, main = "PCA for Species", col.axis="blue")
+plot(pcmp, type = "l", main = "PCA for Species", col.axis="blue")
+
+ggplot(combined_target2, aes(Comp.1, Comp.2, col = HAS_DIABETES, fill = HAS_DIABETES)) +
+  stat_ellipse(geom = "polygon", col = "black", alpha = 0.5) +
+  geom_point(shape = 21, col = "black")+
+  ggtitle("Before Feature selection ", subtitle = "Using PCA")
+
+
+library("factoextra")
+fviz_pca_ind(pcmp, geom.ind = "point", pointshape = 21, 
+             pointsize = 2, 
+             fill.ind = combined_target$HAS_DIABETES, 
+             col.ind = "black", 
+             palette = "jco", 
+             addEllipses = TRUE,
+             label = "var",
+             col.var = "black",
+             repel = TRUE,
+             legend.title = "HAS_DIABETES") +
+  ggtitle("2D PCA-plot from 88 feature dataset") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+
+combined_select_colns <- c("SEQN","HAS_DIABETES","TARGET","BPXML1","BPXSY2","BPXSY3","DIQ010","DIQ050","DLQ050","DMDHHSZE","DMDHRAGE","DR1TS040","DR1TS060","DR1TS100","DR1TS140","DR1TS160","DR1TS180","DR1TSFAT","DRD340","DRD360","DRQSDIET","FSD032A","FSD032B","FSD032C","FSDAD","FSDHH","LBDHDD","LBDHDDSI","LBXGH","LBXSGL","OHX07TC","OHX23TC","OHX24TC","OHX25TC","OHX26TC","PEASCST1","RIDAGEYR","RXDUSE")
+combined_target_final <- subset(combined_target2, select = combined_select_colns)
+Meds_target   = read.csv("Data/Target Datasets/Meds_target.csv", header = TRUE, na.strings = c("NA","","#NA"))
+combined_target_final <- merge(combined_target_final, Meds_target[,c(1,8:11)],by="SEQN")
+#write.csv(combined_target_final,file = "Data/Target Datasets/combined_target_final.csv",row.names = FALSE)
+combined_target_final   = read.csv("Data/Target Datasets/combined_target_final.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+pcmp_combined_final <- princomp(combined_target_final[,-c(1,2)],retx=TRUE, cor =TRUE, center=TRUE, scale=TRUE)
+
+
+library("factoextra")
+fviz_pca_ind(pcmp_combined_final, geom.ind = "point", pointshape = 21, 
+             pointsize = 2, 
+             fill.ind = combined_target_final$HAS_DIABETES, 
+             col.ind = "black", 
+             palette = "jco", 
+             addEllipses = TRUE,
+             label = "var",
+             col.var = "black",
+             repel = TRUE,
+             legend.title = "HAS_DIABETES") +
+  ggtitle("2D PCA-plot from 10 feature dataset") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+
+########################################## Labelling Combined for Supervised ############## 
+
+rm(list=ls())
+combined_target_final   = read.csv("Data/Target Datasets/combined_target_final.csv", header = TRUE, na.strings = c("NA","","#NA"))
+Yes_No_SEQN <- c(7:9,19:21)
+combined_target_final[ , Yes_No_SEQN ][ combined_target_final[ , Yes_No_SEQN ] == "1" ] <- "Yes"
+combined_target_final[ , Yes_No_SEQN ][ combined_target_final[ , Yes_No_SEQN ] == "2" ] <- "No"
+combined_target_final[ , Yes_No_SEQN ][ combined_target_final[ , Yes_No_SEQN ] == "7" ] <- "Refused"
+combined_target_final[ , Yes_No_SEQN ][ combined_target_final[ , Yes_No_SEQN ] == "9" ] <- "Unknown"
+Yes_No_SEQN <-c(22:24)
+combined_target_final[ , Yes_No_SEQN ][ combined_target_final[ , Yes_No_SEQN ] == "1" ] <- "Often true"
+combined_target_final[ , Yes_No_SEQN ][ combined_target_final[ , Yes_No_SEQN ] == "2" ] <- "Sometimes true"
+combined_target_final[ , Yes_No_SEQN ][ combined_target_final[ , Yes_No_SEQN ] == "3" ] <- "Never true"
+combined_target_final[ , Yes_No_SEQN ][ combined_target_final[ , Yes_No_SEQN ] == "7" ] <- "Refused"
+combined_target_final[ , Yes_No_SEQN ][ combined_target_final[ , Yes_No_SEQN ] == "9" ] <- "Unknown"
+Yes_No_SEQN <-c(25)
+combined_target_final[ , Yes_No_SEQN ][ combined_target_final[ , Yes_No_SEQN ] == "0" ] <- "AD full food security:0"
+combined_target_final[ , Yes_No_SEQN ][ combined_target_final[ , Yes_No_SEQN ] == "1" ] <- "AD marginal food security:1-2"
+combined_target_final[ , Yes_No_SEQN ][ combined_target_final[ , Yes_No_SEQN ] == "2" ] <- "AD low food security:3-5"
+combined_target_final[ , Yes_No_SEQN ][ combined_target_final[ , Yes_No_SEQN ] == "3" ] <- "Often-once a day or more?"
+combined_target_final[ , Yes_No_SEQN ][ combined_target_final[ , Yes_No_SEQN ] == "4" ] <- "AD very low food security: 6-10"
+combined_target_final[ , Yes_No_SEQN ][ combined_target_final[ , Yes_No_SEQN ] == "7" ] <- "Refused"
+combined_target_final[ , Yes_No_SEQN ][ combined_target_final[ , Yes_No_SEQN ] == "9" ] <- "Unknown"
+Yes_No_SEQN <-c(25)
+combined_target_final[ , Yes_No_SEQN ][ combined_target_final[ , Yes_No_SEQN ] == "1" ] <- "AD full food security:0"
+combined_target_final[ , Yes_No_SEQN ][ combined_target_final[ , Yes_No_SEQN ] == "2" ] <- "AD marginal food security:1-2"
+combined_target_final[ , Yes_No_SEQN ][ combined_target_final[ , Yes_No_SEQN ] == "3" ] <- "AD low food security:3-5"
+combined_target_final[ , Yes_No_SEQN ][ combined_target_final[ , Yes_No_SEQN ] == "4" ] <- "AD very low food security: 6-10"
+Yes_No_SEQN <-c(26)
+combined_target_final[ , Yes_No_SEQN ][ combined_target_final[ , Yes_No_SEQN ] == "1" ] <- "HH full food security:0"
+combined_target_final[ , Yes_No_SEQN ][ combined_target_final[ , Yes_No_SEQN ] == "2" ] <- "HH marginal food security:1-2"
+combined_target_final[ , Yes_No_SEQN ][ combined_target_final[ , Yes_No_SEQN ] == "3" ] <- "HH low food security: 3-5 (HH w/o child) / 3-7 (HH w/ child)"
+combined_target_final[ , Yes_No_SEQN ][ combined_target_final[ , Yes_No_SEQN ] == "4" ] <- "HH very low food security: 6-10 (HH w/o child) / 8-18 (HH w/ child)"
+Yes_No_SEQN <-c(31:35)
+combined_target_final[ , Yes_No_SEQN ][ combined_target_final[ , Yes_No_SEQN ] == "1" ] <- "Primary tooth (deciduous) present"
+combined_target_final[ , Yes_No_SEQN ][ combined_target_final[ , Yes_No_SEQN ] == "2" ] <- "Permanent tooth present"
+combined_target_final[ , Yes_No_SEQN ][ combined_target_final[ , Yes_No_SEQN ] == "3" ] <- "Dental implant"
+combined_target_final[ , Yes_No_SEQN ][ combined_target_final[ , Yes_No_SEQN ] == "4" ] <- "Tooth not present"
+combined_target_final[ , Yes_No_SEQN ][ combined_target_final[ , Yes_No_SEQN ] == "5" ] <- "Permanent dental root fragment present"
+combined_target_final[ , Yes_No_SEQN ][ combined_target_final[ , Yes_No_SEQN ] == "9" ] <- "Could not assess"
+Yes_No_SEQN <-c(31:35)
+combined_target_final[ , Yes_No_SEQN ][ combined_target_final[ , Yes_No_SEQN ] == "1" ] <- "Primary tooth (deciduous) present"
+combined_target_final[ , Yes_No_SEQN ][ combined_target_final[ , Yes_No_SEQN ] == "2" ] <- "Permanent tooth present"
+combined_target_final[ , Yes_No_SEQN ][ combined_target_final[ , Yes_No_SEQN ] == "3" ] <- "Dental implant"
+combined_target_final[ , Yes_No_SEQN ][ combined_target_final[ , Yes_No_SEQN ] == "4" ] <- "Tooth not present"
+combined_target_final[ , Yes_No_SEQN ][ combined_target_final[ , Yes_No_SEQN ] == "5" ] <- "Permanent dental root fragment present"
+combined_target_final[ , Yes_No_SEQN ][ combined_target_final[ , Yes_No_SEQN ] == "9" ] <- "Could not assess"
+
+combined_target_final <- combined_target_final %>%
+  mutate(PEASCST1  = dplyr::recode(PEASCST1 ,
+                                   "1" =	"Complete"	,
+                                   "2" =	"Partial"	,
+                                   "3"=	"Not done"	))
+
+
+combined_target_final <- combined_target_final %>%
+  mutate(RXDUSE  = dplyr::recode(RXDUSE ,
+                                 "1" =	"Yes"	,
+                                 "2" =	"No"	,
+                                 "7"=	"Refused",
+                                 "9"=	"	Don't know" ))
+
+
+Dictionary    = read.csv("Data/Raw/Dictionary.csv", header = TRUE, na.strings = c("NA","","#NA"))
+combined_indexed <- combined_target_final
+colnames(combined_indexed) <- with(Dictionary,
+                                   Dictionary$Variable.Description[match(colnames(combined_target_final),
+                                                                         Dictionary$Variable.Name,
+                                                                         nomatch = Dictionary$Variable.Name
+                                   )])
+
+Combined_Col_Labels <- data.frame("Code"=c(colnames(combined_target_final)), 
+                                  "Desp"=c(colnames(combined_indexed)))
+
+rm(combined_indexed)
+#write.csv(Combined_Col_Labels,file = "Data/Labels/Combined_Col_Labels.csv",row.names = F)
+Combined_Col_Labels    = read.csv("Data/Labels/Combined_Col_Labels.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+
+combined_final_labelled <- combined_target_final
+colnames(combined_final_labelled) <- with(Combined_Col_Labels,
+                                          Combined_Col_Labels$Desp[match(colnames(combined_target_final),
+                                                                         Combined_Col_Labels$Code,
+                                                                         nomatch = Combined_Col_Labels$Desp
+                                          )])
+
+
+#write.csv(combined_final_labelled,file = "Data/Target Datasets/combined_final_labelled.csv",row.names = FALSE)
+combined_final_labelled   = read.csv("Data/Target Datasets/combined_final_labelled.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+
+
+
+############################## UNSUPERVISED ################################################
+###########################################Combining Imputed & Imputing Target NA ###################################
 
 rm(list=ls())
 
-## Combine the clean datasets (IMPORTANT REQUIRED)
 #Dataset Merge & select attribute
 
 
@@ -2173,7 +2351,7 @@ sapply(data_selected, function(x) ((sum(is.na(x))))*.01) %>%
 #Classifications 
 
 
-##################### Demographics#######################################
+########################################## Demographics#######################################
 
 demo_subset_8   = read.csv("Data/Working/demo_subset_8_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
 target_disease_dataset   = read.csv("Data/Working/target_disease_dataset.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
@@ -2351,7 +2529,7 @@ ggplot(demo_subset_8, aes(x =Country_of_birth, y = Marital_status)) +
 
 
 
-########################################################################
+############################## TARGET CODING #############
 ### Code for creating target dataset for 
 #DIQ010 - Doctor told you have diabetes
 #https://wwwn.cdc.gov/Nchs/Nhanes/2013-2014/DIQ_H.htm
