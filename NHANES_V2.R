@@ -2028,7 +2028,7 @@ fviz_pca_ind(pcmp, geom.ind = "point", pointshape = 21,
   theme(plot.title = element_text(hjust = 0.5))
 
 
-Labs_select_colns <- c("SEQN","HAS_DIABETES","TARGET","LBXGH","LBXSGL","LBXHGB","TARGET","LBXSOSSI","LBXSNASI","URXCRS","LBXHCT","URXUCR.x","LBDSGBSI","LBXMC","LBDHDDSI","LBXSGB","LBDHDD","URXVOL1","URDFLOW1","LBDLYMNO","LBXLYPCT","LBXSCLSI","LBXNEPCT")
+Labs_select_colns <- c("SEQN","HAS_DIABETES","TARGET","LBXGH","LBXSGL","LBXHGB","LBXSOSSI","LBXSNASI","URXCRS","LBXHCT","URXUCR.x","LBDSGBSI","LBXMC","LBDHDDSI","LBXSGB","LBDHDD","URXVOL1","URDFLOW1","LBDLYMNO","LBXLYPCT","LBXSCLSI","LBXNEPCT")
 
 Labs_target_final <- subset(Labs_target2, select = Labs_select_colns)
 
@@ -2104,7 +2104,7 @@ fviz_pca_ind(pcmp, geom.ind = "point", pointshape = 21,
   theme(plot.title = element_text(hjust = 0.5))
 
 
-ques_select_colns <- c("SEQN","HAS_DIABETES","TARGET","PAAQUEX","SMAQUEX.x","DBD910","TARGET","FSDAD","DBD895","FSDHH","DIQ010","DBD905","FSD032B","FSD032C","FSD032A","DLQ050","DIQ050","HSAQUEX","DLQ060")
+ques_select_colns <- c("SEQN","HAS_DIABETES","TARGET","PAAQUEX","SMAQUEX.x","DBD910","FSDAD","DBD895","FSDHH","DIQ010","DBD905","FSD032B","FSD032C","FSD032A","DLQ050","DIQ050","HSAQUEX","DLQ060")
 
 ques_target_final <- subset(ques_target2, select = ques_select_colns)
 
