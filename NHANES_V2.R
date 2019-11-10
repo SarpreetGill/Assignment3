@@ -183,7 +183,8 @@ questionnaire_MS_less50
 questionnaire_MS_less75
 
 
-######################### Demographics#############################################
+############################# IMPUTE MISSING VALUES ##############
+############################################ Demographics#############################################
 
 
 # ZV/NZV feature remove
@@ -1709,7 +1710,7 @@ colnames(ques_subset_labelled) <- with(Dictionary,
 
 
 
-########################################### SUPERVISED ###########################
+############################# SUPERVISED DIABETES ###########################
 rm(list=ls())
 demographic_imputed   = read.csv("Data/Clean_Imputes/demographic_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
 diet_imputed   = read.csv("Data/Clean_Imputes/diet_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
@@ -1748,7 +1749,7 @@ rm(ques_data_imputed)
 #write.csv(Diabetes_dataset,file = "Data/Working/Diabetes_dataset.csv",row.names = FALSE)
 Diabetes_dataset   = read.csv("Data/Working/Diabetes_dataset.csv", header = TRUE, na.strings = c("NA","","#NA"))
 
-############## TARGET WITH DEMOGRAPHICS ############
+########################################## TARGET WITH DEMOGRAPHICS ############
 
 rm(list=ls())
 demographic_imputed   = read.csv("Data/Clean_Imputes/demographic_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
@@ -1820,7 +1821,7 @@ fviz_pca_ind(pcmp_demo_final, geom.ind = "point", pointshape = 21,
   theme(plot.title = element_text(hjust = 0.5))
 
 
-############## TARGET WITH DIET ############
+########################################## TARGET WITH DIET ############
 
 rm(list=ls())
 diet_imputed   = read.csv("Data/Clean_Imputes/diet_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
@@ -1894,7 +1895,7 @@ fviz_pca_ind(pcmp_Diet_final, geom.ind = "point", pointshape = 21,
   theme(plot.title = element_text(hjust = 0.5))
 
 
-############## TARGET WITH EXAMINATION ############
+########################################## TARGET WITH EXAMINATION ############
 
 rm(list=ls())
 exam_imputed   = read.csv("Data/Clean_Imputes/exam_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
@@ -1977,7 +1978,7 @@ ggplot(Exam_target_final_pca, aes(Comp.1, Comp.2, col = HAS_DIABETES, fill = HAS
   geom_point(shape = 21, col = "black")+
   ggtitle("Before Feature selection ", subtitle = "Using PCA")
 
-############## TARGET WITH Labs ############
+########################################## TARGET WITH Labs ############
 
 rm(list=ls())
 labsdata_imputed   = read.csv("Data/Clean_Imputes/labsdata_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
@@ -2053,7 +2054,7 @@ fviz_pca_ind(pcmp_Labs_final, geom.ind = "point", pointshape = 21,
   theme(plot.title = element_text(hjust = 0.5))
 
 
-############## TARGET WITH Ques ############
+########################################## TARGET WITH Ques ############
 
 rm(list=ls())
 ques_data_imputed   = read.csv("Data/Clean_Imputes/ques_data_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
@@ -2130,7 +2131,7 @@ fviz_pca_ind(pcmp_ques_final, geom.ind = "point", pointshape = 21,
   theme(plot.title = element_text(hjust = 0.5))
 
 
-#############Combined & Labelled_Dataset #####
+##########################################  Combined & Labelled_Dataset #####
 rm(list=ls())
 Demo_target_final   = read.csv("Data/Target Datasets/Demo_target_final.csv", header = TRUE, na.strings = c("NA","","#NA"))
 Diet_target_final   = read.csv("Data/Target Datasets/Diet_target_final.csv", header = TRUE, na.strings = c("NA","","#NA"))
@@ -2215,7 +2216,7 @@ fviz_pca_ind(pcmp_combined_final, geom.ind = "point", pointshape = 21,
   theme(plot.title = element_text(hjust = 0.5))
 
 
-### Labelling Combined for Supervised ############## 
+########################################## Labelling Combined for Supervised ############## 
 
 rm(list=ls())
 combined_target_final   = read.csv("Data/Target Datasets/combined_target_final.csv", header = TRUE, na.strings = c("NA","","#NA"))
@@ -2308,8 +2309,8 @@ combined_final_labelled   = read.csv("Data/Target Datasets/combined_final_labell
 
 
 
-
-############################################## Combining Imputed & Imputing Target NA ###################################
+############################## UNSUPERVISED ################################################
+###########################################Combining Imputed & Imputing Target NA ###################################
 
 rm(list=ls())
 
@@ -2350,7 +2351,7 @@ sapply(data_selected, function(x) ((sum(is.na(x))))*.01) %>%
 #Classifications 
 
 
-##################### Demographics#######################################
+########################################## Demographics#######################################
 
 demo_subset_8   = read.csv("Data/Working/demo_subset_8_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
 target_disease_dataset   = read.csv("Data/Working/target_disease_dataset.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
@@ -2528,7 +2529,7 @@ ggplot(demo_subset_8, aes(x =Country_of_birth, y = Marital_status)) +
 
 
 
-########################################################################
+############################## TARGET CODING #############
 ### Code for creating target dataset for 
 #DIQ010 - Doctor told you have diabetes
 #https://wwwn.cdc.gov/Nchs/Nhanes/2013-2014/DIQ_H.htm
