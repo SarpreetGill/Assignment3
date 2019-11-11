@@ -2965,7 +2965,7 @@ With the association rules for hypertension, we’ve plotted the top 20 values t
 
 ### Association rules for not having diseases
 
-In the precedin section, we looked at associations for having diseases.  For this section, we look at the inverse, could their value in associations where there is no diseases/health conditions? 
+In the preceding section, we looked at associations between having diseases/health conditions and other values.  To complement our findings, we decided to also create association rules for not having the diseases.  This might yield beneficial findings and support any findings from the previous association rules involving positive values for diseases.  
 
 The following rules were used: 
 ```{r eval=FALSE, echo=TRUE}
@@ -2974,8 +2974,9 @@ no_diabetes.association.rules <- apriori(individuals_transaction_class, paramete
 no_hypertension.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.8, minlen=5,maxlen=10), appearance=list(default="lhs", rhs="NO HYPERTENSION"))
 ```
 
+The rules for not having Cancer 
 
-Cancer 
+Below, we’ve listed the top 20 association rules for not having cancer.  Of interest,  it appears “no health insurance”  and “visiting multiple places for healthcare” appears in many rules that lead to not having cancer. 
 
 ```{r eval=FALSE, echo=TRUE}
 inspect(no_cancer.association.rules[1:20])
@@ -3064,7 +3065,9 @@ inspect(no_cancer.association.rules[1:20])
 ```
 
 
-Diabetes
+The rules for not having Diabetes
+
+Below, we’ve listed the top 20 association rules for not having diabetes.  There are multiple rules with the value where the individual receives health from various places (as opposed to one location).  
 
 ```{r eval=FALSE, echo=TRUE}
 inspect(no_diabetes.association.rules[1:20])
@@ -3098,8 +3101,9 @@ inspect(no_diabetes.association.rules[1:20])
 > 
 ```
 
-
 The rules for not having Hypertension 
+
+Below, we’ve listed the top 20 association rules for not having hypertension.  Of interest, values smokers and non-smokers both appear in the results.  Many of the video game related values also appear in the rules below.   
 
 ```{r eval=FALSE, echo=TRUE}
 inspect(no_hypertension.association.rules[1:20])
