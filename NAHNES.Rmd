@@ -1792,45 +1792,7 @@ ggplot(demo_subset_8, aes(x =Gender, y = Age)) +
 
 
 
-## Cluster Model for Diet (OPTIONAL)
 
-```{r, eval=FALSE, echo=TRUE}
-
-
-```
-
-
-## Cluster Model for Examination  (OPTIONAL)
-
-```{r, eval=FALSE, echo=TRUE}
-
-
-```
-
-
-
-## Cluster Model for Labs (OPTIONAL)
-
-```{r, eval=FALSE, echo=TRUE}
-
-
-```
-
-
-## Cluster Model for Medications (OPTIONAL)
-
-```{r, eval=FALSE, echo=TRUE}
-
-
-```
-
-
-## Cluster Model for Questionanaire (OPTIONAL)
-
-```{r, eval=FALSE, echo=TRUE}
-
-
-```
 
 
 # Problem 1: Clustering
