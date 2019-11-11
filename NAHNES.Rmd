@@ -1963,11 +1963,13 @@ has_hypertension.association.rules <- apriori(individuals_transaction_class, par
 
 ```
 
-Now with association rules, we can examine them and observe the LHS items that are found in conjunction with various diseases: 
+
 
 ### Cancer: Association Rules 
 
-First, we look at large item sets.  
+For cancer association rules, we will examine both large and small items found in conjunction with an individual having cancer.  
+
+First, we inspected the  rules where individual has cancer and observed which large itemsets occur in conjunction with cancer.  The confidence level was set 0.4 for this set of rules which might be considered low.  However, a handful of rules were generated for this item.  Of note, those that have cancer are also associated with having hypertension and cancer.  An interesting observation is that drinking milk occurs in multiple rules.   
 
 ```{r eval=FALSE, echo=TRUE}
 > inspect(has_cancer.association.rules)
@@ -2029,7 +2031,7 @@ First, we look at large item sets.
       US citizen}                                                => {HAS CANCER} 0.001222743  0.4137931 45.62883    12
 ```
 
-Next we look at small itemsets: 
+Next, we inspected rules where individual has cancer and observed which small itemsets. The confidence level was set even lower to generate results for small itemsets in conjunction with cancer.   Again, we similar items such having diabetes and hypertension appear in the small itemsets.   
 
 ```{r eval=FALSE, echo=TRUE}
 > inspect(has_cancer.association.rules_smallitemset)
