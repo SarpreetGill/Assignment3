@@ -2842,13 +2842,15 @@ top20hypertensionrules <- head(has_hypertension.association.rules, n=20, by="con
 top20hypertensionrules_smallitemset <- head(has_hypertension.association.rules_smallitemset, n=20, by="confidence")
 
 ```
+For rules we examined in the previous section, we’ve taken the top 20 rules and created interactive scatter plots and graphs to visualize data.  
 
+The following is a scatter graph for visualizing the top 20 association rules for cancer with large itemsets.  Please note, the points on the graph are interactive, please cursor over points to see association rule.    
 
 CANCER (large itemsets)
 ```{r eval=TRUE, echo=FALSE, error=FALSE, warning=FALSE, message=FALSE,cache=TRUE }
 plotly_arules(has_cancer.association.rules)
 ```
-
+The following is a scatter graph for visualizing the top 20 association rules for cancer with small itemsets.
 
 CANCER (small itemsets)
 
@@ -2858,11 +2860,15 @@ plotly_arules(has_cancer.association.rules_smallitemset)
 
 ### Interactive Scatter Plots for Diabetes
 
+The following is a scatter plot for visualizing the top 20 association rules for diabetes with large itemsets.
+
 DIABETES (large itemsets)
 
 ```{r eval=TRUE, echo=FALSE, error=FALSE, warning=FALSE, message=FALSE,cache=TRUE }
 plotly_arules(has_diabetes.association.rules)
 ```
+
+The following is a scatter plot for visualizing the top 20 association rules for diabetes with small itemsets.  
 
 DIABETES (small itemsets)
 
@@ -2872,11 +2878,15 @@ plotly_arules(has_diabetes.association.rules_smallitemset)
 
 ### Interactive Scatter Plots for Hypertension
 
+The following is a scatter plot for visualizing the top 20 association rules for hypertension with large itemsets.  
+
 HYPER TENSION (large itemsets)
 
 ```{r eval=TRUE, echo=FALSE, error=FALSE, warning=FALSE, message=FALSE,cache=TRUE }
 plotly_arules(has_hypertension.association.rules)
 ```
+
+The following is a scatter plot for visualizing the top 20 association rules for hypertension with small itemsets.  
 
 HYPER TENSION (small itemsets)
 
