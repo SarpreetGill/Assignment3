@@ -2088,6 +2088,10 @@ In order to build the association mining lists, we had to reduce confidence leve
 
 ### Diabetes: Association Rules
 
+As with cancer association rules, we will examine both large and small items found in conjunction with an individual having diabetes.
+
+For large itemset with a positive diabetes results, we were able to increase the confidence level to 0.7.   32 rules were generated for this result.  Of note, a household income between “20000-24999”daily/weekly milk consumption and  appears in several rules.  Also interesting, that there are rules where an individual has health insurance coverage.  None of the rules contain the opposite condition of not having health insurance coverage.   
+
 ```{r eval=FALSE, echo=TRUE}
 > inspect(has_diabetes.association.rules)
      lhs                                                            rhs                support confidence     lift count
@@ -2266,7 +2270,7 @@ In order to build the association mining lists, we had to reduce confidence leve
 >
 ```
 
-Next, we look at small itemsets
+For small itemsets,  all the rules include having cancer in association with diabetes.  
 
 ```{r eval=FALSE, echo=TRUE}
 > inspect(has_diabetes.association.rules_smallitemset)
@@ -2281,6 +2285,7 @@ Next, we look at small itemsets
 [8] {HAS CANCER,Has not requested emergency food assistance}            => {HAS DIABETES} 0.002751172 0.4218750  20.80543 27   
 > 
 ```
+
 
 
 ### Hypertention: Association Rules
