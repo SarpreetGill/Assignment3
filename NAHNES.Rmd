@@ -2896,12 +2896,17 @@ plotly_arules(has_hypertension.association.rules_smallitemset)
 
 ### Interactive Graph Visualization for Cancer
 
+The following graphs are interactive.  Hover the cursor over the rule, to see the related values. Hover the cursor over a value, to see the related rules.  
+
+The following is a graph for visualizing the top 20 association rules for cancer with large itemsets.
+
 CANCER (large itemset)
 
 ```{r eval=TRUE, echo=FALSE, error=FALSE, warning=FALSE, message=FALSE,cache=TRUE }
 plot(top20cancerrules, method= "graph", engine = "htmlwidget")
 
 ```
+The following is a graph for visualizing the top 20 association rules for cancer with small itemsets.  
 
 CANCER (small itemset)
 
@@ -2911,11 +2916,14 @@ plot(top20cancerrules_smallitemset, method= "graph", engine = "htmlwidget")
 
 ### Interactive Graph Visualization for Diabetes
 
+The following is a graph for visualizing the top 20 association rules for diabetes with large itemsets.  
+
 DIABETES (large itemset)
 
 ```{r eval=TRUE, echo=FALSE, error=FALSE, warning=FALSE, message=FALSE,cache=TRUE }
  plot(top20diabetesrules, method= "graph", engine = "htmlwidget")
 ```
+The following is a graph for visualizing the top 20 association rules for diabetes with small itemsets.  
 
 DIABETES (small itemset)
 
@@ -2925,11 +2933,16 @@ plot(top20diabetesrules_smallitemset, method= "graph", engine = "htmlwidget")
 
 ### Interactive Graph Visualization for Hypertension
 
+The following is a graph for visualizing the top 20 association rules for hypertension with large itemsets.
+
 HYPERTENSION (large itemset)
 
 ```{r eval=TRUE, echo=FALSE, error=FALSE, warning=FALSE, message=FALSE,cache=TRUE }
 plot(top20hypertensionrules, method= "graph", engine = "htmlwidget")
 ```
+
+The following is a graph for visualizing the top 20 association rules for hypertension with small itemsets.  
+
 HYPERTENSION (small itemset)
 
 ```{r eval=TRUE, echo=FALSE, error=FALSE, warning=FALSE, message=FALSE,cache=TRUE }
