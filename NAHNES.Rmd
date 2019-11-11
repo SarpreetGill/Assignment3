@@ -2934,7 +2934,174 @@ Using top 20 rules for hypertension
 
 ### Association rules for not having diseases
 
-In the precedin section, we looked at associations for having diseases.  For this section, we look at the inverse, could their value in associations where there is no diseases/health conditions?  
+In the precedin section, we looked at associations for having diseases.  For this section, we look at the inverse, could their value in associations where there is no diseases/health conditions? 
+
+The following rules were used: 
+```{r eval=FALSE, echo=TRUE}
+no_cancer.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.9,minlen=5,maxlen=10), appearance=list(default="lhs", rhs="NO CANCER"))
+no_diabetes.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.9, minlen=5,maxlen=10), appearance=list(default="lhs", rhs="NO DIABETES"))
+no_hypertension.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.8, minlen=5,maxlen=10), appearance=list(default="lhs", rhs="NO HYPERTENSION"))
+```
+
+
+Cancer 
+
+```{r eval=FALSE, echo=TRUE}
+inspect(no_cancer.association.rules[1:20])
+     lhs                                                           rhs             support confidence     lift count
+[1]  {Has not rode in a vehicle within the past 7 days,                                                             
+      NO DIABETES,                                                                                                  
+      Smokers present in house,                                                                                     
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001018953  1.0000000 3.955663    10
+[2]  {Has not rode in a vehicle within the past 7 days,                                                             
+      Right-handed,                                                                                                 
+      Smokers present in house,                                                                                     
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001018953  1.0000000 3.955663    10
+[3]  {Has not requested emergency food assistance,                                                                  
+      Has not rode in a vehicle within the past 7 days,                                                             
+      Smokers present in house,                                                                                     
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001018953  1.0000000 3.955663    10
+[4]  {Has not rode in a vehicle within the past 7 days,                                                             
+      No health insurance coverage,                                                                                 
+      NO HYPERTENSION,                                                                                              
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001222743  1.0000000 3.955663    12
+[5]  {Has not rode in a vehicle within the past 7 days,                                                             
+      NO DIABETES,                                                                                                  
+      No health insurance coverage,                                                                                 
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001324638  1.0000000 3.955663    13
+[6]  {Has not rode in a vehicle within the past 7 days,                                                             
+      No health insurance coverage,                                                                                 
+      Right-handed,                                                                                                 
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001324638  1.0000000 3.955663    13
+[7]  {Has not requested emergency food assistance,                                                                  
+      Has not rode in a vehicle within the past 7 days,                                                             
+      No health insurance coverage,                                                                                 
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001222743  1.0000000 3.955663    12
+[8]  {Born outside of US,                                                                                           
+      Has not rode in a vehicle within the past 7 days,                                                             
+      NO HYPERTENSION,                                                                                              
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001222743  1.0000000 3.955663    12
+[9]  {Born outside of US,                                                                                           
+      Has not rode in a vehicle within the past 7 days,                                                             
+      NO DIABETES,                                                                                                  
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001222743  1.0000000 3.955663    12
+[10] {Born outside of US,                                                                                           
+      Has not rode in a vehicle within the past 7 days,                                                             
+      Right-handed,                                                                                                 
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001222743  1.0000000 3.955663    12
+[11] {Born outside of US,                                                                                           
+      Has not requested emergency food assistance,                                                                  
+      Has not rode in a vehicle within the past 7 days,                                                             
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001120848  1.0000000 3.955663    11
+[12] {Has not rode in a vehicle within the past 7 days,                                                             
+      Male,                                                                                                         
+      NO HYPERTENSION,                                                                                              
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001018953  0.9090909 3.596057    10
+[13] {Has not requested emergency food assistance,                                                                  
+      Has not rode in a vehicle within the past 7 days,                                                             
+      NO HYPERTENSION,                                                                                              
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001528429  0.9375000 3.708434    15
+[14] {Has not rode in a vehicle within the past 7 days,                                                             
+      Male,                                                                                                         
+      NO DIABETES,                                                                                                  
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001120848  0.9166667 3.626024    11
+[15] {Has not requested emergency food assistance,                                                                  
+      Has not rode in a vehicle within the past 7 days,                                                             
+      NO DIABETES,                                                                                                  
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001630324  0.9411765 3.722977    16
+[16] {Has not rode in a vehicle within the past 7 days,                                                             
+      Male,                                                                                                         
+      Right-handed,                                                                                                 
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001120848  0.9166667 3.626024    11
+[17] {Has not requested emergency food assistance,                                                                  
+      Has not rode in a vehicle within the past 7 days,                                                             
+      Male,                                                                                                         
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001120848  1.0000000 3.955663    11
+[18] {Has not requested emergency food assistance,                                                                  
+      Has not rode in a vehicle within the past 7 days,                                                             
+      Right-handed,                                                                                                 
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001630324  0.9411765 3.722977    16
+[19] {No health insurance coverage,                                                                                 
+      NO HYPERTENSION,                                                                                              
+      Smokers present in house,                                                                                     
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001222743  1.0000000 3.955663    12
+[20] {NO DIABETES,                                                                                                  
+      No health insurance coverage,                                                                                 
+      Smokers present in house,                                                                                     
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001324638  1.0000000 3.955663    13
+> 
+```
+
+
+Diabetes
+
+```{r eval=FALSE, echo=TRUE}
+inspect(no_diabetes.association.rules[1:20])
+     lhs                                                                rhs               support confidence     lift count
+[1]  {Visits multiple places for healthcare(not once location)}      => {NO DIABETES} 0.005094763  0.9615385 3.979982    50
+[2]  {Smokers present in houses}                                     => {NO DIABETES} 0.006317506  0.9841270 4.073480    62
+[3]  {Plays 5 or more hours of video games over the past 30 days}    => {NO DIABETES} 0.015793764  0.9509202 3.936032   155
+[4]  {Plays 3 hours of video games over the past 30 days}            => {NO DIABETES} 0.016812717  0.9649123 3.993947   165
+[5]  {Mostly visits an emergency room for healthcare}                => {NO DIABETES} 0.027919299  0.9319728 3.857605   274
+[6]  {Plays 2 hours of video games over the past 30 days}            => {NO DIABETES} 0.031791319  0.9483283 3.925303   312
+[7]  {Plays 1 hour of video games over the past 30 days}             => {NO DIABETES} 0.038006929  0.9588689 3.968933   373
+[8]  {Plays less than an hours of video games over the past 30 days} => {NO DIABETES} 0.054106379  0.9550360 3.953067   531
+[9]  {Smokers present in house}                                      => {NO DIABETES} 0.060831465  0.9255814 3.831150   597
+[10] {No smokers present in house}                                   => {NO DIABETES} 0.174444671  0.9194415 3.805735  1712
+[11] {Mostly visits a clinic or health center for healthcare}        => {NO DIABETES} 0.193397188  0.9267578 3.836019  1898
+[12] {NO HYPERTENSION}                                               => {NO DIABETES} 0.203382922  0.9661181 3.998938  1996
+[13] {Has rode in a vehicle within the past 7 days}                  => {NO DIABETES} 0.205217037  0.9276831 3.839849  2014
+[14] {NO CANCER}                                                     => {NO DIABETES} 0.235887508  0.9330915 3.862235  2315
+[15] {Has not rode in a vehicle within the past 7 days,                                                                    
+      Visits multiple places for healthcare(not once location)}      => {NO DIABETES} 0.001936010  1.0000000 4.139182    19
+[16] {Smokers present in house,                                                                                            
+      Visits multiple places for healthcare(not once location)}      => {NO DIABETES} 0.001834115  1.0000000 4.139182    18
+[17] {Other,                                                                                                               
+      Visits multiple places for healthcare(not once location)}      => {NO DIABETES} 0.002037905  1.0000000 4.139182    20
+[18] {Does not play video games,                                                                                           
+      Visits multiple places for healthcare(not once location)}      => {NO DIABETES} 0.002343591  0.9583333 3.966716    23
+[19] {Household income between $25000 - $34999,                                                                            
+      Visits multiple places for healthcare(not once location)}      => {NO DIABETES} 0.001120848  0.9166667 3.794250    11
+[20] {Rarely-less than once a week,                                                                                        
+      Visits multiple places for healthcare(not once location)}      => {NO DIABETES} 0.001222743  1.0000000 4.139182    12
+> 
+```
+
+
+The rules for not having Hypertension 
+
+```{r eval=FALSE, echo=TRUE}
+inspect(no_hypertension.association.rules[1:20])
+     lhs                                                                rhs                   support confidence     lift count
+[1]  {Visits multiple places for healthcare(not once location)}      => {NO HYPERTENSION} 0.004789077  0.9038462 4.293488    47
+[2]  {Smokers present in houses}                                     => {NO HYPERTENSION} 0.005400448  0.8412698 3.996235    53
+[3]  {Healthcare is received from non-standard facility}             => {NO HYPERTENSION} 0.006419401  0.8289474 3.937701    63
+[4]  {Plays 5 or more hours of video games over the past 30 days}    => {NO HYPERTENSION} 0.013450173  0.8098160 3.846822   132
+[5]  {Plays 3 hours of video games over the past 30 days}            => {NO HYPERTENSION} 0.014774811  0.8479532 4.027983   145
+[6]  {Mostly visits an emergency room for healthcare}                => {NO HYPERTENSION} 0.024454860  0.8163265 3.877749   240
+[7]  {Plays 2 hours of video games over the past 30 days}            => {NO HYPERTENSION} 0.028632566  0.8541033 4.057198   281
+[8]  {Plays 1 hour of video games over the past 30 days}             => {NO HYPERTENSION} 0.032300795  0.8149100 3.871020   317
+[9]  {Plays less than an hours of video games over the past 30 days} => {NO HYPERTENSION} 0.046668025  0.8237410 3.912969   458
+[10] {No smokers present in house}                                   => {NO HYPERTENSION} 0.154880783  0.8163265 3.877749  1520
+[11] {Mostly visits a clinic or health center for healthcare}        => {NO HYPERTENSION} 0.168840432  0.8090820 3.843335  1657
+[12] {Has rode in a vehicle within the past 7 days}                  => {NO HYPERTENSION} 0.178928062  0.8088439 3.842204  1756
+[13] {NO DIABETES}                                                   => {NO HYPERTENSION} 0.203382922  0.8418389 3.998938  1996
+[14] {NO CANCER}                                                     => {NO HYPERTENSION} 0.206847361  0.8182185 3.886736  2030
+[15] {Has not rode in a vehicle within the past 7 days,                                                                        
+      Visits multiple places for healthcare(not once location)}      => {NO HYPERTENSION} 0.001834115  0.9473684 4.500229    18
+[16] {Smokers present in house,                                                                                                
+      Visits multiple places for healthcare(not once location)}      => {NO HYPERTENSION} 0.001630324  0.8888889 4.222437    16
+[17] {Other,                                                                                                                   
+      Visits multiple places for healthcare(not once location)}      => {NO HYPERTENSION} 0.002037905  1.0000000 4.750242    20
+[18] {Does not play video games,                                                                                               
+      Visits multiple places for healthcare(not once location)}      => {NO HYPERTENSION} 0.002241696  0.9166667 4.354389    22
+[19] {Household income between $25000 - $34999,                                                                                
+      Visits multiple places for healthcare(not once location)}      => {NO HYPERTENSION} 0.001018953  0.8333333 3.958535    10
+[20] {Rarely-less than once a week,                                                                                            
+      Visits multiple places for healthcare(not once location)}      => {NO HYPERTENSION} 0.001120848  0.9166667 4.354389    11
+> 
+```
+
 
 ## Conclusion for Problem 2
 
