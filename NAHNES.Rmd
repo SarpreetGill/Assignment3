@@ -3138,7 +3138,27 @@ inspect(no_hypertension.association.rules[1:20])
 ```
 
 
-## Conclusion for Problem 2
+## Conclusion 
+
+As we’ve gathered data for having diseases and not having diseases, we’ve attempted to gather insights from the findings that could provide business value to the marketing department as per the defined initial business problem.  Please note the association rules do not establish causation.  These association rules are only to highlight values that are associated or appear together.  And our conclusion is subjective based on our interpretation of the data.     
+
+These association rules show what related items are found in conjunction with having different diseases and health conditions.  Below, we will discuss some of our findings: 
+
+The value associated with drinking milk multiple times a day or week appears several times in diabetes and cancer conditions.  Additionally, the values for drinking milk do not appear in the association rules for not having cancer/diabetes.  It might be valid to position marketing  for drugs on cancer/diabetes in conjunction with milk placement. For example, youtube video often place advertisements in pairs.  Then, we could place a cancer drug advertisement appear after a milk advertisement in a youtube video.      
+
+For hypertension, many of the associated values for income are under $24,999.  For marketing, placement of billboards in areas where salaries are under $24,999 could be helpful to market drugs towards those with hypertension.
+
+Although, our business is focused on marketing drugs to patients for cancer, diabetes, and hypertension.  We can look for out of the box solutions. If the business was looking to develop drugs (or supplements) related to the prevention of hypertension, we could use data to identify associations with audiences that do not already have a disease.   
+
+In summary, these are a few of the suggestions that could be derived from the data.  We think these suggestions could have value and provide the “so what” for our conclusions.  
+
+### Limitations of the conclusions   
+
+The association models used in the preceding sections contained 18 variables.  We will provide our results to the business.  However,  the associations rules could be improved by adding more categorical variables or numerical variables (which have been binned).  The activity of recoding and binning values from the raw data increases the overhead of adding more attributes.  However, in the event, the business is intrigued by the findings, more data can be incorporated in the association ruleset.  
+
+Within the data for not having diseases, frequently, the condition not having medical insurance appears multiple times.  Is this an indication, people without medical insurance are truly not associated with the diseases? Recall the data for the field is based on a questionnaire that presuppositions, the individual has seen a doctor.  If the individual has not seen a doctor for diagnose due to health insurance coverage, then they may not have been able to accurately ascertain whether they have a particular disease.    
+
+
 
 # Problem 3: Supervised 
 
