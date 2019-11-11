@@ -1792,45 +1792,7 @@ ggplot(demo_subset_8, aes(x =Gender, y = Age)) +
 
 
 
-## Cluster Model for Diet (OPTIONAL)
 
-```{r, eval=FALSE, echo=TRUE}
-
-
-```
-
-
-## Cluster Model for Examination  (OPTIONAL)
-
-```{r, eval=FALSE, echo=TRUE}
-
-
-```
-
-
-
-## Cluster Model for Labs (OPTIONAL)
-
-```{r, eval=FALSE, echo=TRUE}
-
-
-```
-
-
-## Cluster Model for Medications (OPTIONAL)
-
-```{r, eval=FALSE, echo=TRUE}
-
-
-```
-
-
-## Cluster Model for Questionanaire (OPTIONAL)
-
-```{r, eval=FALSE, echo=TRUE}
-
-
-```
 
 
 # Problem 1: Clustering
@@ -1980,6 +1942,974 @@ rules_for_individuals <- apriori(individuals_transaction_class, parameter = list
 
 We plot the 20 most frequent values found within the data. 
 
+![](Figures/absolute_value_frequency_plot.png){width=500px}
+
+Per the above, as expected, US citizen, right-handed, born in US are some of the most frequent values.  Also, it is also that the values for not having diseases is also at the top of the list.  
+
+OVer 400,000 rules are produced for entire data, let's take a glance at 5 of them below.
+
+```{r eval=FALSE, echo=TRUE}
+ inspect(rules_for_individuals[1:5])
+    lhs                                                                                                                                                                                                                                         rhs                                               support confidence     lift count
+[1] {}                                                                                                                                                                                                                                       => {Right-handed}                                0.874363155  0.8743632 1.000000  8581
+[2] {}                                                                                                                                                                                                                                       => {Has not requested emergency food assistance} 0.889341757  0.8893418 1.000000  8728
+[3] {}                                                                                                                                                                                                                                       => {US citizen}                                  0.905339311  0.9053393 1.000000  8885
+[4] {Mostly visits doctors office for healthcare , Does not play video games , No smokers present in house , Has not rode in a vehicle within the past 7 days , HAS DIABETES , NO CANCER , NO HYPERTENSION}                                  => {Has not requested emergency food assistance} 0.001018953  1.0000000 1.124427    10
+[5] {Mostly visits doctors office for healthcare , Plays less than an hours of video games over the past 30 days , Smokers present in house , Has not rode in a vehicle within the past 7 days , NO DIABETES , NO CANCER , HAS HYPERTENSION} => {US citizen}                                  0.001018953  1.0000000 1.104558    10
+
+```
+
+In the above output, we can see different association mining rules for the entire dataset.  The rules have LHS and RHS which demonstrate the relation between itemsets(collections of values).  The items on LHS are associated and occur with the single item on the RHS. Now we will proceed to create association rules for having and not having the particular diseases (cancer, diabetes, hypertension).  The RHS will be set to the particular health conditions/disases.  And we will observe what typse of associations are discovered on the LHS. 
+
+
+### Association rules for having diseases
+
+In order to produce a list of association rules, we had to experiement with "conf"(confidence) parameter.  For example, with positive cancer rules, we had to lower the confidence to 0.4 to produce mining rules.  For each health condition(disaease),we have created 2 sets of rules.  The first set of rules allow larger number of items to be produced on the LHS (maxlen=15); whereas, the second set of rules forces the rules to have a small amount of rules (maxlen=3).  
+
+```{r eval=FALSE, echo=TRUE}
+
+# Association for having cancer (large itemset allowed on LHS, maxlen=15)
+has_cancer.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.4, maxlen=15), appearance=list(default="lhs", rhs="HAS CANCER"))
+
+# Association for having cancer (small itemset allowed on LHS, maxlen=3)
+has_cancer.association.rules_smallitemset <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.1, maxlen=3), appearance=list(default="lhs", rhs="HAS CANCER"))
+
+# Association for having diabetes (large itemset allowed on LHS, maxlen=15)
+has_diabetes.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.7, maxlen=15), appearance=list(default="lhs", rhs="HAS DIABETES"))
+
+# Association for having diabetes (small itemset allowed on LHS, maxlen=3)
+has_diabetes.association.rules_smallitemset <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.4, maxlen=3), appearance=list(default="lhs", rhs="HAS DIABETES"))
+
+# Association for having hypertension (large itemset allowed on LHS, maxlen=15)
+has_hypertension.association.rules_smallitemset <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.4, maxlen=3), appearance=list(default="lhs", rhs="HAS HYPERTENSION"))
+
+# Association for having hypertension (small itemset allowed on LHS, maxlen=3)
+has_hypertension.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.8, maxlen=15), appearance=list(default="lhs", rhs="HAS HYPERTENSION"))
+
+```
+
+Now with association rules, we can examine them and observe the LHS items that are found in conjunction with various diseases: 
+
+### Cancer: Association Rules 
+
+First, we look at large item sets.  
+
+```{r eval=FALSE, echo=TRUE}
+> inspect(has_cancer.association.rules)
+     lhs                                                            rhs              support confidence     lift count
+[1]  {Has health insurance coverage,                                                                                  
+      HAS HYPERTENSION,                                                                                               
+      Male,                                                                                                           
+      Mostly visits outpatient departments for healthcare}       => {HAS CANCER} 0.001018953  0.4347826 47.94333    10
+[2]  {Has health insurance coverage,                                                                                  
+      HAS HYPERTENSION,                                                                                               
+      Male,                                                                                                           
+      Mostly visits outpatient departments for healthcare,                                                            
+      US citizen}                                                => {HAS CANCER} 0.001018953  0.4347826 47.94333    10
+[3]  {{you do not/SP does not} use a computer outside of school,                                                      
+      Drinks milk multiple times a week,                                                                              
+      HAS DIABETES,                                                                                                   
+      Has not requested emergency food assistance,                                                                    
+      Mostly visits a clinic or health center for healthcare}    => {HAS CANCER} 0.001018953  0.4761905 52.50936    10
+[4]  {Born in US,                                                                                                     
+      Drinks milk multiple times a day,                                                                               
+      HAS DIABETES,                                                                                                   
+      Has health insurance coverage,                                                                                  
+      No smokers present in house}                               => {HAS CANCER} 0.001018953  0.4000000 44.10787    10
+[5]  {Born in US,                                                                                                     
+      HAS DIABETES,                                                                                                   
+      Has health insurance coverage,                                                                                  
+      No smokers present in house,                                                                                    
+      Right-handed,                                                                                                   
+      White}                                                     => {HAS CANCER} 0.001018953  0.4000000 44.10787    10
+[6]  {Born in US,                                                                                                     
+      Drinks milk multiple times a day,                                                                               
+      HAS DIABETES,                                                                                                   
+      Has health insurance coverage,                                                                                  
+      No smokers present in house,                                                                                    
+      Right-handed}                                              => {HAS CANCER} 0.001018953  0.4000000 44.10787    10
+[7]  {Born in US,                                                                                                     
+      Drinks milk multiple times a day,                                                                               
+      HAS DIABETES,                                                                                                   
+      Has health insurance coverage,                                                                                  
+      No smokers present in house,                                                                                    
+      US citizen}                                                => {HAS CANCER} 0.001018953  0.4000000 44.10787    10
+[8]  {Born in US,                                                                                                     
+      Drinks milk multiple times a day,                                                                               
+      Has health insurance coverage,                                                                                  
+      HAS HYPERTENSION,                                                                                               
+      Male,                                                                                                           
+      No smokers present in house}                               => {HAS CANCER} 0.001120848  0.4583333 50.54026    11
+[9]  {Drinks milk multiple times a day,                                                                               
+      Has health insurance coverage,                                                                                  
+      HAS HYPERTENSION,                                                                                               
+      Male,                                                                                                           
+      No smokers present in house,                                                                                    
+      Right-handed}                                              => {HAS CANCER} 0.001120848  0.4074074 44.92468    11
+[10] {Drinks milk multiple times a day,                                                                               
+      Has health insurance coverage,                                                                                  
+      HAS HYPERTENSION,                                                                                               
+      Male,                                                                                                           
+      No smokers present in house,                                                                                    
+      US citizen}                                                => {HAS CANCER} 0.001222743  0.4137931 45.62883    12
+```
+
+Next we look at small itemsets: 
+
+```{r eval=FALSE, echo=TRUE}
+> inspect(has_cancer.association.rules_smallitemset)
+     lhs                                                                                    rhs          support     confidence lift     count
+[1]  {Mostly visits outpatient departments for healthcare}                               => {HAS CANCER} 0.001018953 0.1010101  11.13835 10   
+[2]  {HAS DIABETES}                                                                      => {HAS CANCER} 0.003362543 0.1658291  18.28592 33   
+[3]  {HAS HYPERTENSION}                                                                  => {HAS CANCER} 0.005400448 0.1051587  11.59582 53   
+[4]  {HAS HYPERTENSION,Mostly visits outpatient departments for healthcare}              => {HAS CANCER} 0.001018953 0.2500000  27.56742 10   
+[5]  {Male,Mostly visits outpatient departments for healthcare}                          => {HAS CANCER} 0.001018953 0.1666667  18.37828 10   
+[6]  {Has health insurance coverage,Mostly visits outpatient departments for healthcare} => {HAS CANCER} 0.001018953 0.1234568  13.61354 10   
+[7]  {Mostly visits outpatient departments for healthcare,US citizen}                    => {HAS CANCER} 0.001018953 0.1111111  12.25218 10   
+[8]  {HAS DIABETES,HAS HYPERTENSION}                                                     => {HAS CANCER} 0.002343591 0.1782946  19.66048 23   
+[9]  {Does not play video games,HAS DIABETES}                                            => {HAS CANCER} 0.002139800 0.1794872  19.79199 21   
+[10] {Born outside of US,HAS DIABETES}                                                   => {HAS CANCER} 0.001018953 0.1219512  13.44752 10   
+[11] {Drinks milk multiple times a week,HAS DIABETES}                                    => {HAS CANCER} 0.001324638 0.2166667  23.89176 13   
+[12] {HAS DIABETES,No smokers present in house}                                          => {HAS CANCER} 0.003056858 0.2000000  22.05393 30   
+[13] {HAS DIABETES,Mostly visits a clinic or health center for healthcare}               => {HAS CANCER} 0.002649277 0.1733333  19.11341 26   
+[14] {HAS DIABETES,NO HYPERTENSION}                                                      => {HAS CANCER} 0.001018953 0.1428571  15.75281 10   
+[15] {HAS DIABETES,Has rode in a vehicle within the past 7 days}                         => {HAS CANCER} 0.002649277 0.1656051  18.26122 26   
+[16] {HAS DIABETES,White}                                                                => {HAS CANCER} 0.001222743 0.2926829  32.27405 12   
+[17] {HAS DIABETES,Male}                                                                 => {HAS CANCER} 0.001732219 0.1666667  18.37828 17   
+[18] {Female,HAS DIABETES}                                                               => {HAS CANCER} 0.001630324 0.1649485  18.18881 16   
+[19] {Drinks milk multiple times a day,HAS DIABETES}                                     => {HAS CANCER} 0.001426534 0.2121212  23.39053 14   
+[20] {HAS DIABETES,Married}                                                              => {HAS CANCER} 0.001426534 0.1473684  16.25027 14   
+[21] {Born in US,HAS DIABETES}                                                           => {HAS CANCER} 0.002343591 0.1965812  21.67694 23   
+[22] {HAS DIABETES,Has health insurance coverage}                                        => {HAS CANCER} 0.002751172 0.1849315  20.39233 27   
+[23] {HAS DIABETES,Right-handed}                                                         => {HAS CANCER} 0.003056858 0.1685393  18.58477 30   
+[24] {HAS DIABETES,Has not requested emergency food assistance}                          => {HAS CANCER} 0.002751172 0.1730769  19.08513 27   
+[25] {HAS DIABETES,US citizen}                                                           => {HAS CANCER} 0.002853067 0.1728395  19.05895 28   
+[26] {HAS HYPERTENSION,Widowed}                                                          => {HAS CANCER} 0.001120848 0.2037037  22.46234 11   
+[27] {No smokers present in house,Widowed}                                               => {HAS CANCER} 0.001528429 0.1648352  18.17632 15   
+[28] {Has rode in a vehicle within the past 7 days,Widowed}                              => {HAS CANCER} 0.001018953 0.1052632  11.60733 10   
+[29] {HAS HYPERTENSION,Has not rode in a vehicle within the past 7 days}                 => {HAS CANCER} 0.001120848 0.1235955  13.62883 11   
+[30] {HAS HYPERTENSION,Plays less than an hours of video games over the past 30 days}    => {HAS CANCER} 0.001018953 0.1020408  11.25201 10   
+[31] {Divorced,HAS HYPERTENSION}                                                         => {HAS CANCER} 0.001120848 0.1358025  14.97489 11   
+[32] {HAS HYPERTENSION,Has requested emergency food assistance}                          => {HAS CANCER} 0.001426534 0.1359223  14.98811 14   
+[33] {Does not play video games,HAS HYPERTENSION}                                        => {HAS CANCER} 0.002445486 0.1159420  12.78489 24   
+[34] {Black,HAS HYPERTENSION}                                                            => {HAS CANCER} 0.001528429 0.1027397  11.32907 15   
+[35] {Drinks milk multiple times a week,HAS HYPERTENSION}                                => {HAS CANCER} 0.002037905 0.1226994  13.53002 20   
+[36] {HAS HYPERTENSION,No smokers present in house}                                      => {HAS CANCER} 0.004177705 0.1198830  13.21946 41   
+[37] {HAS HYPERTENSION,Has rode in a vehicle within the past 7 days}                     => {HAS CANCER} 0.004279601 0.1012048  11.15982 42   
+[38] {HAS HYPERTENSION,White}                                                            => {HAS CANCER} 0.002343591 0.1586207  17.49105 23   
+[39] {HAS HYPERTENSION,Male}                                                             => {HAS CANCER} 0.002751172 0.1097561  12.10277 27   
+[40] {Female,HAS HYPERTENSION}                                                           => {HAS CANCER} 0.002649277 0.1007752  11.11245 26   
+[41] {Drinks milk multiple times a day,HAS HYPERTENSION}                                 => {HAS CANCER} 0.002343591 0.1428571  15.75281 23   
+[42] {Born in US,HAS HYPERTENSION}                                                       => {HAS CANCER} 0.004483391 0.1282799  14.14538 44   
+[43] {Has health insurance coverage,HAS HYPERTENSION}                                    => {HAS CANCER} 0.004890972 0.1333333  14.70262 48   
+[44] {HAS HYPERTENSION,Right-handed}                                                     => {HAS CANCER} 0.004890972 0.1083521  11.94795 48   
+[45] {HAS HYPERTENSION,US citizen}                                                       => {HAS CANCER} 0.005094763 0.1187648  13.09616 50   
+> 
+```
+
+In order to build the association mining lists, we had to reduce confidence levels to under 0.5.  
+
+### Diabetes: Association Rules
+
+```{r eval=FALSE, echo=TRUE}
+> inspect(has_diabetes.association.rules)
+     lhs                                                            rhs                support confidence     lift count
+[1]  {{you do not/SP does not} use a computer outside of school,                                                        
+      Drinks milk multiple times a week,                                                                                
+      HAS CANCER,                                                                                                       
+      Mostly visits a clinic or health center for healthcare}    => {HAS DIABETES} 0.001120848  0.7857143 38.74874    11
+[2]  {{you do not/SP does not} use a computer outside of school,                                                        
+      Drinks milk multiple times a week,                                                                                
+      HAS CANCER,                                                                                                       
+      Has not requested emergency food assistance}               => {HAS DIABETES} 0.001018953  0.9090909 44.83326    10
+[3]  {Drinks milk multiple times a week,                                                                                
+      HAS HYPERTENSION,                                                                                                 
+      Has rode in a vehicle within the past 7 days,                                                                     
+      Household income between $20000 - $24999}                  => {HAS DIABETES} 0.001324638  0.7222222 35.61753    13
+[4]  {{you do not/SP does not} use a computer outside of school,                                                        
+      HAS CANCER,                                                                                                       
+      HAS HYPERTENSION,                                                                                                 
+      Mostly visits a clinic or health center for healthcare,                                                           
+      US citizen}                                                => {HAS DIABETES} 0.001018953  0.7142857 35.22613    10
+[5]  {{you do not/SP does not} use a computer outside of school,                                                        
+      HAS CANCER,                                                                                                       
+      HAS HYPERTENSION,                                                                                                 
+      Has not requested emergency food assistance,                                                                      
+      US citizen}                                                => {HAS DIABETES} 0.001018953  0.7142857 35.22613    10
+[6]  {{you do not/SP does not} use a computer outside of school,                                                        
+      Drinks milk multiple times a week,                                                                                
+      HAS CANCER,                                                                                                       
+      Has not requested emergency food assistance,                                                                      
+      Mostly visits a clinic or health center for healthcare}    => {HAS DIABETES} 0.001018953  0.9090909 44.83326    10
+[7]  {{you do not/SP does not} use a computer outside of school,                                                        
+      HAS CANCER,                                                                                                       
+      Has not requested emergency food assistance,                                                                      
+      Mostly visits a clinic or health center for healthcare,                                                           
+      US citizen}                                                => {HAS DIABETES} 0.001018953  0.7692308 37.93583    10
+[8]  {{you do not/SP does not} use a computer outside of school,                                                        
+      Drinks milk multiple times a day,                                                                                 
+      HAS HYPERTENSION,                                                                                                 
+      Has not rode in a vehicle within the past 7 days,                                                                 
+      US citizen}                                                => {HAS DIABETES} 0.001018953  0.7142857 35.22613    10
+[9]  {Drinks milk multiple times a week,                                                                                
+      HAS HYPERTENSION,                                                                                                 
+      Has rode in a vehicle within the past 7 days,                                                                     
+      Household income between $20000 - $24999,                                                                         
+      Mostly visits a clinic or health center for healthcare}    => {HAS DIABETES} 0.001120848  0.7333333 36.16549    11
+[10] {Drinks milk multiple times a week,                                                                                
+      HAS HYPERTENSION,                                                                                                 
+      Household income between $20000 - $24999,                                                                         
+      Mostly visits a clinic or health center for healthcare,                                                           
+      Right-handed}                                              => {HAS DIABETES} 0.001222743  0.7058824 34.81171    12
+[11] {Drinks milk multiple times a week,                                                                                
+      HAS HYPERTENSION,                                                                                                 
+      Has rode in a vehicle within the past 7 days,                                                                     
+      Household income between $20000 - $24999,                                                                         
+      Right-handed}                                              => {HAS DIABETES} 0.001324638  0.7647059 37.71268    13
+[12] {Drinks milk multiple times a week,                                                                                
+      HAS HYPERTENSION,                                                                                                 
+      Has not requested emergency food assistance,                                                                      
+      Has rode in a vehicle within the past 7 days,                                                                     
+      Household income between $20000 - $24999}                  => {HAS DIABETES} 0.001018953  0.7142857 35.22613    10
+[13] {Drinks milk multiple times a week,                                                                                
+      HAS HYPERTENSION,                                                                                                 
+      Has rode in a vehicle within the past 7 days,                                                                     
+      Household income between $20000 - $24999,                                                                         
+      US citizen}                                                => {HAS DIABETES} 0.001120848  0.7857143 38.74874    11
+[14] {Drinks milk multiple times a week,                                                                                
+      Has health insurance coverage,                                                                                    
+      HAS HYPERTENSION,                                                                                                 
+      Has rode in a vehicle within the past 7 days,                                                                     
+      Mexican_American}                                          => {HAS DIABETES} 0.001222743  0.7058824 34.81171    12
+[15] {Drinks milk multiple times a week,                                                                                
+      Has health insurance coverage,                                                                                    
+      HAS HYPERTENSION,                                                                                                 
+      Mexican_American,                                                                                                 
+      US citizen}                                                => {HAS DIABETES} 0.001018953  0.7142857 35.22613    10
+[16] {Drinks milk multiple times a week,                                                                                
+      HAS HYPERTENSION,                                                                                                 
+      Has not requested emergency food assistance,                                                                      
+      Mexican_American,                                                                                                 
+      US citizen}                                                => {HAS DIABETES} 0.001018953  0.7142857 35.22613    10
+[17] {Born in US,                                                                                                       
+      Has health insurance coverage,                                                                                    
+      HAS HYPERTENSION,                                                                                                 
+      Mexican_American,                                                                                                 
+      No smokers present in house}                               => {HAS DIABETES} 0.001222743  0.7058824 34.81171    12
+[18] {Born in US,                                                                                                       
+      Drinks milk multiple times a day,                                                                                 
+      Has health insurance coverage,                                                                                    
+      HAS HYPERTENSION,                                                                                                 
+      Right-handed,                                                                                                     
+      Widowed}                                                   => {HAS DIABETES} 0.001018953  0.7142857 35.22613    10
+[19] {Drinks milk multiple times a week,                                                                                
+      HAS HYPERTENSION,                                                                                                 
+      Has rode in a vehicle within the past 7 days,                                                                     
+      Household income between $20000 - $24999,                                                                         
+      Mostly visits a clinic or health center for healthcare,                                                           
+      Right-handed}                                              => {HAS DIABETES} 0.001120848  0.7857143 38.74874    11
+[20] {Drinks milk multiple times a week,                                                                                
+      HAS HYPERTENSION,                                                                                                 
+      Has not requested emergency food assistance,                                                                      
+      Household income between $20000 - $24999,                                                                         
+      Mostly visits a clinic or health center for healthcare,                                                           
+      Right-handed}                                              => {HAS DIABETES} 0.001018953  0.7142857 35.22613    10
+[21] {Drinks milk multiple times a week,                                                                                
+      HAS HYPERTENSION,                                                                                                 
+      Household income between $20000 - $24999,                                                                         
+      Mostly visits a clinic or health center for healthcare,                                                           
+      Right-handed,                                                                                                     
+      US citizen}                                                => {HAS DIABETES} 0.001018953  0.7142857 35.22613    10
+[22] {Drinks milk multiple times a week,                                                                                
+      HAS HYPERTENSION,                                                                                                 
+      Has rode in a vehicle within the past 7 days,                                                                     
+      Household income between $20000 - $24999,                                                                         
+      NO CANCER,                                                                                                        
+      Right-handed}                                              => {HAS DIABETES} 0.001120848  0.7333333 36.16549    11
+[23] {Drinks milk multiple times a week,                                                                                
+      HAS HYPERTENSION,                                                                                                 
+      Has not requested emergency food assistance,                                                                      
+      Has rode in a vehicle within the past 7 days,                                                                     
+      Household income between $20000 - $24999,                                                                         
+      Right-handed}                                              => {HAS DIABETES} 0.001018953  0.7692308 37.93583    10
+[24] {Drinks milk multiple times a week,                                                                                
+      HAS HYPERTENSION,                                                                                                 
+      Has rode in a vehicle within the past 7 days,                                                                     
+      Household income between $20000 - $24999,                                                                         
+      Right-handed,                                                                                                     
+      US citizen}                                                => {HAS DIABETES} 0.001120848  0.7857143 38.74874    11
+[25] {Has health insurance coverage,                                                                                    
+      HAS HYPERTENSION,                                                                                                 
+      Household income between $20000 - $24999,                                                                         
+      Male,                                                                                                             
+      No smokers present in house,                                                                                      
+      Right-handed}                                              => {HAS DIABETES} 0.001018953  0.7142857 35.22613    10
+[26] {Drinks milk multiple times a week,                                                                                
+      Has health insurance coverage,                                                                                    
+      HAS HYPERTENSION,                                                                                                 
+      Has not requested emergency food assistance,                                                                      
+      Has rode in a vehicle within the past 7 days,                                                                     
+      Mexican_American}                                          => {HAS DIABETES} 0.001120848  0.7333333 36.16549    11
+[27] {Drinks milk multiple times a week,                                                                                
+      Has health insurance coverage,                                                                                    
+      HAS HYPERTENSION,                                                                                                 
+      Has rode in a vehicle within the past 7 days,                                                                     
+      Mexican_American,                                                                                                 
+      US citizen}                                                => {HAS DIABETES} 0.001018953  0.7692308 37.93583    10
+[28] {Drinks milk multiple times a week,                                                                                
+      HAS HYPERTENSION,                                                                                                 
+      Has not requested emergency food assistance,                                                                      
+      Has rode in a vehicle within the past 7 days,                                                                     
+      Mexican_American,                                                                                                 
+      US citizen}                                                => {HAS DIABETES} 0.001018953  0.7142857 35.22613    10
+[29] {Born in US,                                                                                                       
+      Has health insurance coverage,                                                                                    
+      HAS HYPERTENSION,                                                                                                 
+      Has rode in a vehicle within the past 7 days,                                                                     
+      Mexican_American,                                                                                                 
+      No smokers present in house}                               => {HAS DIABETES} 0.001222743  0.7500000 36.98744    12
+[30] {Born in US,                                                                                                       
+      Has health insurance coverage,                                                                                    
+      HAS HYPERTENSION,                                                                                                 
+      Mexican_American,                                                                                                 
+      No smokers present in house,                                                                                      
+      Right-handed}                                              => {HAS DIABETES} 0.001222743  0.7058824 34.81171    12
+[31] {Born in US,                                                                                                       
+      Has health insurance coverage,                                                                                    
+      HAS HYPERTENSION,                                                                                                 
+      Has not requested emergency food assistance,                                                                      
+      Mexican_American,                                                                                                 
+      No smokers present in house}                               => {HAS DIABETES} 0.001018953  0.7142857 35.22613    10
+[32] {Born in US,                                                                                                       
+      Has health insurance coverage,                                                                                    
+      HAS HYPERTENSION,                                                                                                 
+      Mexican_American,                                                                                                 
+      No smokers present in house,                                                                                      
+      US citizen}                                                => {HAS DIABETES} 0.001222743  0.7058824 34.81171    12
+>
+```
+
+Next, we look at small itemsets
+
+```{r eval=FALSE, echo=TRUE}
+> inspect(has_diabetes.association.rules_smallitemset)
+    lhs                                                                    rhs            support     confidence lift     count
+[1] {HAS CANCER,HAS HYPERTENSION}                                       => {HAS DIABETES} 0.002343591 0.4339623  21.40154 23   
+[2] {Does not play video games,HAS CANCER}                              => {HAS DIABETES} 0.002139800 0.5384615  26.55508 21   
+[3] {Born outside of US,HAS CANCER}                                     => {HAS DIABETES} 0.001018953 0.5882353  29.00975 10   
+[4] {Drinks milk multiple times a week,HAS CANCER}                      => {HAS DIABETES} 0.001324638 0.4062500  20.03486 13   
+[5] {HAS CANCER,No smokers present in house}                            => {HAS DIABETES} 0.003056858 0.4225352  20.83799 30   
+[6] {HAS CANCER,Mostly visits a clinic or health center for healthcare} => {HAS DIABETES} 0.002649277 0.4000000  19.72663 26   
+[7] {Drinks milk multiple times a day,HAS CANCER}                       => {HAS DIABETES} 0.001426534 0.4000000  19.72663 14   
+[8] {HAS CANCER,Has not requested emergency food assistance}            => {HAS DIABETES} 0.002751172 0.4218750  20.80543 27   
+> 
+```
+
+
+### Hypertention: Association Rules
+
+```{r eval=FALSE, echo=TRUE}
+inspect(has_hypertension.association.rules[1:100])
+      lhs                                                                rhs                    support confidence     lift count
+[1]   {HAS CANCER,                                                                                                               
+       Mostly visits outpatient departments for healthcare}           => {HAS HYPERTENSION} 0.001018953  1.0000000 19.47222    10
+[2]   {Black,                                                                                                                    
+       HAS CANCER}                                                    => {HAS HYPERTENSION} 0.001528429  0.8333333 16.22685    15
+[3]   {HAS DIABETES,                                                                                                             
+       Household income between $20000 - $24999}                      => {HAS HYPERTENSION} 0.002649277  0.8387097 16.33154    26
+[4]   {Black,                                                                                                                    
+       HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.004177705  0.8200000 15.96722    41
+[5]   {HAS CANCER,                                                                                                               
+       Male,                                                                                                                     
+       Mostly visits outpatient departments for healthcare}           => {HAS HYPERTENSION} 0.001018953  1.0000000 19.47222    10
+[6]   {HAS CANCER,                                                                                                               
+       Has health insurance coverage,                                                                                            
+       Mostly visits outpatient departments for healthcare}           => {HAS HYPERTENSION} 0.001018953  1.0000000 19.47222    10
+[7]   {HAS CANCER,                                                                                                               
+       Mostly visits outpatient departments for healthcare,                                                                      
+       US citizen}                                                    => {HAS HYPERTENSION} 0.001018953  1.0000000 19.47222    10
+[8]   {HAS CANCER,                                                                                                               
+       Has rode in a vehicle within the past 7 days,                                                                             
+       Plays less than an hours of video games over the past 30 days} => {HAS HYPERTENSION} 0.001018953  0.8333333 16.22685    10
+[9]   {{you do not/SP does not} use a computer outside of school,                                                                
+       Black,                                                                                                                    
+       HAS CANCER}                                                    => {HAS HYPERTENSION} 0.001120848  0.9166667 17.84954    11
+[10]  {Black,                                                                                                                    
+       Drinks milk multiple times a week,                                                                                        
+       HAS CANCER}                                                    => {HAS HYPERTENSION} 0.001018953  0.9090909 17.70202    10
+[11]  {Black,                                                                                                                    
+       HAS CANCER,                                                                                                               
+       No smokers present in house}                                   => {HAS HYPERTENSION} 0.001120848  0.8461538 16.47650    11
+[12]  {Black,                                                                                                                    
+       HAS CANCER,                                                                                                               
+       Mostly visits a clinic or health center for healthcare}        => {HAS HYPERTENSION} 0.001018953  0.8333333 16.22685    10
+[13]  {Black,                                                                                                                    
+       HAS CANCER,                                                                                                               
+       Male}                                                          => {HAS HYPERTENSION} 0.001120848  0.8461538 16.47650    11
+[14]  {Black,                                                                                                                    
+       Born in US,                                                                                                               
+       HAS CANCER}                                                    => {HAS HYPERTENSION} 0.001528429  0.8333333 16.22685    15
+[15]  {Black,                                                                                                                    
+       HAS CANCER,                                                                                                               
+       Has health insurance coverage}                                 => {HAS HYPERTENSION} 0.001426534  0.8235294 16.03595    14
+[16]  {Black,                                                                                                                    
+       HAS CANCER,                                                                                                               
+       Right-handed}                                                  => {HAS HYPERTENSION} 0.001324638  0.8666667 16.87593    13
+[17]  {Black,                                                                                                                    
+       HAS CANCER,                                                                                                               
+       Has not requested emergency food assistance}                   => {HAS HYPERTENSION} 0.001018953  0.8333333 16.22685    10
+[18]  {Black,                                                                                                                    
+       HAS CANCER,                                                                                                               
+       US citizen}                                                    => {HAS HYPERTENSION} 0.001528429  0.8333333 16.22685    15
+[19]  {Drinks milk multiple times a day,                                                                                         
+       HAS CANCER,                                                                                                               
+       Male}                                                          => {HAS HYPERTENSION} 0.001426534  0.8235294 16.03595    14
+[20]  {$5000 - $9999,                                                                                                            
+       HAS DIABETES,                                                                                                             
+       No smokers present in house}                                   => {HAS HYPERTENSION} 0.001120848  0.8461538 16.47650    11
+[21]  {$5000 - $9999,                                                                                                            
+       HAS DIABETES,                                                                                                             
+       Has health insurance coverage}                                 => {HAS HYPERTENSION} 0.001018953  0.8333333 16.22685    10
+[22]  {$5000 - $9999,                                                                                                            
+       HAS DIABETES,                                                                                                             
+       Right-handed}                                                  => {HAS HYPERTENSION} 0.001222743  0.8000000 15.57778    12
+[23]  {$5000 - $9999,                                                                                                            
+       HAS DIABETES,                                                                                                             
+       US citizen}                                                    => {HAS HYPERTENSION} 0.001018953  0.8333333 16.22685    10
+[24]  {HAS DIABETES,                                                                                                             
+       White,                                                                                                                    
+       Widowed}                                                       => {HAS HYPERTENSION} 0.001120848  0.8461538 16.47650    11
+[25]  {Female,                                                                                                                   
+       HAS DIABETES,                                                                                                             
+       Widowed}                                                       => {HAS HYPERTENSION} 0.001426534  0.8750000 17.03819    14
+[26]  {Born in US,                                                                                                               
+       HAS DIABETES,                                                                                                             
+       Widowed}                                                       => {HAS HYPERTENSION} 0.001426534  0.8235294 16.03595    14
+[27]  {HAS DIABETES,                                                                                                             
+       Has health insurance coverage,                                                                                            
+       Widowed}                                                       => {HAS HYPERTENSION} 0.002037905  0.8000000 15.57778    20
+[28]  {HAS DIABETES,                                                                                                             
+       US citizen,                                                                                                               
+       Widowed}                                                       => {HAS HYPERTENSION} 0.002037905  0.8000000 15.57778    20
+[29]  {Female,                                                                                                                   
+       HAS DIABETES,                                                                                                             
+       Has not rode in a vehicle within the past 7 days}              => {HAS HYPERTENSION} 0.002139800  0.8076923 15.72756    21
+[30]  {Born in US,                                                                                                               
+       HAS DIABETES,                                                                                                             
+       Has not rode in a vehicle within the past 7 days}              => {HAS HYPERTENSION} 0.001324638  0.8125000 15.82118    13
+[31]  {$10000 - $14999,                                                                                                          
+       {you do not/SP does not} use a computer outside of school,                                                                
+       HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.001222743  0.8000000 15.57778    12
+[32]  {$10000 - $14999,                                                                                                          
+       Born in US,                                                                                                               
+       HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.001018953  0.8333333 16.22685    10
+[33]  {HAS DIABETES,                                                                                                             
+       Has not requested emergency food assistance,                                                                              
+       Plays less than an hours of video games over the past 30 days} => {HAS HYPERTENSION} 0.001630324  0.8000000 15.57778    16
+[34]  {Black,                                                                                                                    
+       HAS DIABETES,                                                                                                             
+       Smokers present in house}                                      => {HAS HYPERTENSION} 0.001426534  0.8235294 16.03595    14
+[35]  {Black,                                                                                                                    
+       HAS DIABETES,                                                                                                             
+       Household income between $20000 - $24999}                      => {HAS HYPERTENSION} 0.001120848  1.0000000 19.47222    11
+[36]  {Drinks milk multiple times a week,                                                                                        
+       HAS DIABETES,                                                                                                             
+       Household income between $20000 - $24999}                      => {HAS HYPERTENSION} 0.001426534  0.8750000 17.03819    14
+[37]  {HAS DIABETES,                                                                                                             
+       Household income between $20000 - $24999,                                                                                 
+       Mostly visits a clinic or health center for healthcare}        => {HAS HYPERTENSION} 0.002343591  0.8214286 15.99504    23
+[38]  {HAS DIABETES,                                                                                                             
+       Has rode in a vehicle within the past 7 days,                                                                             
+       Household income between $20000 - $24999}                      => {HAS HYPERTENSION} 0.002139800  0.8750000 17.03819    21
+[39]  {HAS DIABETES,                                                                                                             
+       Household income between $20000 - $24999,                                                                                 
+       NO CANCER}                                                     => {HAS HYPERTENSION} 0.002139800  0.8750000 17.03819    21
+[40]  {Female,                                                                                                                   
+       HAS DIABETES,                                                                                                             
+       Household income between $20000 - $24999}                      => {HAS HYPERTENSION} 0.001324638  0.9285714 18.08135    13
+[41]  {Born in US,                                                                                                               
+       HAS DIABETES,                                                                                                             
+       Household income between $20000 - $24999}                      => {HAS HYPERTENSION} 0.002037905  0.9090909 17.70202    20
+[42]  {HAS DIABETES,                                                                                                             
+       Has health insurance coverage,                                                                                            
+       Household income between $20000 - $24999}                      => {HAS HYPERTENSION} 0.002139800  0.8400000 16.35667    21
+[43]  {HAS DIABETES,                                                                                                             
+       Household income between $20000 - $24999,                                                                                 
+       Right-handed}                                                  => {HAS HYPERTENSION} 0.002343591  0.8214286 15.99504    23
+[44]  {HAS DIABETES,                                                                                                             
+       Has not requested emergency food assistance,                                                                              
+       Household income between $20000 - $24999}                      => {HAS HYPERTENSION} 0.001834115  0.8181818 15.93182    18
+[45]  {HAS DIABETES,                                                                                                             
+       Household income between $20000 - $24999,                                                                                 
+       US citizen}                                                    => {HAS HYPERTENSION} 0.002445486  0.8888889 17.30864    24
+[46]  {Divorced,                                                                                                                 
+       Female,                                                                                                                   
+       HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.001324638  0.8125000 15.82118    13
+[47]  {Divorced,                                                                                                                 
+       HAS DIABETES,                                                                                                             
+       Has health insurance coverage}                                 => {HAS HYPERTENSION} 0.001630324  0.8000000 15.57778    16
+[48]  {{you do not/SP does not} use a computer outside of school,                                                                
+       HAS DIABETES,                                                                                                             
+       Has requested emergency food assistance}                       => {HAS HYPERTENSION} 0.002343591  0.8518519 16.58745    23
+[49]  {Black,                                                                                                                    
+       HAS DIABETES,                                                                                                             
+       Has requested emergency food assistance}                       => {HAS HYPERTENSION} 0.001630324  0.8888889 17.30864    16
+[50]  {{you do not/SP does not} use a computer outside of school,                                                                
+       Black,                                                                                                                    
+       HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.002751172  0.9642857 18.77679    27
+[51]  {Born in US,                                                                                                               
+       HAS DIABETES,                                                                                                             
+       Mexican_American}                                              => {HAS HYPERTENSION} 0.001630324  0.8000000 15.57778    16
+[52]  {Black,                                                                                                                    
+       Drinks milk multiple times a week,                                                                                        
+       HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.001732219  0.8947368 17.42251    17
+[53]  {Black,                                                                                                                    
+       HAS DIABETES,                                                                                                             
+       No smokers present in house}                                   => {HAS HYPERTENSION} 0.002649277  0.8125000 15.82118    26
+[54]  {Black,                                                                                                                    
+       HAS DIABETES,                                                                                                             
+       Mostly visits a clinic or health center for healthcare}        => {HAS HYPERTENSION} 0.003566334  0.8536585 16.62263    35
+[55]  {Black,                                                                                                                    
+       HAS DIABETES,                                                                                                             
+       Has rode in a vehicle within the past 7 days}                  => {HAS HYPERTENSION} 0.003362543  0.8250000 16.06458    33
+[56]  {Black,                                                                                                                    
+       HAS DIABETES,                                                                                                             
+       NO CANCER}                                                     => {HAS HYPERTENSION} 0.003464439  0.8095238 15.76323    34
+[57]  {Black,                                                                                                                    
+       Female,                                                                                                                   
+       HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.001936010  0.8636364 16.81692    19
+[58]  {Black,                                                                                                                    
+       Drinks milk multiple times a day,                                                                                         
+       HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.001018953  0.8333333 16.22685    10
+[59]  {Black,                                                                                                                    
+       HAS DIABETES,                                                                                                             
+       Married}                                                       => {HAS HYPERTENSION} 0.001834115  0.8181818 15.93182    18
+[60]  {Black,                                                                                                                    
+       Born in US,                                                                                                               
+       HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.004075810  0.8695652 16.93237    40
+[61]  {Black,                                                                                                                    
+       HAS DIABETES,                                                                                                             
+       Has health insurance coverage}                                 => {HAS HYPERTENSION} 0.003056858  0.8571429 16.69048    30
+[62]  {Black,                                                                                                                    
+       HAS DIABETES,                                                                                                             
+       US citizen}                                                    => {HAS HYPERTENSION} 0.004177705  0.8200000 15.96722    41
+[63]  {Born in US,                                                                                                               
+       Drinks milk multiple times a week,                                                                                        
+       HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.003056858  0.8108108 15.78829    30
+[64]  {Drinks milk multiple times a week,                                                                                        
+       HAS DIABETES,                                                                                                             
+       US citizen}                                                    => {HAS HYPERTENSION} 0.003770124  0.8043478 15.66244    37
+[65]  {HAS CANCER,                                                                                                               
+       Has health insurance coverage,                                                                                            
+       Male,                                                                                                                     
+       Mostly visits outpatient departments for healthcare}           => {HAS HYPERTENSION} 0.001018953  1.0000000 19.47222    10
+[66]  {HAS CANCER,                                                                                                               
+       Male,                                                                                                                     
+       Mostly visits outpatient departments for healthcare,                                                                      
+       US citizen}                                                    => {HAS HYPERTENSION} 0.001018953  1.0000000 19.47222    10
+[67]  {HAS CANCER,                                                                                                               
+       Has health insurance coverage,                                                                                            
+       Mostly visits outpatient departments for healthcare,                                                                      
+       US citizen}                                                    => {HAS HYPERTENSION} 0.001018953  1.0000000 19.47222    10
+[68]  {HAS CANCER,                                                                                                               
+       Has health insurance coverage,                                                                                            
+       Has rode in a vehicle within the past 7 days,                                                                             
+       Smokers present in house}                                      => {HAS HYPERTENSION} 0.001018953  0.8333333 16.22685    10
+[69]  {{you do not/SP does not} use a computer outside of school,                                                                
+       Black,                                                                                                                    
+       Born in US,                                                                                                               
+       HAS CANCER}                                                    => {HAS HYPERTENSION} 0.001120848  0.9166667 17.84954    11
+[70]  {{you do not/SP does not} use a computer outside of school,                                                                
+       Black,                                                                                                                    
+       HAS CANCER,                                                                                                               
+       Has health insurance coverage}                                 => {HAS HYPERTENSION} 0.001018953  0.9090909 17.70202    10
+[71]  {{you do not/SP does not} use a computer outside of school,                                                                
+       Black,                                                                                                                    
+       HAS CANCER,                                                                                                               
+       US citizen}                                                    => {HAS HYPERTENSION} 0.001120848  0.9166667 17.84954    11
+[72]  {Black,                                                                                                                    
+       Born in US,                                                                                                               
+       Drinks milk multiple times a week,                                                                                        
+       HAS CANCER}                                                    => {HAS HYPERTENSION} 0.001018953  0.9090909 17.70202    10
+[73]  {Black,                                                                                                                    
+       Drinks milk multiple times a week,                                                                                        
+       HAS CANCER,                                                                                                               
+       US citizen}                                                    => {HAS HYPERTENSION} 0.001018953  0.9090909 17.70202    10
+[74]  {Black,                                                                                                                    
+       Born in US,                                                                                                               
+       HAS CANCER,                                                                                                               
+       No smokers present in house}                                   => {HAS HYPERTENSION} 0.001120848  0.8461538 16.47650    11
+[75]  {Black,                                                                                                                    
+       HAS CANCER,                                                                                                               
+       Has health insurance coverage,                                                                                            
+       No smokers present in house}                                   => {HAS HYPERTENSION} 0.001120848  0.8461538 16.47650    11
+[76]  {Black,                                                                                                                    
+       HAS CANCER,                                                                                                               
+       No smokers present in house,                                                                                              
+       Right-handed}                                                  => {HAS HYPERTENSION} 0.001018953  0.9090909 17.70202    10
+[77]  {Black,                                                                                                                    
+       HAS CANCER,                                                                                                               
+       No smokers present in house,                                                                                              
+       US citizen}                                                    => {HAS HYPERTENSION} 0.001120848  0.8461538 16.47650    11
+[78]  {Black,                                                                                                                    
+       Born in US,                                                                                                               
+       HAS CANCER,                                                                                                               
+       Mostly visits a clinic or health center for healthcare}        => {HAS HYPERTENSION} 0.001018953  0.8333333 16.22685    10
+[79]  {Black,                                                                                                                    
+       HAS CANCER,                                                                                                               
+       Mostly visits a clinic or health center for healthcare,                                                                   
+       US citizen}                                                    => {HAS HYPERTENSION} 0.001018953  0.8333333 16.22685    10
+[80]  {Black,                                                                                                                    
+       Born in US,                                                                                                               
+       HAS CANCER,                                                                                                               
+       Male}                                                          => {HAS HYPERTENSION} 0.001120848  0.8461538 16.47650    11
+[81]  {Black,                                                                                                                    
+       HAS CANCER,                                                                                                               
+       Has health insurance coverage,                                                                                            
+       Male}                                                          => {HAS HYPERTENSION} 0.001120848  0.8461538 16.47650    11
+[82]  {Black,                                                                                                                    
+       HAS CANCER,                                                                                                               
+       Male,                                                                                                                     
+       US citizen}                                                    => {HAS HYPERTENSION} 0.001120848  0.8461538 16.47650    11
+[83]  {Black,                                                                                                                    
+       Born in US,                                                                                                               
+       HAS CANCER,                                                                                                               
+       Has health insurance coverage}                                 => {HAS HYPERTENSION} 0.001426534  0.8235294 16.03595    14
+[84]  {Black,                                                                                                                    
+       Born in US,                                                                                                               
+       HAS CANCER,                                                                                                               
+       Right-handed}                                                  => {HAS HYPERTENSION} 0.001324638  0.8666667 16.87593    13
+[85]  {Black,                                                                                                                    
+       Born in US,                                                                                                               
+       HAS CANCER,                                                                                                               
+       Has not requested emergency food assistance}                   => {HAS HYPERTENSION} 0.001018953  0.8333333 16.22685    10
+[86]  {Black,                                                                                                                    
+       Born in US,                                                                                                               
+       HAS CANCER,                                                                                                               
+       US citizen}                                                    => {HAS HYPERTENSION} 0.001528429  0.8333333 16.22685    15
+[87]  {Black,                                                                                                                    
+       HAS CANCER,                                                                                                               
+       Has health insurance coverage,                                                                                            
+       Right-handed}                                                  => {HAS HYPERTENSION} 0.001222743  0.8571429 16.69048    12
+[88]  {Black,                                                                                                                    
+       HAS CANCER,                                                                                                               
+       Has health insurance coverage,                                                                                            
+       US citizen}                                                    => {HAS HYPERTENSION} 0.001426534  0.8235294 16.03595    14
+[89]  {Black,                                                                                                                    
+       HAS CANCER,                                                                                                               
+       Right-handed,                                                                                                             
+       US citizen}                                                    => {HAS HYPERTENSION} 0.001324638  0.8666667 16.87593    13
+[90]  {Black,                                                                                                                    
+       HAS CANCER,                                                                                                               
+       Has not requested emergency food assistance,                                                                              
+       US citizen}                                                    => {HAS HYPERTENSION} 0.001018953  0.8333333 16.22685    10
+[91]  {Drinks milk multiple times a day,                                                                                         
+       HAS CANCER,                                                                                                               
+       Male,                                                                                                                     
+       No smokers present in house}                                   => {HAS HYPERTENSION} 0.001222743  0.8000000 15.57778    12
+[92]  {Drinks milk multiple times a day,                                                                                         
+       HAS CANCER,                                                                                                               
+       Has rode in a vehicle within the past 7 days,                                                                             
+       Male}                                                          => {HAS HYPERTENSION} 0.001120848  0.8461538 16.47650    11
+[93]  {Born in US,                                                                                                               
+       Drinks milk multiple times a day,                                                                                         
+       HAS CANCER,                                                                                                               
+       Male}                                                          => {HAS HYPERTENSION} 0.001324638  0.8125000 15.82118    13
+[94]  {Drinks milk multiple times a day,                                                                                         
+       HAS CANCER,                                                                                                               
+       Has health insurance coverage,                                                                                            
+       Male}                                                          => {HAS HYPERTENSION} 0.001426534  0.8235294 16.03595    14
+[95]  {Drinks milk multiple times a day,                                                                                         
+       HAS CANCER,                                                                                                               
+       Male,                                                                                                                     
+       Right-handed}                                                  => {HAS HYPERTENSION} 0.001324638  0.8125000 15.82118    13
+[96]  {Drinks milk multiple times a day,                                                                                         
+       HAS CANCER,                                                                                                               
+       Male,                                                                                                                     
+       US citizen}                                                    => {HAS HYPERTENSION} 0.001426534  0.8235294 16.03595    14
+[97]  {Born in US,                                                                                                               
+       HAS DIABETES,                                                                                                             
+       Male,                                                                                                                     
+       Mostly visits outpatient departments for healthcare}           => {HAS HYPERTENSION} 0.001018953  0.8333333 16.22685    10
+[98]  {$5000 - $9999,                                                                                                            
+       HAS DIABETES,                                                                                                             
+       NO CANCER,                                                                                                                
+       No smokers present in house}                                   => {HAS HYPERTENSION} 0.001018953  0.8333333 16.22685    10
+[99]  {$5000 - $9999,                                                                                                            
+       HAS DIABETES,                                                                                                             
+       No smokers present in house,                                                                                              
+       Right-handed}                                                  => {HAS HYPERTENSION} 0.001120848  0.9166667 17.84954    11
+[100] {$5000 - $9999,                                                                                                            
+       HAS DIABETES,                                                                                                             
+       Has health insurance coverage,                                                                                            
+       Right-handed}                                                  => {HAS HYPERTENSION} 0.001018953  0.8333333 16.22685    10
+> 
+```
+
+
+```{r eval=FALSE, echo=TRUE}
+> inspect(has_hypertension.association.rules_smallitemset)
+     lhs                                                                rhs                    support confidence      lift count
+[1]  {HAS CANCER}                                                    => {HAS HYPERTENSION} 0.005400448  0.5955056 11.595818    53
+[2]  {Mostly visits outpatient departments for healthcare}           => {HAS HYPERTENSION} 0.004075810  0.4040404  7.867565    40
+[3]  {HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.013144487  0.6482412 12.622697   129
+[4]  {HAS CANCER,                                                                                                                
+      Mostly visits outpatient departments for healthcare}           => {HAS HYPERTENSION} 0.001018953  1.0000000 19.472222    10
+[5]  {HAS CANCER,                                                                                                                
+      HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.002343591  0.6969697 13.571549    23
+[6]  {HAS CANCER,                                                                                                                
+      Widowed}                                                       => {HAS HYPERTENSION} 0.001120848  0.6875000 13.387153    11
+[7]  {HAS CANCER,                                                                                                                
+      Has not rode in a vehicle within the past 7 days}              => {HAS HYPERTENSION} 0.001120848  0.5789474 11.273392    11
+[8]  {HAS CANCER,                                                                                                                
+      Plays less than an hours of video games over the past 30 days} => {HAS HYPERTENSION} 0.001018953  0.7142857 13.908730    10
+[9]  {HAS CANCER,                                                                                                                
+      Smokers present in house}                                      => {HAS HYPERTENSION} 0.001222743  0.6666667 12.981481    12
+[10] {Divorced,                                                                                                                  
+      HAS CANCER}                                                    => {HAS HYPERTENSION} 0.001120848  0.7857143 15.299603    11
+[11] {HAS CANCER,                                                                                                                
+      Has requested emergency food assistance}                       => {HAS HYPERTENSION} 0.001426534  0.5600000 10.904444    14
+[12] {Does not play video games,                                                                                                 
+      HAS CANCER}                                                    => {HAS HYPERTENSION} 0.002445486  0.6153846 11.982906    24
+[13] {Black,                                                                                                                     
+      HAS CANCER}                                                    => {HAS HYPERTENSION} 0.001528429  0.8333333 16.226852    15
+[14] {Drinks milk multiple times a week,                                                                                         
+      HAS CANCER}                                                    => {HAS HYPERTENSION} 0.002037905  0.6250000 12.170139    20
+[15] {HAS CANCER,                                                                                                                
+      No smokers present in house}                                   => {HAS HYPERTENSION} 0.004177705  0.5774648 11.244523    41
+[16] {HAS CANCER,                                                                                                                
+      Mostly visits a clinic or health center for healthcare}        => {HAS HYPERTENSION} 0.003872020  0.5846154 11.383761    38
+[17] {HAS CANCER,                                                                                                                
+      Has rode in a vehicle within the past 7 days}                  => {HAS HYPERTENSION} 0.004279601  0.6000000 11.683333    42
+[18] {HAS CANCER,                                                                                                                
+      NO DIABETES}                                                   => {HAS HYPERTENSION} 0.003056858  0.5357143 10.431548    30
+[19] {HAS CANCER,                                                                                                                
+      White}                                                         => {HAS HYPERTENSION} 0.002343591  0.5609756 10.923442    23
+[20] {HAS CANCER,                                                                                                                
+      Male}                                                          => {HAS HYPERTENSION} 0.002751172  0.6279070 12.226744    27
+[21] {Female,                                                                                                                    
+      HAS CANCER}                                                    => {HAS HYPERTENSION} 0.002649277  0.5652174 11.006039    26
+[22] {Drinks milk multiple times a day,                                                                                          
+      HAS CANCER}                                                    => {HAS HYPERTENSION} 0.002343591  0.6571429 12.796032    23
+[23] {HAS CANCER,                                                                                                                
+      Married}                                                       => {HAS HYPERTENSION} 0.002037905  0.5128205  9.985755    20
+[24] {Born in US,                                                                                                                
+      HAS CANCER}                                                    => {HAS HYPERTENSION} 0.004483391  0.6111111 11.899691    44
+[25] {HAS CANCER,                                                                                                                
+      Has health insurance coverage}                                 => {HAS HYPERTENSION} 0.004890972  0.6153846 11.982906    48
+[26] {HAS CANCER,                                                                                                                
+      Right-handed}                                                  => {HAS HYPERTENSION} 0.004890972  0.6075949 11.831224    48
+[27] {HAS CANCER,                                                                                                                
+      Has not requested emergency food assistance}                   => {HAS HYPERTENSION} 0.003973915  0.6093750 11.865885    39
+[28] {HAS CANCER,                                                                                                                
+      US citizen}                                                    => {HAS HYPERTENSION} 0.005094763  0.6250000 12.170139    50
+[29] {No health insurance coverage,                                                                                              
+      Plays 4 hours of video games over the past 30 days}            => {HAS HYPERTENSION} 0.001222743  0.4285714  8.345238    12
+[30] {Has rode in a vehicle within the past 7 days,                                                                              
+      Under $20000}                                                  => {HAS HYPERTENSION} 0.001018953  0.4166667  8.113426    10
+[31] {HAS DIABETES,                                                                                                              
+      Mostly visits outpatient departments for healthcare}           => {HAS HYPERTENSION} 0.001324638  0.6842105 13.323099    13
+[32] {Does not play video games,                                                                                                 
+      Mostly visits outpatient departments for healthcare}           => {HAS HYPERTENSION} 0.001732219  0.4473684  8.711257    17
+[33] {Black,                                                                                                                     
+      Mostly visits outpatient departments for healthcare}           => {HAS HYPERTENSION} 0.001936010  0.5277778 10.277006    19
+[34] {Drinks milk multiple times a week,                                                                                         
+      Mostly visits outpatient departments for healthcare}           => {HAS HYPERTENSION} 0.001630324  0.6400000 12.462222    16
+[35] {Mostly visits outpatient departments for healthcare,                                                                       
+      No smokers present in house}                                   => {HAS HYPERTENSION} 0.002853067  0.4000000  7.788889    28
+[36] {Has rode in a vehicle within the past 7 days,                                                                              
+      Mostly visits outpatient departments for healthcare}           => {HAS HYPERTENSION} 0.003566334  0.4117647  8.017974    35
+[37] {Mostly visits outpatient departments for healthcare,                                                                       
+      White}                                                         => {HAS HYPERTENSION} 0.001222743  0.5000000  9.736111    12
+[38] {Male,                                                                                                                      
+      Mostly visits outpatient departments for healthcare}           => {HAS HYPERTENSION} 0.002853067  0.4666667  9.087037    28
+[39] {Born in US,                                                                                                                
+      Mostly visits outpatient departments for healthcare}           => {HAS HYPERTENSION} 0.003260648  0.4324324  8.420420    32
+[40] {Has health insurance coverage,                                                                                             
+      Mostly visits outpatient departments for healthcare}           => {HAS HYPERTENSION} 0.003464439  0.4197531  8.173525    34
+[41] {Mostly visits outpatient departments for healthcare,                                                                       
+      Right-handed}                                                  => {HAS HYPERTENSION} 0.003362543  0.4074074  7.933128    33
+[42] {Mostly visits outpatient departments for healthcare,                                                                       
+      US citizen}                                                    => {HAS HYPERTENSION} 0.003872020  0.4222222  8.221605    38
+[43] {Plays 3 hours of video games over the past 30 days,                                                                        
+      Rarely-less than once a week}                                  => {HAS HYPERTENSION} 0.001120848  0.4400000  8.567778    11
+[44] {HAS DIABETES,                                                                                                              
+      Mostly visits an emergency room for healthcare}                => {HAS HYPERTENSION} 0.001120848  0.5500000 10.709722    11
+[45] {$5000 - $9999,                                                                                                             
+      HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.001222743  0.7500000 14.604167    12
+[46] {HAS DIABETES,                                                                                                              
+      Widowed}                                                       => {HAS HYPERTENSION} 0.002037905  0.7692308 14.978632    20
+[47] {HAS DIABETES,                                                                                                              
+      Plays 1 hour of video games over the past 30 days}             => {HAS HYPERTENSION} 0.001120848  0.6875000 13.387153    11
+[48] {HAS DIABETES,                                                                                                              
+      Has not rode in a vehicle within the past 7 days}              => {HAS HYPERTENSION} 0.002751172  0.6428571 12.517857    27
+[49] {$10000 - $14999,                                                                                                           
+      HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.001426534  0.7368421 14.347953    14
+[50] {$15000 - $19999,                                                                                                           
+      HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.001426534  0.7000000 13.630556    14
+[51] {HAS DIABETES,                                                                                                              
+      Household income between $45000 - $54999}                      => {HAS HYPERTENSION} 0.001018953  0.7692308 14.978632    10
+[52] {HAS DIABETES,                                                                                                              
+      Plays less than an hours of video games over the past 30 days} => {HAS HYPERTENSION} 0.001834115  0.7200000 14.020000    18
+[53] {HAS DIABETES,                                                                                                              
+      Smokers present in house}                                      => {HAS HYPERTENSION} 0.003260648  0.6666667 12.981481    32
+[54] {HAS DIABETES,                                                                                                              
+      Household income between $35000 - $44999}                      => {HAS HYPERTENSION} 0.001018953  0.7142857 13.908730    10
+[55] {HAS DIABETES,                                                                                                              
+      Household income between $20000 - $24999}                      => {HAS HYPERTENSION} 0.002649277  0.8387097 16.331541    26
+[56] {HAS DIABETES,                                                                                                              
+      Other_Hispanic}                                                => {HAS HYPERTENSION} 0.001630324  0.5333333 10.385185    16
+[57] {HAS DIABETES,                                                                                                              
+      Other}                                                         => {HAS HYPERTENSION} 0.001630324  0.4444444  8.654321    16
+[58] {Divorced,                                                                                                                  
+      HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.002343591  0.6764706 13.172386    23
+[59] {HAS DIABETES,                                                                                                              
+      Has requested emergency food assistance}                       => {HAS HYPERTENSION} 0.003158753  0.7209302 14.038114    31
+[60] {Does not play video games,                                                                                                 
+      HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.007845934  0.6581197 12.815052    77
+[61] {HAS DIABETES,                                                                                                              
+      Rarely-less than once a week}                                  => {HAS HYPERTENSION} 0.002241696  0.6111111 11.899691    22
+[62] {Does not drink milk,                                                                                                       
+      HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.002241696  0.5945946 11.578078    22
+[63] {HAS DIABETES,                                                                                                              
+      Never_married}                                                 => {HAS HYPERTENSION} 0.001528429  0.6250000 12.170139    15
+[64] {HAS DIABETES,                                                                                                              
+      No health insurance coverage}                                  => {HAS HYPERTENSION} 0.002649277  0.4905660  9.552411    26
+[65] {HAS DIABETES,                                                                                                              
+      Mexican_American}                                              => {HAS HYPERTENSION} 0.003566334  0.6140351 11.956628    35
+[66] {Born outside of US,                                                                                                        
+      HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.004381496  0.5243902 10.211043    43
+[67] {Black,                                                                                                                     
+      HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.004177705  0.8200000 15.967222    41
+[68] {Drinks milk multiple times a week,                                                                                         
+      HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.004483391  0.7333333 14.279630    44
+[69] {HAS DIABETES,                                                                                                              
+      No smokers present in house}                                   => {HAS HYPERTENSION} 0.009781944  0.6400000 12.462222    96
+[70] {HAS DIABETES,                                                                                                              
+      Mostly visits a clinic or health center for healthcare}        => {HAS HYPERTENSION} 0.010189525  0.6666667 12.981481   100
+[71] {HAS DIABETES,                                                                                                              
+      Has rode in a vehicle within the past 7 days}                  => {HAS HYPERTENSION} 0.010393316  0.6496815 12.650743   102
+[72] {HAS DIABETES,                                                                                                              
+      NO CANCER}                                                     => {HAS HYPERTENSION} 0.010800897  0.6385542 12.434070   106
+[73] {HAS DIABETES,                                                                                                              
+      White}                                                         => {HAS HYPERTENSION} 0.002649277  0.6341463 12.348238    26
+[74] {HAS DIABETES,                                                                                                              
+      Male}                                                          => {HAS HYPERTENSION} 0.006215610  0.5980392 11.645153    61
+[75] {Female,                                                                                                                    
+      HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.006928877  0.7010309 13.650630    68
+[76] {Drinks milk multiple times a day,                                                                                          
+      HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.004177705  0.6212121 12.096380    41
+[77] {HAS DIABETES,                                                                                                              
+      Married}                                                       => {HAS HYPERTENSION} 0.005706134  0.5894737 11.478363    56
+[78] {Born in US,                                                                                                                
+      HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.008762992  0.7350427 14.312915    86
+[79] {HAS DIABETES,                                                                                                              
+      Has health insurance coverage}                                 => {HAS HYPERTENSION} 0.010495211  0.7054795 13.737253   103
+[80] {HAS DIABETES,                                                                                                              
+      Right-handed}                                                  => {HAS HYPERTENSION} 0.011717954  0.6460674 12.580368   115
+[81] {HAS DIABETES,                                                                                                              
+      Has not requested emergency food assistance}                   => {HAS HYPERTENSION} 0.009985735  0.6282051 12.232550    98
+[82] {HAS DIABETES,                                                                                                              
+      US citizen}                                                    => {HAS HYPERTENSION} 0.011514163  0.6975309 13.582476   113
+[83] {Has not rode in a vehicle within the past 7 days,                                                                          
+      Widowed}                                                       => {HAS HYPERTENSION} 0.001120848  0.4400000  8.567778    11
+[84] {Plays less than an hours of video games over the past 30 days,                                                             
+      Widowed}                                                       => {HAS HYPERTENSION} 0.001426534  0.4827586  9.400383    14
+[85] {Does not play video games,                                                                                                 
+      Widowed}                                                       => {HAS HYPERTENSION} 0.002954962  0.5471698 10.654612    29
+[86] {No smokers present in house,                                                                                               
+      Widowed}                                                       => {HAS HYPERTENSION} 0.004585286  0.4945055  9.629121    45
+[87] {Mostly visits a clinic or health center for healthcare,                                                                    
+      Widowed}                                                       => {HAS HYPERTENSION} 0.004075810  0.4597701  8.952746    40
+[88] {Has rode in a vehicle within the past 7 days,                                                                              
+      Widowed}                                                       => {HAS HYPERTENSION} 0.004381496  0.4526316  8.813743    43
+[89] {NO CANCER,                                                                                                                 
+      Widowed}                                                       => {HAS HYPERTENSION} 0.004381496  0.4134615  8.051015    43
+> 
+```
+
+### Interactive Scatter Plots for Cancer
+
+CANCER (large itemsets)
+
+<iframe src="cancer_large.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+CANCER (small itemsets)
+
+<iframe src="cancer_small.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+### Interactive Scatter Plots for Diabetes
+
+DIABETES (large itemsets)
+
+<iframe src="diabetes_large.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+DIABETES (small itemsets)
+
+<iframe src="diabetes_small.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+### Interactive Scatter Plots for Hypertension
+
+HYPER TENSION (large itemsets)
+
+<iframe src="hypertension_large.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+HYPER TENSION (small itemsets)
+
+<iframe src="hypertension_small.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+
+### Interactive Graph Visualization for Cancer
+
+CANCER (large itemset)
+
+<iframe src="cancer_graph_large.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+CANCER (small itemset)
+
+<iframe src="cancer_graph_small.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+
+
+### Interactive Graph Visualization for Diabetes
+
+DIABETES (large itemset)
+<iframe src="diabetes_graph_large.html" width="100%" height="600" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+DIABETES (small itemset)
+
+"hypertension_graph_large.html"
+<iframe src="diabetes_graph_small.html" width="100%" height="600" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+### Interactive Graph Visualization for Hypertension
+
+HYPERTENSION (large itemset)
+
+<iframe src="hypertension_graph_large.html" width="100%" height="600" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+HYPERTENSION (small itemset)
+
+<iframe src="hypertension_graph_small.html" width="100%" height="600" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+### Individual Rule Representation 
+
+Using top 20 rules for Cancer
+
+![](Figures/cancer_top20_paracoord.png){width=800px}
+
+Using top 20 rules for diabetes
+
+![](Figures/diabetes_top20_paracoord.png){width=800px}
+
+Using top 20 rules for hypertension
+
+![](Figures/diabetes_top20_paracoord.png){width=800px}
+
+### Association rules for not having diseases
+
+In the precedin section, we looked at associations for having diseases.  For this section, we look at the inverse, could their value in associations where there is no diseases/health conditions?  
+
+## Conclusion for Problem 2
 
 # Problem 3: Supervised 
 
