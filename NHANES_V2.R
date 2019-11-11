@@ -7,13 +7,13 @@ lapply(c("plyr",
          "mice",
          "scales",
          "randomForest",
-         "psych",
+         "psych",`
          "factoextra",
          "AMR",
          "RColorBrewer",
          "caret",
          "AMR",
-         "mice",
+         "mice",`
          "randomForest",
          "data.table",
          "car",
@@ -2702,6 +2702,9 @@ require(caret)
 require(dplyr)
 require(caretEnsemble)
 require(pROC)
+require(MASS)
+require(caTools)
+
 set.seed(101)
 data_index <- createDataPartition(combined_target_final$TARGET, p=0.75, list = FALSE)
 train_Combined <- combined_target_final[data_index,-c(1,2,39,40,41,42) ]
@@ -2736,18 +2739,34 @@ fitControl <- trainControl(method="cv",
 
 
 model_lr <- train(TARGET~.,train_Combined,
-                     method = "glm",
+                     method = "glmnet",
                      metric="ROC",
-                  family = "binomial", 
+                  #family = "binomial", 
                   #tuneGrid = expand.grid(alpha = c(0,  .1,  .2, .4, .6, .8, 1),lambda = seq(.01, .2, length = 20)),
                      preProcess = c("center", "scale"),
                   trControl=fitControl) 
 
+model_lr
 
 pred_lr <- predict(model_lr, test_Combined)
 cm_lr <- confusionMatrix(pred_lr, test_Combined$TARGET, positive = "X1")
 cm_lr
 
+require(caret)
+pred_prob_lr <- predict(pred_lr, newdata = test_Combined, type = "prob")
+head(pred_prob_lr)
+
+
+
+logit3 <- glm(TARGET~.,train_Combined,
+              family=binomial(link='logit'), maxit = 100)
+
+summary(logit3)
+
+predict <- predict(logit3, type = 'response')
+
+#confusion matrix
+table(test_Combined$TARGET, predict > 0.5)
 
 predicted.classes <- ifelse(cm_lr > 0.5,"X1","X0")
 
@@ -2844,6 +2863,8 @@ cm_svm <- confusionMatrix(pred_svm, test_Combined$TARGET, positive = "X1")
 cm_svm
 
 
+
+
 saveRDS(model_svm, "./model_svm.rds")
 
 
@@ -2852,7 +2873,7 @@ saveRDS(model_svm, "./model_svm.rds")
 
 #Let's compare the models and check their correlation:
 
-model_list <- list(LR= model_rf, RF=model_rf, PCA_RF=model_pca_rf,  KNN = model_knn, SVM=model_svm)
+model_list <- list(LR= model_lr, RF=model_rf, PCA_RF=model_pca_rf,  KNN = model_knn, SVM=model_svm)
 resamples <- resamples(model_list)
 
 model_cor <- modelCor(resamples)
@@ -2865,8 +2886,16 @@ model_cor
 bwplot(resamples, metric="ROC")
 
 
-cm_list <- list(LR= model_rf, RF=model_rf, PCA_RF=model_pca_rf,  KNN = model_knn, SVM=model_svm)
+#The ROC metric measure the auc of the roc curve of each model. This metric is independent of any threshold.
 
+#Let's remember how these models result with the testing dataset. Prediction classes are obtained by default with 
+#a threshold of 0.5 which could not be the best with an unbalanced dataset like this.
+
+
+cm_list <- list(LR= model_lr, RF=model_rf, PCA_RF=model_pca_rf,  KNN = model_knn, SVM=model_svm)
+
+cm_list$KNN
+names(cm_list_results)
 cm_list_results <- sapply(cm_list, function(x) x$byClass)
 cm_list_results
 

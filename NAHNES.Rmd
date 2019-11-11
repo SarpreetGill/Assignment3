@@ -297,26 +297,138 @@ As per our guidelines, we will select attributes/columns of interest based on ou
 
 https://wwwn.cdc.gov/nchs/nhanes/continuousnhanes/default.aspx?BeginYear=2013
 
-We have inspected the above data dictionary and we have selected the following relevant values for further analysis:
+We first remove the variables having near zero variance in the dataset.Later we will remove the variables having more that 25% missing values in the dataset for Demographics.
 
-### Demographic
+```{r, eval=F, echo=TRUE, warning = F, message=F}
+
+
+if (length(nearZeroVar(demographic_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
+                       names = FALSE, foreach = FALSE, allowParallel = TRUE)) > 0){
+  demographic_major <- demographic_major[, -nearZeroVar(demographic_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
+                                                        names = FALSE, foreach = FALSE, allowParallel = TRUE)] 
+  
+}
+
+
+# Check the columns for missing values >25%
+
+sapply(demographic_major, function(x) ((sum(is.na(x))))*.01) %>%
+  stack %>% rev %>% filter(values > 25) %>% setNames(nm=c("variable", "missing"))
+
+
+Null_Num <- apply(demographic_major, 2, function(x) length(which(is.na(x) | x == "NA"))/length(x))
+Null_Colms <- colnames(demographic_major)[Null_Num > 0.25]
+demographic75 <- select(demographic_major, -Null_Colms)
+  
+```
+
+We will now refer to our Dictionary for making a reference dataframe to differentiate between different forms of variables in a fast and effective way:
+
+
+
+```{r, eval=FALSE, echo=TRUE}
+
+demographic_indexed <- demographic75
+colnames(demographic_indexed) <- with(Dictionary,
+                                      Dictionary$Variable.Description[match(colnames(demographic75),
+                                                                            Dictionary$Variable.Name,
+                                                                            nomatch = Dictionary$Variable.Name
+                                      )])
+
+Demogramphic_Col_Labels <- data.frame("Code"=c(colnames(demographic75)), 
+                                      "Desp"=c(colnames(demographic_indexed)))
+```
+
+
+\pagebreak
+
+ Categorization of variables
+
+ 
+ We have to now enter categorization of Factor/Numeric/ 'Computation not required' in the excel file generated <br />
+* Only to be done in 3rd column...<br />
+* Code is....<br />
+* **0** = Factor requiring no computation.<br />
+* **1** = Numeric requiring computation.<br />
+* **2** = Factor requiring computation.<br />
+* **Please write Column name for the category as "Cat" **<br />
+Reading Index again
+```{r, eval=FALSE, echo=TRUE}
+
+Cat_demo <- c(0,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1)
+Demogramphic_Col_Labels <- data.frame(Demogramphic_Col_Labels,Cat = Cat_demo)
+
+```
+Now we prepare the dataset for impute from all the information.
+```{r, eval=FALSE, echo=TRUE}
+
+Catcolmn <- Demogramphic_Col_Labels[Demogramphic_Col_Labels$Cat ==2 , 2 ] 
+Numcolmn <- Demogramphic_Col_Labels[Demogramphic_Col_Labels$Cat ==1 , 2 ] 
+Catcolmn_Nul <- Demogramphic_Col_Labels[Demogramphic_Col_Labels$Cat ==0 , 2 ] 
+WorkingColm <- c(Catcolmn_Nul, Numcolmn, Catcolmn)
+WorkingColm
+)
+demographic_selected = demographic75[ Catcolmn_Nul ]
+
+demographic_selected = demographic75[ WorkingColm ]
+
+demographic_selected[, Catcolmn] <- sapply(demographic_selected[, Catcolmn], as.numeric)
+demographic_selected[, Catcolmn_Nul] <- sapply(demographic_selected[, Catcolmn_Nul], as.numeric)
+demographic_selected[, Numcolmn] <- sapply(demographic_selected[, Numcolmn], as.numeric)
+
+```
+\pagebreak
+* ==========================  IMPUTATION( MICE package)   =======================<br />
+* Precisely, the methods used by this package are:<br />
+* 1)-PMM (Predictive Mean Matching) For numeric variables<br />
+* 2)-logreg(Logistic Regression) For Binary Variables( with 2 levels)<br />
+* 3)-polyreg(Bayesian polytomous regression) For Factor Variables (>= 2 levels)<br />
+* 4)-Proportional odds model (ordered, >= 2 levels)<br />
+* 5)-cart  Classification and regression trees (any) <br />
+* 6)rf Random forest imputations (any)<br />
+* ==============================================================================<br />
+Imputation and save results:
+```{r, eval=FALSE, echo=TRUE}
+
+meth = init$method
+predM = init$predictorMatrix
+predM[, c("SEQN")]=0
+meth[Catcolmn_Nul] = ""
+meth[Catcolmn]="cart"
+meth[Numcolmn]="rf"
+set.seed(103)
+imputed = mice(demographic_selected, method=meth, predictorMatrix=predM, m=5)
+
+#Create a dataset after imputation.
+
+demographic_imputed<- complete(imputed)
+rm(Demogramphic_Col_Labels,demographic75,demographic_selected, imputed)
+
+dir.create("Data/Clean_Imputes")
+#write.csv(demographic_imputed , "Data/Clean_Imputes/demographic_imputed.csv",row.names = FALSE)
+demographic_imputed   = read.csv("Data/Clean_Imputes/demographic_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+```
+
+### Demographic 
 We have selected the following 8 relevant columns among the 32 that have less than 25% of missing values:
 
-* **ID (SEQN)** - Respondent sequence number..
-* **Gender (RIAGENDR)** - Gender of the participant..
-* **Age (RIDAGEYR)** - Age in years of the participant at the time of screening. Individuals 80 and over are topcoded at 80 years of age..
-* **Race (RIDRETH3)** - Recode of reported race and Hispanic origin information, with Non-Hispanic Asian Category.
-* **Country_of_birth (DMDBORN4)** - In what country {were you/was SP} born?.
-* **Citizenship_status (DMDCITZN)** - {Are you/Is SP} a citizen of the United States? [Information about citizenship is being collected by the U.S. Public Health Service to perform health related research. Providing this information is voluntary and is collected under the authority of the Public Health Service Act. There will be no effect on pending immigration or citizenship petitions.].
-* **Family_members (DMDFMSIZ)** - Total number of people in the Family.
-* **Marital_status (DMDHRMAR)** - HH reference person's marital status.
-* **Family_income (INDFMIN2)** - Total family income (reported as a range value in dollars).
+
+<!-- * **ID (SEQN)** - Respondent sequence number.. -->
+<!-- * **Gender (RIAGENDR)** - Gender of the participant.. -->
+<!-- * **Age (RIDAGEYR)** - Age in years of the participant at the time of screening. Individuals 80 and over are topcoded at 80 years of age.. -->
+<!-- * **Race (RIDRETH3)** - Recode of reported race and Hispanic origin information, with Non-Hispanic Asian Category. -->
+<!-- * **Country_of_birth (DMDBORN4)** - In what country {were you/was SP} born?. -->
+<!-- * **Citizenship_status (DMDCITZN)** - {Are you/Is SP} a citizen of the United States? [Information about citizenship is being collected by the U.S. Public Health Service to perform health related research. Providing this information is voluntary and is collected under the authority of the Public Health Service Act. There will be no effect on pending immigration or citizenship petitions.]. -->
+<!-- * **Family_members (DMDFMSIZ)** - Total number of people in the Family. -->
+<!-- * **Marital_status (DMDHRMAR)** - HH reference person's marital status. -->
+<!-- * **Family_income (INDFMIN2)** - Total family income (reported as a range value in dollars). -->
+
+Now we will label the dataset for visualizations.
 
 ```{r, eval=FALSE, echo=TRUE, warning = F, message=F}
-demo_subset_8_list = c("RIAGENDR", "RIDAGEYR", "RIDRETH3", "DMDBORN4",
-                        "DMDCITZN", "DMDFMSIZ", "DMDHRMAR", "INDFMIN2")
-demo_subset_8  <- demographic%>% 
-  select("SEQN",demo_subset_8_list)
+
+multi.hist(demo_subset_8_imputed[,sapply(demo_subset_8_imputed, is.numeric)])
   
 demo_subset_8<- demo_subset_8 %>% 
   rename("ID"                 =         "SEQN",  
@@ -332,48 +444,6 @@ demo_subset_8<- demo_subset_8 %>%
 sapply(demo_subset_8, function(x) sum(is.na(x)))
 ```
 
-
-```{r, eval=FALSE, echo=TRUE, warning = F, message=F}
-## conversion to factors
-demo_subset_8$Gender <- as.factor(demo_subset_8$Gender)
-demo_subset_8$Race  <- as.factor(demo_subset_8$Race )
-demo_subset_8$Country_of_birth <- as.factor(demo_subset_8$Country_of_birth)
-demo_subset_8$Citizenship_status <- as.factor(demo_subset_8$Citizenship_status)
-demo_subset_8$Marital_status <- as.factor(demo_subset_8$Marital_status)
-#demo_subset_8$Family_income <- as.factor(demo_subset_8$Family_income)
-require(mice)
-init = mice(demo_subset_8, maxit=0)
-meth = init$method
-predM = init$predictorMatrix
-# select the "ID" variable to not be included as predictor during imputation.
-predM[, c("ID")]=0
-#Skip a variable from imputation, this variable will still be used for prediction
-meth[c("ID")]=""
-meth[c("Gender")]=""
-meth[c("Age")]=""
-meth[c("Race")]=""
-meth[c("Country_of_birth")]=""
-meth[c("Family_members")]=""
-#Now let specify the methods for imputing the missing values.
-meth[c("Citizenship_status")]="cart"
-meth[c("Marital_status")]="cart"
-meth[c("Family_income")]="rf" # require randomforest 
-set.seed(145)
-imputed = mice(demo_subset_8, method=meth, predictorMatrix=predM, m=5)
-#Create a dataset after imputation.
-demo_subset_8_imputed<- complete(imputed)
-```
-
-```{r, eval=FALSE, echo=F, warning = F, message=F}
-demo_subset_8_imputed = read.csv("Data/Working/demo_subset_8_imputed.csv", header = TRUE)
-```
-
-
-```{r, eval=FALSE, echo=TRUE, warning = F, message=F}
-#demo_subset_8_imputed$Family_income <- as.factor(demo_subset_8_imputed$Family_income)
-#Check for missings in the imputed dataset.
-sapply(demo_subset_8_imputed, function(x) sum(is.na(x)))
-```
 
 \pagebreak
 
@@ -422,7 +492,7 @@ demo_subset_8_labeled <- demo_subset_8_labeled %>%
                                 "15" = "$100000 and Over",	
                                 "77" =	"Refused",
                                 "99" =	"Unknown"	))
-demo_subset_8_labeled$Family_income <- as.factor(demo_subset_8_labeled$Family_income)
+demo_subset_8_imputed$Family_income <- as.factor(demo_subset_8_imputed$Family_income)
 #write.csv(demo_subset_8_labeled,file = "Data/Working/demo_subset_8_labeled.csv")
 ```
 
@@ -537,6 +607,37 @@ Our samples is pretty representative of the US population:
 
 ### Diet
 <!-- https://wwwn.cdc.gov/nchs/nhanes/search/variablelist.aspx?Component=Dietary&CycleBeginYear=2013 -->
+
+First we would remove all the Near Zero Variance features from the data set, Cutt off being 45% :
+
+```{r, eval=FALSE, echo=TRUE}
+diet_major <- diet
+
+if (length(nearZeroVar(diet_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
+                       names = FALSE, foreach = FALSE, allowParallel = TRUE)) > 0){
+  diet_major <- diet_major[, -nearZeroVar(diet_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
+                                          names = FALSE, foreach = FALSE, allowParallel = TRUE)] 
+  
+}
+
+```
+
+
+\pagebreak
+
+
+Now, we will remove the features having a missing values of more that 25% as decided before:
+
+```{r, eval=FALSE, echo=TRUE}
+Null_Num_diet <- apply(diet_major, 2, function(x) length(which(x == "" | is.na(x) | x == "NA" | x == "-999" ))/length(x))
+Null_Colms_diet <- colnames(diet_major)[Null_Num_diet > 0.25]
+diet75 <- select(diet_major, -Null_Colms_diet)
+
+colSums(is.na(diet75))
+diet75 %>% summarise_all(~(sum(is.na(.))/n()*100))
+
+```
+
 We have selected the following 69 relevant columns among the 88 that have less than 25% of missing values:
 
 * **ID (SEQN)** - Respondent sequence number.
@@ -610,82 +711,147 @@ We have selected the following 69 relevant columns among the 88 that have less t
 * **Water_yesterday (DR1_320Z)** - Total plain water drank yesterday - including plain tap water, water from a drinking fountain, water from a water cooler, bottled water, and spring water..
 
 
-diet_subset -> Need to impute it.  
 
-Before imputation missing values: 
-> sapply(diet_subset, function(x) sum(is.na(x)))
-    SEQN DR1TNUMF DR1TKCAL DR1TPROT DR1TCARB DR1TSUGR DR1TFIBE DR1TTFAT DR1TSFAT 
-       0     1152     1282     1282     1282     1282     1282     1282     1282 
-DR1TMFAT DR1TPFAT DR1TCHOL DR1TATOC DR1TATOA  DR1TRET DR1TVARA DR1TACAR DR1TBCAR 
-    1282     1282     1282     1282     1282     1282     1282     1282     1282 
-DR1TCRYP DR1TLYCO   DR1TLZ  DR1TVB1  DR1TVB2 DR1TNIAC  DR1TVB6 DR1TFOLA   DR1TFA 
-    1282     1282     1282     1282     1282     1282     1282     1282     1282 
-  DR1TFF DR1TFDFE  DR1TCHL DR1TVB12 DR1TB12A   DR1TVC   DR1TVD   DR1TVK DR1TCALC 
-    1282     1282     1282     1282     1282     1282     1282     1282     1282 
-DR1TPHOS DR1TMAGN DR1TIRON DR1TZINC DR1TCOPP DR1TSODI DR1TPOTA DR1TSELE DR1TCAFF 
-    1282     1282     1282     1282     1282     1282     1282     1282     1282 
-DR1TTHEO DR1TALCO DR1TMOIS DR1TS040 DR1TS060 DR1TS080 DR1TS100 DR1TS120 DR1TS140 
-    1282     1282     1282     1282     1282     1282     1282     1282     1282 
-DR1TS160 DR1TS180 DR1TM161 DR1TM181 DR1TM201 DR1TM221 DR1TP182 DR1TP183 DR1TP184 
-    1282     1282     1282     1282     1282     1282     1282     1282     1282 
-DR1TP204 DR1TP205 DR1TP225 DR1TP226  DR1.300 DR1.320Z 
-```{r, eval=FALSE, echo=TRUE}
-# Using diet csv, we selected "interesting" values from and impute #
-one_day_diet  <- c("SEQN","DR1TNUMF","DR1TKCAL","DR1TPROT","DR1TCARB","DR1TSUGR","DR1TFIBE","DR1TTFAT","DR1TSFAT","DR1TMFAT","DR1TPFAT","DR1TCHOL","DR1TATOC","DR1TATOA","DR1TRET","DR1TVARA","DR1TACAR","DR1TBCAR","DR1TCRYP","DR1TLYCO","DR1TLZ","DR1TVB1","DR1TVB2","DR1TNIAC","DR1TVB6","DR1TFOLA","DR1TFA","DR1TFF","DR1TFDFE","DR1TCHL","DR1TVB12","DR1TB12A","DR1TVC","DR1TVD","DR1TVK","DR1TCALC","DR1TPHOS","DR1TMAGN","DR1TIRON","DR1TZINC","DR1TCOPP","DR1TSODI","DR1TPOTA","DR1TSELE","DR1TCAFF","DR1TTHEO","DR1TALCO","DR1TMOIS","DR1TS040","DR1TS060","DR1TS080","DR1TS100","DR1TS120","DR1TS140","DR1TS160","DR1TS180","DR1TM161","DR1TM181","DR1TM201","DR1TM221","DR1TP182","DR1TP183","DR1TP184","DR1TP204","DR1TP205","DR1TP225","DR1TP226","DR1.300","DR1.320Z")
-diet_subset = subset(diet,select=one_day_diet )
-sapply(diet_subset, function(x) sum(is.na(x)))
-imputed_diet_subset <- mice(diet_subset, m=5, maxit= 50, method = 'pmm', seed=501)
-sapply(diet_subset, function(x) sum(is.na(x)))
-imputed_diet_subset_complete <- mice::complete(imputed_diet_subset, 2)
-imputed_diet_subset$method
-str(imputed_diet_subset_complete)
-sapply(imputed_diet_subset_complete, function(x) sum(is.na(x)))
-write.csv(imputed_diet_subset_complete, "diet_subset_processed.csv")
-```
 
-After imputation missing values: 
-
-These variables/attributes are referring to the one day nutrituion numerical attributes.  
-
-We've further reduced the diet subset to 10 attributes as per our guidelines: 
+We will now refer to our Dictionary for making a reference dataframe to differentiate between different forms of variables in a fast and effective way:
 
 ```{r, eval=FALSE, echo=TRUE}
-ten_attributes_diet = c("SEQN", "DR1TCARB","DR1TSUGR", "DR1TFIBE","DR1TTFAT","DR1TSFAT", "DR1TZINC","DR1TCOPP","DR1TSODI","DR1TPOTA","DR1TSELE" )
-ten_attributes_diet_subset = subset(imputed_diet_subset_complete, select=ten_attributes_diet)
-str(ten_attributes_diet_subset)
-sapply(ten_attributes_diet_subset, function(x) sum(is.na(x)))
-#"SEQN" - ID
-#"DR1TCARB" - Carbs
-#"DR1TSUGR" - Sugar
-#"DR1TFIBE" - Fiber
-#"DR1TTFAT" - Trans Fat
-#"DR1TSFAT" - Saturated Fat
-#"DR1TZINC" - Zinc
-#"DR1TCOPP" - Copper
-#"DR1TSODI" - Sodium 
-#"DR1TPOTA" - Potatssium
-#"DR1TSELE" - Selenium
-ten_attributes_diet_subset <- ten_attributes_diet_subset %>% 
-  rename("ID"                =         "SEQN",  
-         "Carbs_diet"        =     "DR1TCARB",  
-         "Sugar_diet"        =     "DR1TSUGR",  
-         "Fiber_diet"        =     "DR1TFIBE",  
-         "transfat_diet"     =     "DR1TTFAT",  
-         "satfat_diet"       =     "DR1TSFAT",   
-         "zinc_diet"         =     "DR1TZINC",  
-         "copper_diet"       =     "DR1TCOPP",  
-         "sodium_diet"       =     "DR1TSODI",  
-         "pota_diet"         =     "DR1TPOTA", 
-         "selenium_diet"     =     "DR1TSELE"  )
-sapply(ten_attributes_diet_subset, function(x) sum(is.na(x)))
-str(ten_attributes_diet_subset)
-write.csv(imputed_diet_subset_complete, "diet_subset_10_attributes_processed.csv")
+diet_indexed <- diet75
+colnames(diet_indexed) <- with(Dictionary,
+                               Dictionary$Variable.Description[match(colnames(diet75),
+                                                                     Dictionary$Variable.Name,
+                                                                     nomatch = Dictionary$Variable.Name
+                               )])
+
+diet_Col_Labels <- data.frame("Code"=c(colnames(diet75)), 
+                              "Desp"=c(colnames(diet_indexed)))
 ```
 
 \pagebreak
 
+ Categorization of variables
+
+ 
+ We have to now enter categorization of Factor/Numeric/ 'Computation not required' in the excel file generated <br />
+* Only to be done in 3rd column...<br />
+* Code is....<br />
+* **0** = Factor requiring no computation.<br />
+* **1** = Numeric requiring computation.<br />
+* **2** = Factor requiring computation.<br />
+* **Please write Column name for the category as "Cat" **<br />
+Reading Index again
+```{r, eval=FALSE, echo=TRUE}
+Cat_diet <- c(0,1,1,2,2,2,1,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+              1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+              1,1,1,1,1,1,1,1,1,1,1,1,2,2,2)
+diet_Col_Labels <- data.frame(diet_Col_Labels,Cat = Cat_diet)
+
+diet_Col_Labels   = read.csv("Data/Labels/diet_Col_Labels.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+diet_Col_Labels[, 2] <- sapply(diet_Col_Labels[, 2], as.character)
+
+```
+Now we prepare the dataset for impute from all the information.
+```{r, eval=FALSE, echo=TRUE}
+
+Catcolmn_diet <- diet_Col_Labels[diet_Col_Labels$Cat ==2 , 2 ] 
+Numcolmn_diet <- diet_Col_Labels[diet_Col_Labels$Cat ==1 , 2 ] 
+Catcolmn_Nul_diet <- diet_Col_Labels[diet_Col_Labels$Cat ==0 , 2 ] 
+WorkingColm_diet <- c(Catcolmn_Nul_diet, Numcolmn_diet, Catcolmn_diet)
+
+```
+\pagebreak
+* ==========================  IMPUTATION( MICE package)   =======================<br />
+* Precisely, the methods used by this package are:<br />
+* 1)-PMM (Predictive Mean Matching) For numeric variables<br />
+* 2)-logreg(Logistic Regression) For Binary Variables( with 2 levels)<br />
+* 3)-polyreg(Bayesian polytomous regression) For Factor Variables (>= 2 levels)<br />
+* 4)-Proportional odds model (ordered, >= 2 levels)<br />
+* 5)-cart  Classification and regression trees (any) <br />
+* 6)rf Random forest imputations (any)<br />
+* ==============================================================================<br />
+```{r, eval=FALSE, echo=TRUE}
+meth_diet = init_diet$method
+predM_diet = init_diet$predictorMatrix
+predM_diet[, c("SEQN")]=0
+meth_diet[Catcolmn_Nul_diet] = ""
+meth_diet[Catcolmn_diet]="cart"
+meth_diet[Numcolmn_diet]="pmm"
+set.seed(256)
+imputed_diet = mice(diet_selected, method=meth_diet, predictorMatrix=predM_diet, m=5)
+
+#Create a dataset after imputation.
+
+diet_imputed<- complete(imputed_diet)
+
+#######################################  Saving Impute
+
+#write.csv(diet_imputed , "Data/Clean_Imputes/diet_imputed.csv",row.names = FALSE)
+diet_imputed   = read.csv("Data/Clean_Imputes/diet_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+```
+\pagebreak
+
+Labeling the dataset:
+```{r, eval=FALSE, echo=TRUE}
+diet_labeled <- diet_imputed
+rm(diet_imputed)
+
+diet_labeled <- diet_labeled %>% 
+  dplyr::rename("ID"                =         "SEQN",  
+                "Carbs_diet"        =     "DR1TCARB",  
+                "Sugar_diet"        =     "DR1TSUGR",  
+                "Fiber_diet"        =     "DR1TFIBE",  
+                "transfat_diet"     =     "DR1TTFAT",  
+                "satfat_diet"       =     "DR1TSFAT",   
+                "zinc_diet"         =     "DR1TZINC",  
+                "copper_diet"       =     "DR1TCOPP",  
+                "sodium_diet"       =     "DR1TSODI",  
+                "pota_diet"         =     "DR1TPOTA", 
+                "selenium_diet"     =     "DR1TSELE"  )
+
+```
+
+\pagebreak
+
+
 ### Examination
 <!-- https://wwwn.cdc.gov/nchs/nhanes/search/variablelist.aspx?Component=Examination&CycleBeginYear=2013 -->
+
+
+First we would remove all the Near Zero Variance features from the data set, Cutt off being 45% :
+
+```{r, eval=FALSE, echo=TRUE}
+
+exam_major <- examination
+rm(examination)
+
+if (length(nearZeroVar(exam_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
+                       names = FALSE, foreach = FALSE, allowParallel = TRUE)) > 0){
+  exam_major <- exam_major[, -nearZeroVar(exam_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
+                                          names = FALSE, foreach = FALSE, allowParallel = TRUE)] 
+  
+}
+
+
+```
+
+
+\pagebreak
+
+
+Now, we will remove the features having a missing values of more that 25% as decided before:
+
+```{r, eval=FALSE, echo=TRUE}
+Null_Num_diet <- apply(diet_major, 2, function(x) length(which(x == "" | is.na(x) | x == "NA" | x == "-999" ))/length(x))
+Null_Colms_diet <- colnames(diet_major)[Null_Num_diet > 0.25]
+diet75 <- select(diet_major, -Null_Colms_diet)
+
+colSums(is.na(diet75))
+diet75 %>% summarise_all(~(sum(is.na(.))/n()*100))
+
+```
+
 We have selected the following 12 relevant columns among the 105 that have less than 25% of missing values:
 
 * **ID (SEQN)** - Respondent sequence number.
@@ -701,24 +867,92 @@ We have selected the following 12 relevant columns among the 105 that have less 
 * **Dominant_hand_exam (MGD130)** - Are you right-handed, left-handed, or do you use both hands equally?.
 * **Grip_strength_exam (MGDCGSZ)** - Combined grip strength (kg): the sum of the largest reading from each hand..
 
-<!--TODO split code in segments and explain it a  bit-->
+We will now refer to our Dictionary for making a reference dataframe to differentiate between different forms of variables in a fast and effective way:
 
 ```{r, eval=FALSE, echo=TRUE}
-# Import libraries
-require(AMR)
-require(mice)
-require(randomForest)
-# Import the raw dataset
-examination = read.csv(file.choose(), header = TRUE, na.strings = c("NA","","#NA"))
-# Select relevant columns
-examination_subset = subset(
-  examination,
-  select=c('SEQN', 'PEASCTM1', 'BPAARM', 'BPXSY2', 'BPXDI2', 'BMXWT', 'BMXHT', 'BMXBMI', 'BMXLEG',
-           'BMXWAIST', 'MGD130', 'MGDCGSZ')
-  )
-# Rename columns to meaningful names
-examination_renamed = rename(
-  examination_subset,
+exam_indexed <- exam75
+colnames(exam_indexed) <- with(Dictionary,
+                               Dictionary$Variable.Description[match(colnames(exam75),
+                                                                     Dictionary$Variable.Name,
+                                                                     nomatch = Dictionary$Variable.Name
+                               )])
+
+exam_Col_Labels <- data.frame("Code"=c(colnames(exam75)), 
+                              "Desp"=c(colnames(exam_indexed)))
+```
+
+\pagebreak
+
+ Categorization of variables
+
+ 
+ We have to now enter categorization of Factor/Numeric/ 'Computation not required' in the excel file generated <br />
+* Only to be done in 3rd column...<br />
+* Code is....<br />
+* **0** = Factor requiring no computation.<br />
+* **1** = Numeric requiring computation.<br />
+* **2** = Factor requiring computation.<br />
+* **Please write Column name for the category as "Cat" **<br />
+Reading Index again
+```{r, eval=FALSE, echo=TRUE}
+Cat_exam <- c(0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+              1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+              1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+              1,1,1,1,1,1,1,1,1,1)
+exam_Col_Labels <- data.frame(exam_Col_Labels,Cat = Cat_exam)
+
+```
+Now we prepare the dataset for impute from all the information.
+```{r, eval=FALSE, echo=TRUE}
+
+Catcolmn_exam <- exam_Col_Labels[exam_Col_Labels$Cat ==2 , 2 ] 
+Numcolmn_exam <- exam_Col_Labels[exam_Col_Labels$Cat ==1 , 2 ] 
+Catcolmn_Nul_exam <- exam_Col_Labels[exam_Col_Labels$Cat ==0 , 2 ] 
+WorkingColm_exam <- c(Catcolmn_Nul_exam, Numcolmn_exam, Catcolmn_exam)
+
+```
+\pagebreak
+* ==========================  IMPUTATION( MICE package)   =======================<br />
+* Precisely, the methods used by this package are:<br />
+* 1)-PMM (Predictive Mean Matching) For numeric variables<br />
+* 2)-logreg(Logistic Regression) For Binary Variables( with 2 levels)<br />
+* 3)-polyreg(Bayesian polytomous regression) For Factor Variables (>= 2 levels)<br />
+* 4)-Proportional odds model (ordered, >= 2 levels)<br />
+* 5)-cart  Classification and regression trees (any) <br />
+* 6)rf Random forest imputations (any)<br />
+* ==============================================================================<br />
+```{r, eval=FALSE, echo=TRUE}
+meth_exam = init_exam$method
+predM_exam = init_exam$predictorMatrix
+predM_exam[, c("SEQN")]=0
+meth_exam[Catcolmn_Nul_exam] = ""
+meth_exam[Catcolmn_exam]="cart"
+meth_exam[Numcolmn_exam]="pmm"
+
+set.seed(311)
+imputed_exam = mice(exam_selected, method=meth_exam, predictorMatrix=predM_exam, m=5)
+
+#Create a dataset after imputation.
+
+exam_imputed<- complete(imputed_exam)
+rm(imputed_exam)
+
+#######################################  Saving Impute
+
+
+#write.csv(exam_imputed , "Data/Clean_Imputes/exam_imputed.csv",row.names = FALSE)
+exam_imputed   = read.csv("Data/Clean_Imputes/exam_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+```
+\pagebreak
+
+Labeling the dataset:
+```{r, eval=FALSE, echo=TRUE}
+exam_labeled <- exam_imputed
+rm(exam_imputed)
+
+exam_labeled = dplyr::rename(
+  exam_labeled,
   "ID"                  = "SEQN",
   "BP_test_time_exam"        = "PEASCTM1",
   "BP_arm_exam"              = "BPAARM",
@@ -731,37 +965,10 @@ examination_renamed = rename(
   "Waist_circumference_exam" = "BMXWAIST",
   "Dominant_hand_exam"       = "MGD130",
   "Grip_strength_exam"       = "MGDCGSZ"
-  )
-# Check if there are no missing values:
-0 == sum(sapply(examination_renamed, function(x) sum(is.na(x)))) # FALSE
-# Explore the columns in the subset
-summary(examination_renamed[2:12])
-# Numerical: 9 - pmm or rf
-# 2 Factors: 1 - logreg or cart
-# 3 Factors: 1 - polyreg or cart
-freq(examination_renamed$BP_arm_exam)
-# BP_arm_exam has 2 factors. 1=Left, 2=Right, 8=Right (maybe 8 was a typo)
-examination_renamed$BP_arm_exam[examination_renamed$BP_arm_exam == 8] = 2
-examination_renamed$BP_arm_exam = as.factor(examination_renamed$BP_arm_exam)
-freq(examination_renamed$Dominant_hand_exam)
-# Dominant_hand_exam has 3 factors: 1=Right, 2=Left, 3=Neither
-examination_renamed$Dominant_hand_exam = as.factor(examination_renamed$Dominant_hand_exam)
-set.seed(125)
-# Configure and run mice
-examination_mice = mice(examination_renamed, m=5) # slow line
-examination_mice$predictorMatrix[, 'ID']=0
-examination_mice$method[c(2:12)] = 'rf'
-examination_mice$method['BP_arm_exam'] = 'logreg'
-examination_mice$method['Dominant_hand_exam'] = 'polyreg'
-examination_imputed = complete(examination_mice)
-# Check there are no missing values
-0 == sum(sapply(examination_imputed, function(x) sum(is.na(x)))) # TRUE
-summary(examination_imputed)
-# Export the dataset
-##write.csv(examination_imputed, file.choose())
-# Label the data
-examination_labeled = mutate(
-  examination_imputed,
+)
+
+exam_labeled = mutate(
+  exam_labeled,
   BP_arm_exam = recode(BP_arm_exam,
                        "1" = "Left",
                        "2" = "Right"),
@@ -769,15 +976,51 @@ examination_labeled = mutate(
                               "1"="Right",
                               "2"="Left",
                               "3"="Neither")
-  )
-# Export the dataset
-##write.csv(examination_labeled, file.choose())
+)
+
+exam_labeled[ , 70:97]  <- lapply(exam_labeled[ ,70:97] , FUN = function(x) recode(x, "1='D';2='E';3='J';4='K';5='M';6='P';7='Q';8='R';9='S';10='T';11='U';12='X';13='Y';14='Z'"))
+
 ```
 
+\pagebreak
 \pagebreak
 
 ### Labs
 <!-- https://wwwn.cdc.gov/nchs/nhanes/search/variablelist.aspx?Component=Laboratory&CycleBeginYear=2013 -->
+
+
+First we would remove all the Near Zero Variance features from the data set, Cutt off being 45% :
+
+```{r, eval=FALSE, echo=TRUE}
+
+
+labsdata_major <- labs
+
+if (length(nearZeroVar(labsdata_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
+                       names = FALSE, foreach = FALSE, allowParallel = TRUE)) > 0){
+  labsdata_major <- labsdata_major[, -nearZeroVar(labsdata_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
+                                                  names = FALSE, foreach = FALSE, allowParallel = TRUE)] 
+  
+}
+
+```
+
+
+\pagebreak
+
+
+Now, we will remove the features having a missing values of more that 25% as decided before:
+
+```{r, eval=FALSE, echo=TRUE}
+
+
+Null_Num_labsdata <- apply(labsdata_major, 2, function(x) length(which(x == "" | is.na(x) | x == "NA" | x == "-999" ))/length(x))
+Null_Colms_labsdata <- colnames(labsdata_major)[Null_Num_labsdata > 0.35]
+labsdata75 <- select(labsdata_major, -Null_Colms_labsdata)
+
+
+```
+
 We have selected the following 9 relevant columns among the 46 that have less than 25% of missing values:
 
 * **ID (SEQN)** - Respondent sequence number..
@@ -790,125 +1033,130 @@ We have selected the following 9 relevant columns among the 46 that have less th
 * **Hepatitis_b_labs (LBXHBC)** - Hepatitis B core antibody.
 * **Cholesterol_labs (LBXTC)** - Total Cholesterol( mg/dL).
 
-First we create a subset of labs data and then relabel the columns to meaningful names.  
+
+We will now refer to our Dictionary for making a reference dataframe to differentiate between different forms of variables in a fast and effective way:
 
 ```{r, eval=FALSE, echo=TRUE}
-select_columns_labs <- c("SEQN", "LBXWBCSI", "LBXRBCSI", "PHQ020", "PHQ030", "PHQ060", "LBXHA", "LBXHBC", "LBXTC" )
-labs_subset = subset(labs, select=select_columns_labs)
-# Relabel the columns to meaningful names.  
-labs_subset <- labs_subset %>% 
-  rename("ID"                =         "SEQN",  
-         "White_blood_cells_labs" =     "LBXWBCSI",  
-         "Red_bloods_cells_labs"  =     "LBXRBCSI",  
-         "Caffeine_labs"          =     "PHQ020",  
-         "Alcohol_labs"           =     "PHQ030",  
-         "Supplements_labs"       =     "PHQ060",   
-         "Hepatitis_a_labs"       =     "LBXHA",  
-         "Hepatitis_b_labs"       =     "LBXHBC",  
-         "Cholesterol_labs"       =     "LBXTC"  )
-```
-A look at the structure of the data.
+labsdata_indexed <- labsdata75
+colnames(labsdata_indexed) <- with(Dictionary,
+                                   Dictionary$Variable.Description[match(colnames(labsdata75),
+                                                                         Dictionary$Variable.Name,
+                                                                         nomatch = Dictionary$Variable.Name
+                                   )])
 
-> str(labs_subset)
-'data.frame':	9813 obs. of  9 variables:
- $ ID                    : int  73557 73558 73559 73560 73561 73562 73563 73564 73566 73567 ...
- $ White_blood_cells_labs: num  4.7 12.6 7.2 7.8 6.6 9.4 NA 5.2 9.5 6.3 ...
- $ Red_bloods_cells_labs : num  5.09 3.84 5.53 4.61 4.72 4.93 NA 4.66 4.43 4.35 ...
- $ Caffeine_labs         : int  2 2 2 2 2 2 NA 2 2 2 ...
- $ Alcohol_labs          : int  2 2 2 2 2 2 NA 2 2 2 ...
- $ Supplements_labs      : int  2 2 2 2 2 2 NA 2 2 2 ...
- $ Hepatitis_a_labs      : int  1 2 2 1 2 2 NA 2 2 2 ...
- $ Hepatitis_b_labs      : int  1 2 2 2 2 2 NA 2 2 2 ...
- $ Cholesterol_labs      : int  167 170 126 168 201 226 NA 168 278 173 ...
+labsdata_Col_Labels <- data.frame("Code"=c(colnames(labsdata75)), 
+                                  "Desp"=c(colnames(labsdata_indexed)))
+```
+
+\pagebreak
+
+ Categorization of variables
+
  
- Convert the categorical values into factors, clean-up: 
- 
-
-
-
-Now we perform imputation: 
-
+ We have to now enter categorization of Factor/Numeric/ 'Computation not required' in the excel file generated <br />
+* Only to be done in 3rd column...<br />
+* Code is....<br />
+* **0** = Factor requiring no computation.<br />
+* **1** = Numeric requiring computation.<br />
+* **2** = Factor requiring computation.<br />
+* **Please write Column name for the category as "Cat" **<br />
+Reading Index again
 ```{r, eval=FALSE, echo=TRUE}
-labs_subset$Caffeine_labs <- as.factor(labs_subset$Caffeine_labs)
-labs_subset$Alcohol_labs <- as.factor(labs_subset$Alcohol_labs)
-labs_subset$Supplements_labs <- as.factor(labs_subset$Supplements_labs)
-labs_subset$Hepatitis_a_labs <- as.factor(labs_subset$Hepatitis_a_labs)
-labs_subset$Hepatitis_b_labs <- as.factor(labs_subset$Hepatitis_b_labs)
+Cat_labs <- c(0,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+              1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+              1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+              2,2,2,2,1,1,2,2,2,2,1,1,1,1,1)
+labsdata_Col_Labels <- data.frame(labsdata_Col_Labels,Cat = Cat_labs)
 ```
-
-
-
-> str(labs_subset)
-'data.frame':	9813 obs. of  9 variables:
- $ ID                    : int  73557 73558 73559 73560 73561 73562 73563 73564 73566 73567 ...
- $ White_blood_cells_labs: num  4.7 12.6 7.2 7.8 6.6 9.4 NA 5.2 9.5 6.3 ...
- $ Red_bloods_cells_labs : num  5.09 3.84 5.53 4.61 4.72 4.93 NA 4.66 4.43 4.35 ...
- $ Caffeine_labs         : Factor w/ 2 levels "1","2": 2 2 2 2 2 2 NA 2 2 2 ...
- $ Alcohol_labs          : Factor w/ 2 levels "1","2": 2 2 2 2 2 2 NA 2 2 2 ...
- $ Supplements_labs      : Factor w/ 2 levels "1","2": 2 2 2 2 2 2 NA 2 2 2 ...
- $ Hepatitis_a_labs      : Factor w/ 2 levels "1","2": 1 2 2 1 2 2 NA 2 2 2 ...
- $ Hepatitis_b_labs      : Factor w/ 2 levels "1","2": 1 2 2 2 2 2 NA 2 2 2 ...
- $ Cholesterol_labs      : int  167 170 126 168 201 226 NA 168 278 173 ..
-
-Perform imputation: 
-
+Now we prepare the dataset for impute from all the information.
 ```{r, eval=FALSE, echo=TRUE}
-init = mice(labs_subset, maxit=0)
-meth = init$method
-predM = init$predictorMatrix
-# select the "ID" variable to not be included as predictor during imputation.
-predM[, c("ID")]=0
-# Cart usage: https://stefvanbuuren.name/fimd/sec-cart.html
-# https://en.wikipedia.org/wiki/Random_forest 
-#Skip a variable from imputation, this variable will still be used for prediction
-meth[c("ID")]=""
-#Now let specify the methods for imputing the missing values.
-meth[c("White_blood_cells_labs")]="rf"
-meth[c("Red_bloods_cells_labs" )]="rf"
-meth[c("Caffeine_labs")]="cart"
-meth[c("Alcohol_labs")]="cart"
-meth[c("Supplements_labs")]="cart"
-meth[c("Hepatitis_a_labs"  )] ="cart"
-meth[c("Hepatitis_b_labs" )] ="cart"
-meth[c("Cholesterol_labs")]="rf"
-set.seed(145)
-imputed = mice(labs_subset, method=meth, predictorMatrix=predM, m=5)
-#Create a dataset after imputation.
-labs_subset_imputed<- complete(imputed)
-sapply(labs_subset_imputed, function(x) sum(is.na(x)))
-write.csv(labs_subset_imputed,file = "labs_subset_imputed.csv")
+
+Catcolmn_labsdata <- labsdata_Col_Labels[labsdata_Col_Labels$Cat ==2 , 2 ] 
+Numcolmn_labsdata <- labsdata_Col_Labels[labsdata_Col_Labels$Cat ==1 , 2 ] 
+Catcolmn_Nul_labsdata <- labsdata_Col_Labels[labsdata_Col_Labels$Cat ==0 , 2 ] 
+WorkingColm_labsdata <- c(Catcolmn_Nul_labsdata, Numcolmn_labsdata, Catcolmn_labsdata)
+
 ```
-
-Now we shall labelled the data: 
-
+\pagebreak
+* ==========================  IMPUTATION( MICE package)   =======================<br />
+* Precisely, the methods used by this package are:<br />
+* 1)-PMM (Predictive Mean Matching) For numeric variables<br />
+* 2)-logreg(Logistic Regression) For Binary Variables( with 2 levels)<br />
+* 3)-polyreg(Bayesian polytomous regression) For Factor Variables (>= 2 levels)<br />
+* 4)-Proportional odds model (ordered, >= 2 levels)<br />
+* 5)-cart  Classification and regression trees (any) <br />
+* 6)rf Random forest imputations (any)<br />
+* ==============================================================================<br />
 ```{r, eval=FALSE, echo=TRUE}
-# Label the data for factor/categorical values from imputed dataset.
-labs_subset_labelled <- labs_subset_imputed
-labs_subset_labelled = labs_subset_labelled %>% 
+meth_labsdata = init_labsdata$method
+predM_labsdata = init_labsdata$predictorMatrix
+predM_labsdata[, c("SEQN")]=0
+meth_labsdata[Catcolmn_Nul_labsdata] = ""
+meth_labsdata[Catcolmn_labsdata]="cart"
+meth_labsdata[Numcolmn_labsdata]="pmm"
+set.seed(415)
+imputed_labsdata = mice(labsdata_selected, method=meth_labsdata, predictorMatrix=predM_labsdata, m=5)
+labsdata_imputed<- complete(imputed_labsdata)
+
+rm(imputed_labsdata)
+
+#Check for missings in the imputed dataset.
+sapply(labsdata_imputed, function(x) sum(is.na(x)))
+
+#######################################  Saving Impute
+
+#write.csv(labsdata_imputed , "Data/Clean_Imputes/labsdata_imputed.csv",row.names = FALSE)
+labsdata_imputed   = read.csv("Data/Clean_Imputes/labsdata_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+```
+\pagebreak
+
+Labeling the dataset:
+```{r, eval=FALSE, echo=TRUE}
+labs_labeled <- labs_labeled %>% 
+  dplyr::rename("ID"                =         "SEQN",  
+                "White_blood_cells_labs" =     "LBXWBCSI",  
+                "Red_bloods_cells_labs"  =     "LBXRBCSI",  
+                "Caffeine_labs"          =     "PHQ020",  
+                "Alcohol_labs"           =     "PHQ030",  
+                "Supplements_labs"       =     "PHQ060",   
+                "Hepatitis_a_labs"       =     "LBXHA",  
+                "Hepatitis_b_labs"       =     "LBXHBC",  
+                "Cholesterol_labs"       =     "LBXTC"  )
+
+
+labs_labeled = labs_labeled %>% 
   mutate(Caffeine_labs= recode(Caffeine_labs, "1" = "Yes",
+                               "2" = "No", 
+                               "NA" = "Not Tested"))
+
+
+labs_labeled = labs_labeled %>% 
+  mutate(Alcohol_labs= recode(Alcohol_labs, "1" = "Yes",
                               "2" = "No", 
                               "NA" = "Not Tested"))
-labs_subset_labelled = labs_subset_labelled %>% 
-  mutate(Alcohol_labs= recode(Alcohol_labs, "1" = "Yes",
-                               "2" = "No", 
-                               "NA" = "Not Tested"))
-labs_subset_labelled = labs_subset_labelled %>% 
+
+labs_labeled = labs_labeled %>% 
   mutate(Supplements_labs= recode(Supplements_labs, "1" = "Yes",
-                               "2" = "No", 
-                               "NA" = "Not Tested"))
-labs_subset_labelled = labs_subset_labelled %>% 
+                                  "2" = "No", 
+                                  "NA" = "Not Tested"))
+
+
+
+labs_labeled = labs_labeled %>% 
   mutate(Hepatitis_a_labs= recode(Hepatitis_a_labs, "1" = "Positive",
                                   "2" = "Negative",
                                   "3" = "Indeterminate",
                                   "NA" = "Not Tested"))
-labs_subset_labelled = labs_subset_labelled %>% 
+
+
+labs_labeled = labs_labeled %>% 
   mutate(Hepatitis_b_labs= recode(Hepatitis_b_labs, "1" = "Positive",
                                   "2" = "Negative",
                                   "NA" = "Not Tested"))
-str(labs_subset_labelled)
-write.csv(labs_subset_labelled,file = "labs_subset_labelled.csv")
-```
 
+
+```
 
 \pagebreak
 
@@ -916,14 +1164,6 @@ write.csv(labs_subset_labelled,file = "labs_subset_labelled.csv")
 
 
 <!-- https://wwwn.cdc.gov/Nchs/Nhanes/2013-2014/RXQ_RX_H.htm -->
-All of the columns had more than 25% missing values. Among the 8 columns with less than 32% of missing value we have selected the following 5 relevant columns:
-
-* **ID (SEQN)** - Respondent sequence number.
-* **Medication (RXDDRGID)** - Generic drug name.
-* **Days_taken (RXDDAYS)** - Number of days taken medicine.
-* **Medication_purpose (RXDRSD1)** - Reasons for use reported by participants.
-* **Amount_taken (RXDCOUNT)** - Number of prescription medicines taken.
-
 
 
 First we would remove all the Near Zero Variance features from the data set, Cutt off being 45% :
@@ -949,6 +1189,15 @@ Null_Num_medsdata <- apply(medsdata_major, 2, function(x) length(which(x == "" |
 Null_Colms_medsdata <- colnames(medsdata_major)[Null_Num_medsdata > 0.33]
 medsdata68 <- select(medsdata_major, -Null_Colms_medsdata)
 ```
+
+All of the columns had more than 25% missing values. Among the 8 columns with less than 32% of missing value we have selected the following 5 relevant columns:
+
+* **ID (SEQN)** - Respondent sequence number.
+* **Medication (RXDDRGID)** - Generic drug name.
+* **Days_taken (RXDDAYS)** - Number of days taken medicine.
+* **Medication_purpose (RXDRSD1)** - Reasons for use reported by participants.
+* **Amount_taken (RXDCOUNT)** - Number of prescription medicines taken.
+
 
 We will now refer to our Dictionary for making a reference dataframe to differentiate between different forms of variables in a fast and effective way:
 
@@ -1013,11 +1262,7 @@ medsdata_imputed<- complete(imputed_medsdata)
 write.csv(medsdata_imputed , "Data/Working/medsdata_imputed.csv")
 ```
 \pagebreak
-Selecting the desired variables:-
-```{r, eval=FALSE, echo=TRUE}
-Meds_sel_Feat <- c("SEQN", "RXDDRGID", "RXDDAYS", "RXDRSD1","RXDCOUNT")
-medsdata_imputed_subset = subset(medsdata_imputed,select=Meds_sel_Feat )
-```
+
 Labeling the dataset:
 ```{r, eval=FALSE, echo=TRUE}
 meds_subset_labelled <- medsdata_imputed_subset
@@ -1032,6 +1277,28 @@ write.csv(meds_subset_labelled,file = "meds_subset_labelled.csv")
 \pagebreak
 ### Questionnaire
 <!-- https://wwwn.cdc.gov/nchs/nhanes/search/variablelist.aspx?Component=Questionnaire&CycleBeginYear=2013 -->
+
+First, we will remove the near zero vairiance variables.
+
+```{r, eval=FALSE, echo=TRUE}
+ques_data_major <- questionnaire
+if (length(nearZeroVar(ques_data_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
+                       names = FALSE, foreach = FALSE, allowParallel = TRUE)) > 0){
+  ques_data_major <- ques_data_major[, -nearZeroVar(ques_data_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
+                                                    names = FALSE, foreach = FALSE, allowParallel = TRUE)] 
+  
+}
+```
+
+Now, we will remove the features having a missing values of more that 25% as decided before:
+
+```{r, eval=FALSE, echo=TRUE}
+Null_Num_ques_data <- apply(ques_data_major, 2, function(x) length(which(x == "" | is.na(x) | x == "NA" | x == "-999" ))/length(x))
+Null_Colms_ques_data <- colnames(ques_data_major)[Null_Num_ques_data > 0.25]
+ques_data75 <- select(ques_data_major, -Null_Colms_ques_data)
+colSums(is.na(ques_data75))
+ques_data75 %>% summarise_all(~(sum(is.na(.))/n()*100))
+```
 We have selected the following 38 relevant columns among the 79 that have less than 25% of missing values:
 * **ID (SEQN)** - Respondent sequence number.
 * **Spent_total (CBD070)** - The next questions are about how much money {your family spends/you spend} on food. First I'll ask you about money spent at supermarkets or grocery stores. Then we will talk about money spent at other types of stores. During the past 30 days, how much money {did your family/did you} spend at supermarkets or grocery stores? Please include purchases made with food stamps..
@@ -1074,29 +1341,6 @@ We have selected the following 38 relevant columns among the 79 that have less t
 * **Smoking_relatives (SMD460)** - Now I would like to ask you a few questions about smoking in this home. How many people who live here smoke cigarettes, cigars, little cigars, pipes, water pipes, hookah, or any other tobacco product?.
 * **Ride_motor_vehicle (SMQ870)** - During the last 7 days, did {you/SP} ride in a car or motor vehicle?.
 
-
-
-First, we will remove the near zero vairiance variables.
-
-```{r, eval=FALSE, echo=TRUE}
-ques_data_major <- questionnaire
-if (length(nearZeroVar(ques_data_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
-                       names = FALSE, foreach = FALSE, allowParallel = TRUE)) > 0){
-  ques_data_major <- ques_data_major[, -nearZeroVar(ques_data_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
-                                                    names = FALSE, foreach = FALSE, allowParallel = TRUE)] 
-  
-}
-```
-
-Now, we will remove the features having a missing values of more that 25% as decided before:
-
-```{r, eval=FALSE, echo=TRUE}
-Null_Num_ques_data <- apply(ques_data_major, 2, function(x) length(which(x == "" | is.na(x) | x == "NA" | x == "-999" ))/length(x))
-Null_Colms_ques_data <- colnames(ques_data_major)[Null_Num_ques_data > 0.25]
-ques_data75 <- select(ques_data_major, -Null_Colms_ques_data)
-colSums(is.na(ques_data75))
-ques_data75 %>% summarise_all(~(sum(is.na(.))/n()*100))
-```
 
 
 We will now refer to our Dictionary for making a reference dataframe to differentiate between different forms of variables in a fast and effective way:
@@ -1173,13 +1417,7 @@ imputed_ques_data = mice(ques_data_selected, method=meth_ques_data, predictorMat
 ques_data_imputed<- complete(imputed_ques_data)
 write.csv(ques_data_imputed , "Data/Working/ques_data_imputed.csv")
 ```
-Select interesting variables and creating a subset :-
-```{r, eval=FALSE, echo=TRUE}
-ques_sel_Feat <- c("SEQN","CBD070","CBD110","CBD120","CBD130","HSQ500","HSQ510","HSQ520","DIQ010","DIQ050","DBQ197","DBD895","DBD905","DBD910","DLQ010","DLQ020","DLQ040","FSD151","FSQ162","HIQ011","HIQ210","HOD050","HUQ010","HUQ041","HUQ051","HUQ090","IND235","MCQ010","MCQ053","MCQ300B","OHQ030","PAQ710","PAQ715","SMD460","SMQ870")
-ques_data_imputed_subset = subset(ques_data_imputed,select=ques_sel_Feat )
-sapply(ques_data_imputed_subset, function(x) sum(is.na(x)))
-write.csv(ques_data_imputed_subset , "Data/Working/ques_data_imputed_subset.csv")
-```
+\pagebreak
 Now we label and save the data set:
 ```{r, eval=FALSE, echo=TRUE}
 ques_Yes_No_NO_SEQN <- c("HSQ500","HSQ510","HSQ520","DIQ010","DIQ050","DLQ010","DLQ020","DLQ040","FSD151","FSQ162","HIQ011","HIQ210","HUQ090","MCQ010","MCQ053","MCQ300B","SMQ870")
@@ -1327,7 +1565,7 @@ colnames(ques_subset_labelled) <- with(Dictionary,
                                     )])
 write.csv(ques_subset_labelled,file = "Data/Working/ques_subset_labelled.csv")
 ```
-
+\pagebreak
 
 ## Combine the clean datasets 
 
@@ -1354,6 +1592,8 @@ data_selected <- merge(data_selected, data5,by="ID")
 
 write.csv(data_selected,file = "Data/Working/data_selected.csv")
 ```
+
+
 We need to enter the code to combine all cleaned datasets here.
 
 # Visualization
@@ -1555,45 +1795,7 @@ ggplot(demo_subset_8, aes(x =Gender, y = Age)) +
 
 
 
-## Cluster Model for Diet (OPTIONAL)
 
-```{r, eval=FALSE, echo=TRUE}
-
-
-```
-
-
-## Cluster Model for Examination  (OPTIONAL)
-
-```{r, eval=FALSE, echo=TRUE}
-
-
-```
-
-
-
-## Cluster Model for Labs (OPTIONAL)
-
-```{r, eval=FALSE, echo=TRUE}
-
-
-```
-
-
-## Cluster Model for Medications (OPTIONAL)
-
-```{r, eval=FALSE, echo=TRUE}
-
-
-```
-
-
-## Cluster Model for Questionanaire (OPTIONAL)
-
-```{r, eval=FALSE, echo=TRUE}
-
-
-```
 
 
 # Problem 1: Clustering
@@ -1618,33 +1820,1099 @@ In this section, we will combine all the datasets and perform clustering algorit
 
 Find associations with diseases and diet/demographics data.  
 
-I've started work on association 
+## Introduction
+Associating mining if often used with market basket analysis.  However, for healthcare dataset used NHANES, we will explore the associations between the data and attempt to provide value to addressing marketing business problems for the pharmedical company in adversiting their drugs and attracting individuals to clinical trails.  
+
+## Preparing the data for association algorithms.
+
+Our first task is to prepare the data for associating mining algorithms.  
 
 ```{r eval=FALSE, echo=TRUE}
-library(arules)
-library(arulesViz)
+
+# Take interesting attributes from "data_selected" data
+# "data_selected" is a subset of all the dataset combined.
 association_dataset <- data_selected
 association_target_dataset <- target_disease_dataset[ -c(2,3,4)]
-summary(association_target_dataset)
-summary(association_dataset)
 
-association_target_dataset = dplyr::rename(
-  association_target_dataset,
-  "ID"                  = "SEQN")
-
-#Combine targets with labelled datasets 
+# Merge our association data with the target dataset 
+# Target dataset contains all diseases (diabetes, cancer, hypertension)
 association_dataset <- merge(association_dataset, association_target_dataset,by="ID")
-association_dataset <- lapply(association_dataset, function(x){as.factor(x)})
-str(association_dataset)
 
-write.csv(association_dataset, "Data/Working/association_dataset.csv")
-# Convert into matrix
-association_dataset$const = TRUE
-association_matrix <- as.matrix(association_dataset)
-
-#This code to turn the dataset into a transactional database is not working.  
-association_dataset_transactional <- as(association_matrix, "transactions")
 ```
+
+Since the associations rules will reference the values of the attributes.  If a value says "Yes", it might be ambigious what this means.  However, if the value was, "US Citizen", then the meaning would be  precise.    Below are a couple of examples where, we have re-coded the values for attributes as shown below:
+
+```{r eval=FALSE, echo=TRUE}
+association_dataset <- association_dataset %>%
+  mutate(Milk_30   = recode(Milk_30 ,
+                                      "Never" =	"Does not drink milk",	
+                                      "Often-once a day or more?"  =	"Drinks milk multiple times a day",	
+                                      "Rarely-less than once a week "  =	"Drinks milk once a week",
+                                      "Refused" = "Might be a milk drinker",
+                                      "Sometimes-once a week or more, but less than once a day" = "Drinks milk multiple times a week",
+                                      "Varied"  = "Might be a milk drinker"
+  ) )
+
+association_dataset <- association_dataset %>%
+  mutate(Food_assistance   = recode(Food_assistance ,
+                            "No" =	"Has not requested emergency food assistance",	
+                            "Refused"  =	"Unknown if emergency food assistance was requested",	
+                            "Yes"  =	"Has requested emergency food assistance"
+  ) )
+
+association_dataset <- association_dataset %>%
+  mutate(Insurance_current   = recode(Insurance_current ,
+                                    "No" =	"No health insurance coverage",	
+                                    "Refused"  =	"Health insurance coverage unknown",	
+                                    "Unknown"  =	"Health insurance coverage unknown",
+                                    "Yes"    = "Has health insurance coverage"
+  ) )
+
+
+association_dataset <- association_dataset %>%
+  mutate(HAS_CANCER   = recode(HAS_CANCER ,
+                                 "YES" =	"HAS CANCER",	
+                                 "NO"  =	"NO CANCER"
+  ) )
+
+```
+
+The above recoding was performed for 18 attributes.  Within the association dataset, we selected 18 attributes.  We focused on attributes that were categorial values.  For the purpose of association mining, numerical values may not add value unless they are binned into categories. For now, we have focused on 18 attributes that were available in the cleaned dataset. Sincer, the dataset is rich with many attributes.  In the future, more attributes could be added into association mining algorithms if the business finds value in the suggestions of this type of analysis.
+
+## Transform dataset into a transactional dataset
+
+In order to apply association algorithms, the dataset has to transformed into a tranactional dataset.  First, we need to merge all categorical values requiring for mining into a single description attriubte:
+
+```{r eval=FALSE, echo=TRUE}
+
+# Select columns required for mining analysis
+association_test_columns <- c("ID", "Gender", "Race", "Country_of_birth", "Citizenship_status",
+                              'Marital_status', "Family_income", "Dominant_hand_exam", "Milk_30", "Food_assistance",
+                              "Insurance_current", "Health_institution", "Gaming_hours", "Smoking_relatives", "Ride_motor_vehicle",
+                              'HAS_DIABETES', 'HAS_CANCER', 'HAS_HYPERTENSION')
+
+subset_association = subset(association_dataset, select=association_test_columns)
+
+# Add a description attribute with all the attributes requried for unsupervised association mining analysis 
+subset_association <- subset_association %>% 
+  mutate(description= paste(subset_association$Race, ",",
+                            subset_association$Gender, ",",
+                            subset_association$Country_of_birth, ",",
+                            subset_association$Citizenship_status, ",",
+                            subset_association$Marital_status, ",",
+                            subset_association$Family_income, ",",
+                            subset_association$Dominant_hand_exam, ",",
+                            subset_association$Milk_30, ",",
+                            subset_association$Food_assistance, ",", 
+                            subset_association$Insurance_current, ",",
+                            subset_association$Health_institution, ",",
+                            subset_association$Gaming_hours, ",",
+                            subset_association$Smoking_relatives, ",",
+                            subset_association$Ride_motor_vehicle, "," ,
+                            subset_association$HAS_DIABETES, ",",
+                            subset_association$HAS_CANCER, ",", 
+                            subset_association$HAS_HYPERTENSION
+                            ))
+
+#Group descriptions by individual IDs and place into transactionData dataset.
+transactionData <- ddply(subset_association, c("ID"),
+                         function(subset_association)paste(subset_association$description))
+
+# Remove the ID from the transaction dataset as it is not used.
+transactionData$ID <- NULL
+
+# Write the transaction dataset
+write.csv(transactionData, "Data/Working/transactiondata.csv", quote=FALSE , row.names = FALSE)
+
+# Read in the transaction dataset for use with the unsupervised algorithms
+individuals_transaction_class <- read.transactions('Data/Working/transactiondata.csv', format = 'basket',sep=',')
+```
+
+## Apply Association algorithms to the data 
+
+Now data is prepared, we can apply the association algorithms.  
+
+### Frequent values 
+
+First, we create association rules against the dataset.  
+
+```{r eval=FALSE, echo=TRUE}
+
+# Create mining rules for all values.  This will tell us which values are likely to be found together
+rules_for_individuals <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.85, maxlen=5))
+```
+
+
+We plot the 20 most frequent values found within the data. 
+
+![](Figures/absolute_value_frequency_plot.png){width=500px}
+
+Per the above, as expected, US citizen, right-handed, born in US are some of the most frequent values.  Also, it is also that the values for not having diseases is also at the top of the list.  
+
+OVer 400,000 rules are produced for entire data, let's take a glance at 5 of them below.
+
+```{r eval=FALSE, echo=TRUE}
+ inspect(rules_for_individuals[1:5])
+    lhs                                                                                                                                                                                                                                         rhs                                               support confidence     lift count
+[1] {}                                                                                                                                                                                                                                       => {Right-handed}                                0.874363155  0.8743632 1.000000  8581
+[2] {}                                                                                                                                                                                                                                       => {Has not requested emergency food assistance} 0.889341757  0.8893418 1.000000  8728
+[3] {}                                                                                                                                                                                                                                       => {US citizen}                                  0.905339311  0.9053393 1.000000  8885
+[4] {Mostly visits doctors office for healthcare , Does not play video games , No smokers present in house , Has not rode in a vehicle within the past 7 days , HAS DIABETES , NO CANCER , NO HYPERTENSION}                                  => {Has not requested emergency food assistance} 0.001018953  1.0000000 1.124427    10
+[5] {Mostly visits doctors office for healthcare , Plays less than an hours of video games over the past 30 days , Smokers present in house , Has not rode in a vehicle within the past 7 days , NO DIABETES , NO CANCER , HAS HYPERTENSION} => {US citizen}                                  0.001018953  1.0000000 1.104558    10
+
+```
+
+In the above output, we can see different association mining rules for the entire dataset.  The rules have LHS and RHS which demonstrate the relation between itemsets(collections of values).  The items on LHS are associated and occur with the single item on the RHS. Now we will proceed to create association rules for having and not having the particular diseases (cancer, diabetes, hypertension).  The RHS will be set to the particular health conditions/disases.  And we will observe what typse of associations are discovered on the LHS. 
+
+
+### Association rules for having diseases
+
+In order to produce a list of association rules, we had to experiement with "conf"(confidence) parameter.  For example, with positive cancer rules, we had to lower the confidence to 0.4 to produce mining rules.  For each health condition(disaease),we have created 2 sets of rules.  The first set of rules allow larger number of items to be produced on the LHS (maxlen=15); whereas, the second set of rules forces the rules to have a small amount of rules (maxlen=3).  
+
+```{r eval=FALSE, echo=TRUE}
+
+# Association for having cancer (large itemset allowed on LHS, maxlen=15)
+has_cancer.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.4, maxlen=15), appearance=list(default="lhs", rhs="HAS CANCER"))
+
+# Association for having cancer (small itemset allowed on LHS, maxlen=3)
+has_cancer.association.rules_smallitemset <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.1, maxlen=3), appearance=list(default="lhs", rhs="HAS CANCER"))
+
+# Association for having diabetes (large itemset allowed on LHS, maxlen=15)
+has_diabetes.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.7, maxlen=15), appearance=list(default="lhs", rhs="HAS DIABETES"))
+
+# Association for having diabetes (small itemset allowed on LHS, maxlen=3)
+has_diabetes.association.rules_smallitemset <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.4, maxlen=3), appearance=list(default="lhs", rhs="HAS DIABETES"))
+
+# Association for having hypertension (large itemset allowed on LHS, maxlen=15)
+has_hypertension.association.rules_smallitemset <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.4, maxlen=3), appearance=list(default="lhs", rhs="HAS HYPERTENSION"))
+
+# Association for having hypertension (small itemset allowed on LHS, maxlen=3)
+has_hypertension.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.8, maxlen=15), appearance=list(default="lhs", rhs="HAS HYPERTENSION"))
+
+```
+
+Now with association rules, we can examine them and observe the LHS items that are found in conjunction with various diseases: 
+
+### Cancer: Association Rules 
+
+First, we look at large item sets.  
+
+```{r eval=FALSE, echo=TRUE}
+> inspect(has_cancer.association.rules)
+     lhs                                                            rhs              support confidence     lift count
+[1]  {Has health insurance coverage,                                                                                  
+      HAS HYPERTENSION,                                                                                               
+      Male,                                                                                                           
+      Mostly visits outpatient departments for healthcare}       => {HAS CANCER} 0.001018953  0.4347826 47.94333    10
+[2]  {Has health insurance coverage,                                                                                  
+      HAS HYPERTENSION,                                                                                               
+      Male,                                                                                                           
+      Mostly visits outpatient departments for healthcare,                                                            
+      US citizen}                                                => {HAS CANCER} 0.001018953  0.4347826 47.94333    10
+[3]  {{you do not/SP does not} use a computer outside of school,                                                      
+      Drinks milk multiple times a week,                                                                              
+      HAS DIABETES,                                                                                                   
+      Has not requested emergency food assistance,                                                                    
+      Mostly visits a clinic or health center for healthcare}    => {HAS CANCER} 0.001018953  0.4761905 52.50936    10
+[4]  {Born in US,                                                                                                     
+      Drinks milk multiple times a day,                                                                               
+      HAS DIABETES,                                                                                                   
+      Has health insurance coverage,                                                                                  
+      No smokers present in house}                               => {HAS CANCER} 0.001018953  0.4000000 44.10787    10
+[5]  {Born in US,                                                                                                     
+      HAS DIABETES,                                                                                                   
+      Has health insurance coverage,                                                                                  
+      No smokers present in house,                                                                                    
+      Right-handed,                                                                                                   
+      White}                                                     => {HAS CANCER} 0.001018953  0.4000000 44.10787    10
+[6]  {Born in US,                                                                                                     
+      Drinks milk multiple times a day,                                                                               
+      HAS DIABETES,                                                                                                   
+      Has health insurance coverage,                                                                                  
+      No smokers present in house,                                                                                    
+      Right-handed}                                              => {HAS CANCER} 0.001018953  0.4000000 44.10787    10
+[7]  {Born in US,                                                                                                     
+      Drinks milk multiple times a day,                                                                               
+      HAS DIABETES,                                                                                                   
+      Has health insurance coverage,                                                                                  
+      No smokers present in house,                                                                                    
+      US citizen}                                                => {HAS CANCER} 0.001018953  0.4000000 44.10787    10
+[8]  {Born in US,                                                                                                     
+      Drinks milk multiple times a day,                                                                               
+      Has health insurance coverage,                                                                                  
+      HAS HYPERTENSION,                                                                                               
+      Male,                                                                                                           
+      No smokers present in house}                               => {HAS CANCER} 0.001120848  0.4583333 50.54026    11
+[9]  {Drinks milk multiple times a day,                                                                               
+      Has health insurance coverage,                                                                                  
+      HAS HYPERTENSION,                                                                                               
+      Male,                                                                                                           
+      No smokers present in house,                                                                                    
+      Right-handed}                                              => {HAS CANCER} 0.001120848  0.4074074 44.92468    11
+[10] {Drinks milk multiple times a day,                                                                               
+      Has health insurance coverage,                                                                                  
+      HAS HYPERTENSION,                                                                                               
+      Male,                                                                                                           
+      No smokers present in house,                                                                                    
+      US citizen}                                                => {HAS CANCER} 0.001222743  0.4137931 45.62883    12
+```
+
+Next we look at small itemsets: 
+
+```{r eval=FALSE, echo=TRUE}
+> inspect(has_cancer.association.rules_smallitemset)
+     lhs                                                                                    rhs          support     confidence lift     count
+[1]  {Mostly visits outpatient departments for healthcare}                               => {HAS CANCER} 0.001018953 0.1010101  11.13835 10   
+[2]  {HAS DIABETES}                                                                      => {HAS CANCER} 0.003362543 0.1658291  18.28592 33   
+[3]  {HAS HYPERTENSION}                                                                  => {HAS CANCER} 0.005400448 0.1051587  11.59582 53   
+[4]  {HAS HYPERTENSION,Mostly visits outpatient departments for healthcare}              => {HAS CANCER} 0.001018953 0.2500000  27.56742 10   
+[5]  {Male,Mostly visits outpatient departments for healthcare}                          => {HAS CANCER} 0.001018953 0.1666667  18.37828 10   
+[6]  {Has health insurance coverage,Mostly visits outpatient departments for healthcare} => {HAS CANCER} 0.001018953 0.1234568  13.61354 10   
+[7]  {Mostly visits outpatient departments for healthcare,US citizen}                    => {HAS CANCER} 0.001018953 0.1111111  12.25218 10   
+[8]  {HAS DIABETES,HAS HYPERTENSION}                                                     => {HAS CANCER} 0.002343591 0.1782946  19.66048 23   
+[9]  {Does not play video games,HAS DIABETES}                                            => {HAS CANCER} 0.002139800 0.1794872  19.79199 21   
+[10] {Born outside of US,HAS DIABETES}                                                   => {HAS CANCER} 0.001018953 0.1219512  13.44752 10   
+[11] {Drinks milk multiple times a week,HAS DIABETES}                                    => {HAS CANCER} 0.001324638 0.2166667  23.89176 13   
+[12] {HAS DIABETES,No smokers present in house}                                          => {HAS CANCER} 0.003056858 0.2000000  22.05393 30   
+[13] {HAS DIABETES,Mostly visits a clinic or health center for healthcare}               => {HAS CANCER} 0.002649277 0.1733333  19.11341 26   
+[14] {HAS DIABETES,NO HYPERTENSION}                                                      => {HAS CANCER} 0.001018953 0.1428571  15.75281 10   
+[15] {HAS DIABETES,Has rode in a vehicle within the past 7 days}                         => {HAS CANCER} 0.002649277 0.1656051  18.26122 26   
+[16] {HAS DIABETES,White}                                                                => {HAS CANCER} 0.001222743 0.2926829  32.27405 12   
+[17] {HAS DIABETES,Male}                                                                 => {HAS CANCER} 0.001732219 0.1666667  18.37828 17   
+[18] {Female,HAS DIABETES}                                                               => {HAS CANCER} 0.001630324 0.1649485  18.18881 16   
+[19] {Drinks milk multiple times a day,HAS DIABETES}                                     => {HAS CANCER} 0.001426534 0.2121212  23.39053 14   
+[20] {HAS DIABETES,Married}                                                              => {HAS CANCER} 0.001426534 0.1473684  16.25027 14   
+[21] {Born in US,HAS DIABETES}                                                           => {HAS CANCER} 0.002343591 0.1965812  21.67694 23   
+[22] {HAS DIABETES,Has health insurance coverage}                                        => {HAS CANCER} 0.002751172 0.1849315  20.39233 27   
+[23] {HAS DIABETES,Right-handed}                                                         => {HAS CANCER} 0.003056858 0.1685393  18.58477 30   
+[24] {HAS DIABETES,Has not requested emergency food assistance}                          => {HAS CANCER} 0.002751172 0.1730769  19.08513 27   
+[25] {HAS DIABETES,US citizen}                                                           => {HAS CANCER} 0.002853067 0.1728395  19.05895 28   
+[26] {HAS HYPERTENSION,Widowed}                                                          => {HAS CANCER} 0.001120848 0.2037037  22.46234 11   
+[27] {No smokers present in house,Widowed}                                               => {HAS CANCER} 0.001528429 0.1648352  18.17632 15   
+[28] {Has rode in a vehicle within the past 7 days,Widowed}                              => {HAS CANCER} 0.001018953 0.1052632  11.60733 10   
+[29] {HAS HYPERTENSION,Has not rode in a vehicle within the past 7 days}                 => {HAS CANCER} 0.001120848 0.1235955  13.62883 11   
+[30] {HAS HYPERTENSION,Plays less than an hours of video games over the past 30 days}    => {HAS CANCER} 0.001018953 0.1020408  11.25201 10   
+[31] {Divorced,HAS HYPERTENSION}                                                         => {HAS CANCER} 0.001120848 0.1358025  14.97489 11   
+[32] {HAS HYPERTENSION,Has requested emergency food assistance}                          => {HAS CANCER} 0.001426534 0.1359223  14.98811 14   
+[33] {Does not play video games,HAS HYPERTENSION}                                        => {HAS CANCER} 0.002445486 0.1159420  12.78489 24   
+[34] {Black,HAS HYPERTENSION}                                                            => {HAS CANCER} 0.001528429 0.1027397  11.32907 15   
+[35] {Drinks milk multiple times a week,HAS HYPERTENSION}                                => {HAS CANCER} 0.002037905 0.1226994  13.53002 20   
+[36] {HAS HYPERTENSION,No smokers present in house}                                      => {HAS CANCER} 0.004177705 0.1198830  13.21946 41   
+[37] {HAS HYPERTENSION,Has rode in a vehicle within the past 7 days}                     => {HAS CANCER} 0.004279601 0.1012048  11.15982 42   
+[38] {HAS HYPERTENSION,White}                                                            => {HAS CANCER} 0.002343591 0.1586207  17.49105 23   
+[39] {HAS HYPERTENSION,Male}                                                             => {HAS CANCER} 0.002751172 0.1097561  12.10277 27   
+[40] {Female,HAS HYPERTENSION}                                                           => {HAS CANCER} 0.002649277 0.1007752  11.11245 26   
+[41] {Drinks milk multiple times a day,HAS HYPERTENSION}                                 => {HAS CANCER} 0.002343591 0.1428571  15.75281 23   
+[42] {Born in US,HAS HYPERTENSION}                                                       => {HAS CANCER} 0.004483391 0.1282799  14.14538 44   
+[43] {Has health insurance coverage,HAS HYPERTENSION}                                    => {HAS CANCER} 0.004890972 0.1333333  14.70262 48   
+[44] {HAS HYPERTENSION,Right-handed}                                                     => {HAS CANCER} 0.004890972 0.1083521  11.94795 48   
+[45] {HAS HYPERTENSION,US citizen}                                                       => {HAS CANCER} 0.005094763 0.1187648  13.09616 50   
+> 
+```
+
+In order to build the association mining lists, we had to reduce confidence levels to under 0.5.  
+
+### Diabetes: Association Rules
+
+```{r eval=FALSE, echo=TRUE}
+> inspect(has_diabetes.association.rules)
+     lhs                                                            rhs                support confidence     lift count
+[1]  {{you do not/SP does not} use a computer outside of school,                                                        
+      Drinks milk multiple times a week,                                                                                
+      HAS CANCER,                                                                                                       
+      Mostly visits a clinic or health center for healthcare}    => {HAS DIABETES} 0.001120848  0.7857143 38.74874    11
+[2]  {{you do not/SP does not} use a computer outside of school,                                                        
+      Drinks milk multiple times a week,                                                                                
+      HAS CANCER,                                                                                                       
+      Has not requested emergency food assistance}               => {HAS DIABETES} 0.001018953  0.9090909 44.83326    10
+[3]  {Drinks milk multiple times a week,                                                                                
+      HAS HYPERTENSION,                                                                                                 
+      Has rode in a vehicle within the past 7 days,                                                                     
+      Household income between $20000 - $24999}                  => {HAS DIABETES} 0.001324638  0.7222222 35.61753    13
+[4]  {{you do not/SP does not} use a computer outside of school,                                                        
+      HAS CANCER,                                                                                                       
+      HAS HYPERTENSION,                                                                                                 
+      Mostly visits a clinic or health center for healthcare,                                                           
+      US citizen}                                                => {HAS DIABETES} 0.001018953  0.7142857 35.22613    10
+[5]  {{you do not/SP does not} use a computer outside of school,                                                        
+      HAS CANCER,                                                                                                       
+      HAS HYPERTENSION,                                                                                                 
+      Has not requested emergency food assistance,                                                                      
+      US citizen}                                                => {HAS DIABETES} 0.001018953  0.7142857 35.22613    10
+[6]  {{you do not/SP does not} use a computer outside of school,                                                        
+      Drinks milk multiple times a week,                                                                                
+      HAS CANCER,                                                                                                       
+      Has not requested emergency food assistance,                                                                      
+      Mostly visits a clinic or health center for healthcare}    => {HAS DIABETES} 0.001018953  0.9090909 44.83326    10
+[7]  {{you do not/SP does not} use a computer outside of school,                                                        
+      HAS CANCER,                                                                                                       
+      Has not requested emergency food assistance,                                                                      
+      Mostly visits a clinic or health center for healthcare,                                                           
+      US citizen}                                                => {HAS DIABETES} 0.001018953  0.7692308 37.93583    10
+[8]  {{you do not/SP does not} use a computer outside of school,                                                        
+      Drinks milk multiple times a day,                                                                                 
+      HAS HYPERTENSION,                                                                                                 
+      Has not rode in a vehicle within the past 7 days,                                                                 
+      US citizen}                                                => {HAS DIABETES} 0.001018953  0.7142857 35.22613    10
+[9]  {Drinks milk multiple times a week,                                                                                
+      HAS HYPERTENSION,                                                                                                 
+      Has rode in a vehicle within the past 7 days,                                                                     
+      Household income between $20000 - $24999,                                                                         
+      Mostly visits a clinic or health center for healthcare}    => {HAS DIABETES} 0.001120848  0.7333333 36.16549    11
+[10] {Drinks milk multiple times a week,                                                                                
+      HAS HYPERTENSION,                                                                                                 
+      Household income between $20000 - $24999,                                                                         
+      Mostly visits a clinic or health center for healthcare,                                                           
+      Right-handed}                                              => {HAS DIABETES} 0.001222743  0.7058824 34.81171    12
+[11] {Drinks milk multiple times a week,                                                                                
+      HAS HYPERTENSION,                                                                                                 
+      Has rode in a vehicle within the past 7 days,                                                                     
+      Household income between $20000 - $24999,                                                                         
+      Right-handed}                                              => {HAS DIABETES} 0.001324638  0.7647059 37.71268    13
+[12] {Drinks milk multiple times a week,                                                                                
+      HAS HYPERTENSION,                                                                                                 
+      Has not requested emergency food assistance,                                                                      
+      Has rode in a vehicle within the past 7 days,                                                                     
+      Household income between $20000 - $24999}                  => {HAS DIABETES} 0.001018953  0.7142857 35.22613    10
+[13] {Drinks milk multiple times a week,                                                                                
+      HAS HYPERTENSION,                                                                                                 
+      Has rode in a vehicle within the past 7 days,                                                                     
+      Household income between $20000 - $24999,                                                                         
+      US citizen}                                                => {HAS DIABETES} 0.001120848  0.7857143 38.74874    11
+[14] {Drinks milk multiple times a week,                                                                                
+      Has health insurance coverage,                                                                                    
+      HAS HYPERTENSION,                                                                                                 
+      Has rode in a vehicle within the past 7 days,                                                                     
+      Mexican_American}                                          => {HAS DIABETES} 0.001222743  0.7058824 34.81171    12
+[15] {Drinks milk multiple times a week,                                                                                
+      Has health insurance coverage,                                                                                    
+      HAS HYPERTENSION,                                                                                                 
+      Mexican_American,                                                                                                 
+      US citizen}                                                => {HAS DIABETES} 0.001018953  0.7142857 35.22613    10
+[16] {Drinks milk multiple times a week,                                                                                
+      HAS HYPERTENSION,                                                                                                 
+      Has not requested emergency food assistance,                                                                      
+      Mexican_American,                                                                                                 
+      US citizen}                                                => {HAS DIABETES} 0.001018953  0.7142857 35.22613    10
+[17] {Born in US,                                                                                                       
+      Has health insurance coverage,                                                                                    
+      HAS HYPERTENSION,                                                                                                 
+      Mexican_American,                                                                                                 
+      No smokers present in house}                               => {HAS DIABETES} 0.001222743  0.7058824 34.81171    12
+[18] {Born in US,                                                                                                       
+      Drinks milk multiple times a day,                                                                                 
+      Has health insurance coverage,                                                                                    
+      HAS HYPERTENSION,                                                                                                 
+      Right-handed,                                                                                                     
+      Widowed}                                                   => {HAS DIABETES} 0.001018953  0.7142857 35.22613    10
+[19] {Drinks milk multiple times a week,                                                                                
+      HAS HYPERTENSION,                                                                                                 
+      Has rode in a vehicle within the past 7 days,                                                                     
+      Household income between $20000 - $24999,                                                                         
+      Mostly visits a clinic or health center for healthcare,                                                           
+      Right-handed}                                              => {HAS DIABETES} 0.001120848  0.7857143 38.74874    11
+[20] {Drinks milk multiple times a week,                                                                                
+      HAS HYPERTENSION,                                                                                                 
+      Has not requested emergency food assistance,                                                                      
+      Household income between $20000 - $24999,                                                                         
+      Mostly visits a clinic or health center for healthcare,                                                           
+      Right-handed}                                              => {HAS DIABETES} 0.001018953  0.7142857 35.22613    10
+[21] {Drinks milk multiple times a week,                                                                                
+      HAS HYPERTENSION,                                                                                                 
+      Household income between $20000 - $24999,                                                                         
+      Mostly visits a clinic or health center for healthcare,                                                           
+      Right-handed,                                                                                                     
+      US citizen}                                                => {HAS DIABETES} 0.001018953  0.7142857 35.22613    10
+[22] {Drinks milk multiple times a week,                                                                                
+      HAS HYPERTENSION,                                                                                                 
+      Has rode in a vehicle within the past 7 days,                                                                     
+      Household income between $20000 - $24999,                                                                         
+      NO CANCER,                                                                                                        
+      Right-handed}                                              => {HAS DIABETES} 0.001120848  0.7333333 36.16549    11
+[23] {Drinks milk multiple times a week,                                                                                
+      HAS HYPERTENSION,                                                                                                 
+      Has not requested emergency food assistance,                                                                      
+      Has rode in a vehicle within the past 7 days,                                                                     
+      Household income between $20000 - $24999,                                                                         
+      Right-handed}                                              => {HAS DIABETES} 0.001018953  0.7692308 37.93583    10
+[24] {Drinks milk multiple times a week,                                                                                
+      HAS HYPERTENSION,                                                                                                 
+      Has rode in a vehicle within the past 7 days,                                                                     
+      Household income between $20000 - $24999,                                                                         
+      Right-handed,                                                                                                     
+      US citizen}                                                => {HAS DIABETES} 0.001120848  0.7857143 38.74874    11
+[25] {Has health insurance coverage,                                                                                    
+      HAS HYPERTENSION,                                                                                                 
+      Household income between $20000 - $24999,                                                                         
+      Male,                                                                                                             
+      No smokers present in house,                                                                                      
+      Right-handed}                                              => {HAS DIABETES} 0.001018953  0.7142857 35.22613    10
+[26] {Drinks milk multiple times a week,                                                                                
+      Has health insurance coverage,                                                                                    
+      HAS HYPERTENSION,                                                                                                 
+      Has not requested emergency food assistance,                                                                      
+      Has rode in a vehicle within the past 7 days,                                                                     
+      Mexican_American}                                          => {HAS DIABETES} 0.001120848  0.7333333 36.16549    11
+[27] {Drinks milk multiple times a week,                                                                                
+      Has health insurance coverage,                                                                                    
+      HAS HYPERTENSION,                                                                                                 
+      Has rode in a vehicle within the past 7 days,                                                                     
+      Mexican_American,                                                                                                 
+      US citizen}                                                => {HAS DIABETES} 0.001018953  0.7692308 37.93583    10
+[28] {Drinks milk multiple times a week,                                                                                
+      HAS HYPERTENSION,                                                                                                 
+      Has not requested emergency food assistance,                                                                      
+      Has rode in a vehicle within the past 7 days,                                                                     
+      Mexican_American,                                                                                                 
+      US citizen}                                                => {HAS DIABETES} 0.001018953  0.7142857 35.22613    10
+[29] {Born in US,                                                                                                       
+      Has health insurance coverage,                                                                                    
+      HAS HYPERTENSION,                                                                                                 
+      Has rode in a vehicle within the past 7 days,                                                                     
+      Mexican_American,                                                                                                 
+      No smokers present in house}                               => {HAS DIABETES} 0.001222743  0.7500000 36.98744    12
+[30] {Born in US,                                                                                                       
+      Has health insurance coverage,                                                                                    
+      HAS HYPERTENSION,                                                                                                 
+      Mexican_American,                                                                                                 
+      No smokers present in house,                                                                                      
+      Right-handed}                                              => {HAS DIABETES} 0.001222743  0.7058824 34.81171    12
+[31] {Born in US,                                                                                                       
+      Has health insurance coverage,                                                                                    
+      HAS HYPERTENSION,                                                                                                 
+      Has not requested emergency food assistance,                                                                      
+      Mexican_American,                                                                                                 
+      No smokers present in house}                               => {HAS DIABETES} 0.001018953  0.7142857 35.22613    10
+[32] {Born in US,                                                                                                       
+      Has health insurance coverage,                                                                                    
+      HAS HYPERTENSION,                                                                                                 
+      Mexican_American,                                                                                                 
+      No smokers present in house,                                                                                      
+      US citizen}                                                => {HAS DIABETES} 0.001222743  0.7058824 34.81171    12
+>
+```
+
+Next, we look at small itemsets
+
+```{r eval=FALSE, echo=TRUE}
+> inspect(has_diabetes.association.rules_smallitemset)
+    lhs                                                                    rhs            support     confidence lift     count
+[1] {HAS CANCER,HAS HYPERTENSION}                                       => {HAS DIABETES} 0.002343591 0.4339623  21.40154 23   
+[2] {Does not play video games,HAS CANCER}                              => {HAS DIABETES} 0.002139800 0.5384615  26.55508 21   
+[3] {Born outside of US,HAS CANCER}                                     => {HAS DIABETES} 0.001018953 0.5882353  29.00975 10   
+[4] {Drinks milk multiple times a week,HAS CANCER}                      => {HAS DIABETES} 0.001324638 0.4062500  20.03486 13   
+[5] {HAS CANCER,No smokers present in house}                            => {HAS DIABETES} 0.003056858 0.4225352  20.83799 30   
+[6] {HAS CANCER,Mostly visits a clinic or health center for healthcare} => {HAS DIABETES} 0.002649277 0.4000000  19.72663 26   
+[7] {Drinks milk multiple times a day,HAS CANCER}                       => {HAS DIABETES} 0.001426534 0.4000000  19.72663 14   
+[8] {HAS CANCER,Has not requested emergency food assistance}            => {HAS DIABETES} 0.002751172 0.4218750  20.80543 27   
+> 
+```
+
+
+### Hypertention: Association Rules
+
+```{r eval=FALSE, echo=TRUE}
+inspect(has_hypertension.association.rules[1:100])
+      lhs                                                                rhs                    support confidence     lift count
+[1]   {HAS CANCER,                                                                                                               
+       Mostly visits outpatient departments for healthcare}           => {HAS HYPERTENSION} 0.001018953  1.0000000 19.47222    10
+[2]   {Black,                                                                                                                    
+       HAS CANCER}                                                    => {HAS HYPERTENSION} 0.001528429  0.8333333 16.22685    15
+[3]   {HAS DIABETES,                                                                                                             
+       Household income between $20000 - $24999}                      => {HAS HYPERTENSION} 0.002649277  0.8387097 16.33154    26
+[4]   {Black,                                                                                                                    
+       HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.004177705  0.8200000 15.96722    41
+[5]   {HAS CANCER,                                                                                                               
+       Male,                                                                                                                     
+       Mostly visits outpatient departments for healthcare}           => {HAS HYPERTENSION} 0.001018953  1.0000000 19.47222    10
+[6]   {HAS CANCER,                                                                                                               
+       Has health insurance coverage,                                                                                            
+       Mostly visits outpatient departments for healthcare}           => {HAS HYPERTENSION} 0.001018953  1.0000000 19.47222    10
+[7]   {HAS CANCER,                                                                                                               
+       Mostly visits outpatient departments for healthcare,                                                                      
+       US citizen}                                                    => {HAS HYPERTENSION} 0.001018953  1.0000000 19.47222    10
+[8]   {HAS CANCER,                                                                                                               
+       Has rode in a vehicle within the past 7 days,                                                                             
+       Plays less than an hours of video games over the past 30 days} => {HAS HYPERTENSION} 0.001018953  0.8333333 16.22685    10
+[9]   {{you do not/SP does not} use a computer outside of school,                                                                
+       Black,                                                                                                                    
+       HAS CANCER}                                                    => {HAS HYPERTENSION} 0.001120848  0.9166667 17.84954    11
+[10]  {Black,                                                                                                                    
+       Drinks milk multiple times a week,                                                                                        
+       HAS CANCER}                                                    => {HAS HYPERTENSION} 0.001018953  0.9090909 17.70202    10
+[11]  {Black,                                                                                                                    
+       HAS CANCER,                                                                                                               
+       No smokers present in house}                                   => {HAS HYPERTENSION} 0.001120848  0.8461538 16.47650    11
+[12]  {Black,                                                                                                                    
+       HAS CANCER,                                                                                                               
+       Mostly visits a clinic or health center for healthcare}        => {HAS HYPERTENSION} 0.001018953  0.8333333 16.22685    10
+[13]  {Black,                                                                                                                    
+       HAS CANCER,                                                                                                               
+       Male}                                                          => {HAS HYPERTENSION} 0.001120848  0.8461538 16.47650    11
+[14]  {Black,                                                                                                                    
+       Born in US,                                                                                                               
+       HAS CANCER}                                                    => {HAS HYPERTENSION} 0.001528429  0.8333333 16.22685    15
+[15]  {Black,                                                                                                                    
+       HAS CANCER,                                                                                                               
+       Has health insurance coverage}                                 => {HAS HYPERTENSION} 0.001426534  0.8235294 16.03595    14
+[16]  {Black,                                                                                                                    
+       HAS CANCER,                                                                                                               
+       Right-handed}                                                  => {HAS HYPERTENSION} 0.001324638  0.8666667 16.87593    13
+[17]  {Black,                                                                                                                    
+       HAS CANCER,                                                                                                               
+       Has not requested emergency food assistance}                   => {HAS HYPERTENSION} 0.001018953  0.8333333 16.22685    10
+[18]  {Black,                                                                                                                    
+       HAS CANCER,                                                                                                               
+       US citizen}                                                    => {HAS HYPERTENSION} 0.001528429  0.8333333 16.22685    15
+[19]  {Drinks milk multiple times a day,                                                                                         
+       HAS CANCER,                                                                                                               
+       Male}                                                          => {HAS HYPERTENSION} 0.001426534  0.8235294 16.03595    14
+[20]  {$5000 - $9999,                                                                                                            
+       HAS DIABETES,                                                                                                             
+       No smokers present in house}                                   => {HAS HYPERTENSION} 0.001120848  0.8461538 16.47650    11
+[21]  {$5000 - $9999,                                                                                                            
+       HAS DIABETES,                                                                                                             
+       Has health insurance coverage}                                 => {HAS HYPERTENSION} 0.001018953  0.8333333 16.22685    10
+[22]  {$5000 - $9999,                                                                                                            
+       HAS DIABETES,                                                                                                             
+       Right-handed}                                                  => {HAS HYPERTENSION} 0.001222743  0.8000000 15.57778    12
+[23]  {$5000 - $9999,                                                                                                            
+       HAS DIABETES,                                                                                                             
+       US citizen}                                                    => {HAS HYPERTENSION} 0.001018953  0.8333333 16.22685    10
+[24]  {HAS DIABETES,                                                                                                             
+       White,                                                                                                                    
+       Widowed}                                                       => {HAS HYPERTENSION} 0.001120848  0.8461538 16.47650    11
+[25]  {Female,                                                                                                                   
+       HAS DIABETES,                                                                                                             
+       Widowed}                                                       => {HAS HYPERTENSION} 0.001426534  0.8750000 17.03819    14
+[26]  {Born in US,                                                                                                               
+       HAS DIABETES,                                                                                                             
+       Widowed}                                                       => {HAS HYPERTENSION} 0.001426534  0.8235294 16.03595    14
+[27]  {HAS DIABETES,                                                                                                             
+       Has health insurance coverage,                                                                                            
+       Widowed}                                                       => {HAS HYPERTENSION} 0.002037905  0.8000000 15.57778    20
+[28]  {HAS DIABETES,                                                                                                             
+       US citizen,                                                                                                               
+       Widowed}                                                       => {HAS HYPERTENSION} 0.002037905  0.8000000 15.57778    20
+[29]  {Female,                                                                                                                   
+       HAS DIABETES,                                                                                                             
+       Has not rode in a vehicle within the past 7 days}              => {HAS HYPERTENSION} 0.002139800  0.8076923 15.72756    21
+[30]  {Born in US,                                                                                                               
+       HAS DIABETES,                                                                                                             
+       Has not rode in a vehicle within the past 7 days}              => {HAS HYPERTENSION} 0.001324638  0.8125000 15.82118    13
+[31]  {$10000 - $14999,                                                                                                          
+       {you do not/SP does not} use a computer outside of school,                                                                
+       HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.001222743  0.8000000 15.57778    12
+[32]  {$10000 - $14999,                                                                                                          
+       Born in US,                                                                                                               
+       HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.001018953  0.8333333 16.22685    10
+[33]  {HAS DIABETES,                                                                                                             
+       Has not requested emergency food assistance,                                                                              
+       Plays less than an hours of video games over the past 30 days} => {HAS HYPERTENSION} 0.001630324  0.8000000 15.57778    16
+[34]  {Black,                                                                                                                    
+       HAS DIABETES,                                                                                                             
+       Smokers present in house}                                      => {HAS HYPERTENSION} 0.001426534  0.8235294 16.03595    14
+[35]  {Black,                                                                                                                    
+       HAS DIABETES,                                                                                                             
+       Household income between $20000 - $24999}                      => {HAS HYPERTENSION} 0.001120848  1.0000000 19.47222    11
+[36]  {Drinks milk multiple times a week,                                                                                        
+       HAS DIABETES,                                                                                                             
+       Household income between $20000 - $24999}                      => {HAS HYPERTENSION} 0.001426534  0.8750000 17.03819    14
+[37]  {HAS DIABETES,                                                                                                             
+       Household income between $20000 - $24999,                                                                                 
+       Mostly visits a clinic or health center for healthcare}        => {HAS HYPERTENSION} 0.002343591  0.8214286 15.99504    23
+[38]  {HAS DIABETES,                                                                                                             
+       Has rode in a vehicle within the past 7 days,                                                                             
+       Household income between $20000 - $24999}                      => {HAS HYPERTENSION} 0.002139800  0.8750000 17.03819    21
+[39]  {HAS DIABETES,                                                                                                             
+       Household income between $20000 - $24999,                                                                                 
+       NO CANCER}                                                     => {HAS HYPERTENSION} 0.002139800  0.8750000 17.03819    21
+[40]  {Female,                                                                                                                   
+       HAS DIABETES,                                                                                                             
+       Household income between $20000 - $24999}                      => {HAS HYPERTENSION} 0.001324638  0.9285714 18.08135    13
+[41]  {Born in US,                                                                                                               
+       HAS DIABETES,                                                                                                             
+       Household income between $20000 - $24999}                      => {HAS HYPERTENSION} 0.002037905  0.9090909 17.70202    20
+[42]  {HAS DIABETES,                                                                                                             
+       Has health insurance coverage,                                                                                            
+       Household income between $20000 - $24999}                      => {HAS HYPERTENSION} 0.002139800  0.8400000 16.35667    21
+[43]  {HAS DIABETES,                                                                                                             
+       Household income between $20000 - $24999,                                                                                 
+       Right-handed}                                                  => {HAS HYPERTENSION} 0.002343591  0.8214286 15.99504    23
+[44]  {HAS DIABETES,                                                                                                             
+       Has not requested emergency food assistance,                                                                              
+       Household income between $20000 - $24999}                      => {HAS HYPERTENSION} 0.001834115  0.8181818 15.93182    18
+[45]  {HAS DIABETES,                                                                                                             
+       Household income between $20000 - $24999,                                                                                 
+       US citizen}                                                    => {HAS HYPERTENSION} 0.002445486  0.8888889 17.30864    24
+[46]  {Divorced,                                                                                                                 
+       Female,                                                                                                                   
+       HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.001324638  0.8125000 15.82118    13
+[47]  {Divorced,                                                                                                                 
+       HAS DIABETES,                                                                                                             
+       Has health insurance coverage}                                 => {HAS HYPERTENSION} 0.001630324  0.8000000 15.57778    16
+[48]  {{you do not/SP does not} use a computer outside of school,                                                                
+       HAS DIABETES,                                                                                                             
+       Has requested emergency food assistance}                       => {HAS HYPERTENSION} 0.002343591  0.8518519 16.58745    23
+[49]  {Black,                                                                                                                    
+       HAS DIABETES,                                                                                                             
+       Has requested emergency food assistance}                       => {HAS HYPERTENSION} 0.001630324  0.8888889 17.30864    16
+[50]  {{you do not/SP does not} use a computer outside of school,                                                                
+       Black,                                                                                                                    
+       HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.002751172  0.9642857 18.77679    27
+[51]  {Born in US,                                                                                                               
+       HAS DIABETES,                                                                                                             
+       Mexican_American}                                              => {HAS HYPERTENSION} 0.001630324  0.8000000 15.57778    16
+[52]  {Black,                                                                                                                    
+       Drinks milk multiple times a week,                                                                                        
+       HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.001732219  0.8947368 17.42251    17
+[53]  {Black,                                                                                                                    
+       HAS DIABETES,                                                                                                             
+       No smokers present in house}                                   => {HAS HYPERTENSION} 0.002649277  0.8125000 15.82118    26
+[54]  {Black,                                                                                                                    
+       HAS DIABETES,                                                                                                             
+       Mostly visits a clinic or health center for healthcare}        => {HAS HYPERTENSION} 0.003566334  0.8536585 16.62263    35
+[55]  {Black,                                                                                                                    
+       HAS DIABETES,                                                                                                             
+       Has rode in a vehicle within the past 7 days}                  => {HAS HYPERTENSION} 0.003362543  0.8250000 16.06458    33
+[56]  {Black,                                                                                                                    
+       HAS DIABETES,                                                                                                             
+       NO CANCER}                                                     => {HAS HYPERTENSION} 0.003464439  0.8095238 15.76323    34
+[57]  {Black,                                                                                                                    
+       Female,                                                                                                                   
+       HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.001936010  0.8636364 16.81692    19
+[58]  {Black,                                                                                                                    
+       Drinks milk multiple times a day,                                                                                         
+       HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.001018953  0.8333333 16.22685    10
+[59]  {Black,                                                                                                                    
+       HAS DIABETES,                                                                                                             
+       Married}                                                       => {HAS HYPERTENSION} 0.001834115  0.8181818 15.93182    18
+[60]  {Black,                                                                                                                    
+       Born in US,                                                                                                               
+       HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.004075810  0.8695652 16.93237    40
+[61]  {Black,                                                                                                                    
+       HAS DIABETES,                                                                                                             
+       Has health insurance coverage}                                 => {HAS HYPERTENSION} 0.003056858  0.8571429 16.69048    30
+[62]  {Black,                                                                                                                    
+       HAS DIABETES,                                                                                                             
+       US citizen}                                                    => {HAS HYPERTENSION} 0.004177705  0.8200000 15.96722    41
+[63]  {Born in US,                                                                                                               
+       Drinks milk multiple times a week,                                                                                        
+       HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.003056858  0.8108108 15.78829    30
+[64]  {Drinks milk multiple times a week,                                                                                        
+       HAS DIABETES,                                                                                                             
+       US citizen}                                                    => {HAS HYPERTENSION} 0.003770124  0.8043478 15.66244    37
+[65]  {HAS CANCER,                                                                                                               
+       Has health insurance coverage,                                                                                            
+       Male,                                                                                                                     
+       Mostly visits outpatient departments for healthcare}           => {HAS HYPERTENSION} 0.001018953  1.0000000 19.47222    10
+[66]  {HAS CANCER,                                                                                                               
+       Male,                                                                                                                     
+       Mostly visits outpatient departments for healthcare,                                                                      
+       US citizen}                                                    => {HAS HYPERTENSION} 0.001018953  1.0000000 19.47222    10
+[67]  {HAS CANCER,                                                                                                               
+       Has health insurance coverage,                                                                                            
+       Mostly visits outpatient departments for healthcare,                                                                      
+       US citizen}                                                    => {HAS HYPERTENSION} 0.001018953  1.0000000 19.47222    10
+[68]  {HAS CANCER,                                                                                                               
+       Has health insurance coverage,                                                                                            
+       Has rode in a vehicle within the past 7 days,                                                                             
+       Smokers present in house}                                      => {HAS HYPERTENSION} 0.001018953  0.8333333 16.22685    10
+[69]  {{you do not/SP does not} use a computer outside of school,                                                                
+       Black,                                                                                                                    
+       Born in US,                                                                                                               
+       HAS CANCER}                                                    => {HAS HYPERTENSION} 0.001120848  0.9166667 17.84954    11
+[70]  {{you do not/SP does not} use a computer outside of school,                                                                
+       Black,                                                                                                                    
+       HAS CANCER,                                                                                                               
+       Has health insurance coverage}                                 => {HAS HYPERTENSION} 0.001018953  0.9090909 17.70202    10
+[71]  {{you do not/SP does not} use a computer outside of school,                                                                
+       Black,                                                                                                                    
+       HAS CANCER,                                                                                                               
+       US citizen}                                                    => {HAS HYPERTENSION} 0.001120848  0.9166667 17.84954    11
+[72]  {Black,                                                                                                                    
+       Born in US,                                                                                                               
+       Drinks milk multiple times a week,                                                                                        
+       HAS CANCER}                                                    => {HAS HYPERTENSION} 0.001018953  0.9090909 17.70202    10
+[73]  {Black,                                                                                                                    
+       Drinks milk multiple times a week,                                                                                        
+       HAS CANCER,                                                                                                               
+       US citizen}                                                    => {HAS HYPERTENSION} 0.001018953  0.9090909 17.70202    10
+[74]  {Black,                                                                                                                    
+       Born in US,                                                                                                               
+       HAS CANCER,                                                                                                               
+       No smokers present in house}                                   => {HAS HYPERTENSION} 0.001120848  0.8461538 16.47650    11
+[75]  {Black,                                                                                                                    
+       HAS CANCER,                                                                                                               
+       Has health insurance coverage,                                                                                            
+       No smokers present in house}                                   => {HAS HYPERTENSION} 0.001120848  0.8461538 16.47650    11
+[76]  {Black,                                                                                                                    
+       HAS CANCER,                                                                                                               
+       No smokers present in house,                                                                                              
+       Right-handed}                                                  => {HAS HYPERTENSION} 0.001018953  0.9090909 17.70202    10
+[77]  {Black,                                                                                                                    
+       HAS CANCER,                                                                                                               
+       No smokers present in house,                                                                                              
+       US citizen}                                                    => {HAS HYPERTENSION} 0.001120848  0.8461538 16.47650    11
+[78]  {Black,                                                                                                                    
+       Born in US,                                                                                                               
+       HAS CANCER,                                                                                                               
+       Mostly visits a clinic or health center for healthcare}        => {HAS HYPERTENSION} 0.001018953  0.8333333 16.22685    10
+[79]  {Black,                                                                                                                    
+       HAS CANCER,                                                                                                               
+       Mostly visits a clinic or health center for healthcare,                                                                   
+       US citizen}                                                    => {HAS HYPERTENSION} 0.001018953  0.8333333 16.22685    10
+[80]  {Black,                                                                                                                    
+       Born in US,                                                                                                               
+       HAS CANCER,                                                                                                               
+       Male}                                                          => {HAS HYPERTENSION} 0.001120848  0.8461538 16.47650    11
+[81]  {Black,                                                                                                                    
+       HAS CANCER,                                                                                                               
+       Has health insurance coverage,                                                                                            
+       Male}                                                          => {HAS HYPERTENSION} 0.001120848  0.8461538 16.47650    11
+[82]  {Black,                                                                                                                    
+       HAS CANCER,                                                                                                               
+       Male,                                                                                                                     
+       US citizen}                                                    => {HAS HYPERTENSION} 0.001120848  0.8461538 16.47650    11
+[83]  {Black,                                                                                                                    
+       Born in US,                                                                                                               
+       HAS CANCER,                                                                                                               
+       Has health insurance coverage}                                 => {HAS HYPERTENSION} 0.001426534  0.8235294 16.03595    14
+[84]  {Black,                                                                                                                    
+       Born in US,                                                                                                               
+       HAS CANCER,                                                                                                               
+       Right-handed}                                                  => {HAS HYPERTENSION} 0.001324638  0.8666667 16.87593    13
+[85]  {Black,                                                                                                                    
+       Born in US,                                                                                                               
+       HAS CANCER,                                                                                                               
+       Has not requested emergency food assistance}                   => {HAS HYPERTENSION} 0.001018953  0.8333333 16.22685    10
+[86]  {Black,                                                                                                                    
+       Born in US,                                                                                                               
+       HAS CANCER,                                                                                                               
+       US citizen}                                                    => {HAS HYPERTENSION} 0.001528429  0.8333333 16.22685    15
+[87]  {Black,                                                                                                                    
+       HAS CANCER,                                                                                                               
+       Has health insurance coverage,                                                                                            
+       Right-handed}                                                  => {HAS HYPERTENSION} 0.001222743  0.8571429 16.69048    12
+[88]  {Black,                                                                                                                    
+       HAS CANCER,                                                                                                               
+       Has health insurance coverage,                                                                                            
+       US citizen}                                                    => {HAS HYPERTENSION} 0.001426534  0.8235294 16.03595    14
+[89]  {Black,                                                                                                                    
+       HAS CANCER,                                                                                                               
+       Right-handed,                                                                                                             
+       US citizen}                                                    => {HAS HYPERTENSION} 0.001324638  0.8666667 16.87593    13
+[90]  {Black,                                                                                                                    
+       HAS CANCER,                                                                                                               
+       Has not requested emergency food assistance,                                                                              
+       US citizen}                                                    => {HAS HYPERTENSION} 0.001018953  0.8333333 16.22685    10
+[91]  {Drinks milk multiple times a day,                                                                                         
+       HAS CANCER,                                                                                                               
+       Male,                                                                                                                     
+       No smokers present in house}                                   => {HAS HYPERTENSION} 0.001222743  0.8000000 15.57778    12
+[92]  {Drinks milk multiple times a day,                                                                                         
+       HAS CANCER,                                                                                                               
+       Has rode in a vehicle within the past 7 days,                                                                             
+       Male}                                                          => {HAS HYPERTENSION} 0.001120848  0.8461538 16.47650    11
+[93]  {Born in US,                                                                                                               
+       Drinks milk multiple times a day,                                                                                         
+       HAS CANCER,                                                                                                               
+       Male}                                                          => {HAS HYPERTENSION} 0.001324638  0.8125000 15.82118    13
+[94]  {Drinks milk multiple times a day,                                                                                         
+       HAS CANCER,                                                                                                               
+       Has health insurance coverage,                                                                                            
+       Male}                                                          => {HAS HYPERTENSION} 0.001426534  0.8235294 16.03595    14
+[95]  {Drinks milk multiple times a day,                                                                                         
+       HAS CANCER,                                                                                                               
+       Male,                                                                                                                     
+       Right-handed}                                                  => {HAS HYPERTENSION} 0.001324638  0.8125000 15.82118    13
+[96]  {Drinks milk multiple times a day,                                                                                         
+       HAS CANCER,                                                                                                               
+       Male,                                                                                                                     
+       US citizen}                                                    => {HAS HYPERTENSION} 0.001426534  0.8235294 16.03595    14
+[97]  {Born in US,                                                                                                               
+       HAS DIABETES,                                                                                                             
+       Male,                                                                                                                     
+       Mostly visits outpatient departments for healthcare}           => {HAS HYPERTENSION} 0.001018953  0.8333333 16.22685    10
+[98]  {$5000 - $9999,                                                                                                            
+       HAS DIABETES,                                                                                                             
+       NO CANCER,                                                                                                                
+       No smokers present in house}                                   => {HAS HYPERTENSION} 0.001018953  0.8333333 16.22685    10
+[99]  {$5000 - $9999,                                                                                                            
+       HAS DIABETES,                                                                                                             
+       No smokers present in house,                                                                                              
+       Right-handed}                                                  => {HAS HYPERTENSION} 0.001120848  0.9166667 17.84954    11
+[100] {$5000 - $9999,                                                                                                            
+       HAS DIABETES,                                                                                                             
+       Has health insurance coverage,                                                                                            
+       Right-handed}                                                  => {HAS HYPERTENSION} 0.001018953  0.8333333 16.22685    10
+> 
+```
+
+
+```{r eval=FALSE, echo=TRUE}
+> inspect(has_hypertension.association.rules_smallitemset)
+     lhs                                                                rhs                    support confidence      lift count
+[1]  {HAS CANCER}                                                    => {HAS HYPERTENSION} 0.005400448  0.5955056 11.595818    53
+[2]  {Mostly visits outpatient departments for healthcare}           => {HAS HYPERTENSION} 0.004075810  0.4040404  7.867565    40
+[3]  {HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.013144487  0.6482412 12.622697   129
+[4]  {HAS CANCER,                                                                                                                
+      Mostly visits outpatient departments for healthcare}           => {HAS HYPERTENSION} 0.001018953  1.0000000 19.472222    10
+[5]  {HAS CANCER,                                                                                                                
+      HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.002343591  0.6969697 13.571549    23
+[6]  {HAS CANCER,                                                                                                                
+      Widowed}                                                       => {HAS HYPERTENSION} 0.001120848  0.6875000 13.387153    11
+[7]  {HAS CANCER,                                                                                                                
+      Has not rode in a vehicle within the past 7 days}              => {HAS HYPERTENSION} 0.001120848  0.5789474 11.273392    11
+[8]  {HAS CANCER,                                                                                                                
+      Plays less than an hours of video games over the past 30 days} => {HAS HYPERTENSION} 0.001018953  0.7142857 13.908730    10
+[9]  {HAS CANCER,                                                                                                                
+      Smokers present in house}                                      => {HAS HYPERTENSION} 0.001222743  0.6666667 12.981481    12
+[10] {Divorced,                                                                                                                  
+      HAS CANCER}                                                    => {HAS HYPERTENSION} 0.001120848  0.7857143 15.299603    11
+[11] {HAS CANCER,                                                                                                                
+      Has requested emergency food assistance}                       => {HAS HYPERTENSION} 0.001426534  0.5600000 10.904444    14
+[12] {Does not play video games,                                                                                                 
+      HAS CANCER}                                                    => {HAS HYPERTENSION} 0.002445486  0.6153846 11.982906    24
+[13] {Black,                                                                                                                     
+      HAS CANCER}                                                    => {HAS HYPERTENSION} 0.001528429  0.8333333 16.226852    15
+[14] {Drinks milk multiple times a week,                                                                                         
+      HAS CANCER}                                                    => {HAS HYPERTENSION} 0.002037905  0.6250000 12.170139    20
+[15] {HAS CANCER,                                                                                                                
+      No smokers present in house}                                   => {HAS HYPERTENSION} 0.004177705  0.5774648 11.244523    41
+[16] {HAS CANCER,                                                                                                                
+      Mostly visits a clinic or health center for healthcare}        => {HAS HYPERTENSION} 0.003872020  0.5846154 11.383761    38
+[17] {HAS CANCER,                                                                                                                
+      Has rode in a vehicle within the past 7 days}                  => {HAS HYPERTENSION} 0.004279601  0.6000000 11.683333    42
+[18] {HAS CANCER,                                                                                                                
+      NO DIABETES}                                                   => {HAS HYPERTENSION} 0.003056858  0.5357143 10.431548    30
+[19] {HAS CANCER,                                                                                                                
+      White}                                                         => {HAS HYPERTENSION} 0.002343591  0.5609756 10.923442    23
+[20] {HAS CANCER,                                                                                                                
+      Male}                                                          => {HAS HYPERTENSION} 0.002751172  0.6279070 12.226744    27
+[21] {Female,                                                                                                                    
+      HAS CANCER}                                                    => {HAS HYPERTENSION} 0.002649277  0.5652174 11.006039    26
+[22] {Drinks milk multiple times a day,                                                                                          
+      HAS CANCER}                                                    => {HAS HYPERTENSION} 0.002343591  0.6571429 12.796032    23
+[23] {HAS CANCER,                                                                                                                
+      Married}                                                       => {HAS HYPERTENSION} 0.002037905  0.5128205  9.985755    20
+[24] {Born in US,                                                                                                                
+      HAS CANCER}                                                    => {HAS HYPERTENSION} 0.004483391  0.6111111 11.899691    44
+[25] {HAS CANCER,                                                                                                                
+      Has health insurance coverage}                                 => {HAS HYPERTENSION} 0.004890972  0.6153846 11.982906    48
+[26] {HAS CANCER,                                                                                                                
+      Right-handed}                                                  => {HAS HYPERTENSION} 0.004890972  0.6075949 11.831224    48
+[27] {HAS CANCER,                                                                                                                
+      Has not requested emergency food assistance}                   => {HAS HYPERTENSION} 0.003973915  0.6093750 11.865885    39
+[28] {HAS CANCER,                                                                                                                
+      US citizen}                                                    => {HAS HYPERTENSION} 0.005094763  0.6250000 12.170139    50
+[29] {No health insurance coverage,                                                                                              
+      Plays 4 hours of video games over the past 30 days}            => {HAS HYPERTENSION} 0.001222743  0.4285714  8.345238    12
+[30] {Has rode in a vehicle within the past 7 days,                                                                              
+      Under $20000}                                                  => {HAS HYPERTENSION} 0.001018953  0.4166667  8.113426    10
+[31] {HAS DIABETES,                                                                                                              
+      Mostly visits outpatient departments for healthcare}           => {HAS HYPERTENSION} 0.001324638  0.6842105 13.323099    13
+[32] {Does not play video games,                                                                                                 
+      Mostly visits outpatient departments for healthcare}           => {HAS HYPERTENSION} 0.001732219  0.4473684  8.711257    17
+[33] {Black,                                                                                                                     
+      Mostly visits outpatient departments for healthcare}           => {HAS HYPERTENSION} 0.001936010  0.5277778 10.277006    19
+[34] {Drinks milk multiple times a week,                                                                                         
+      Mostly visits outpatient departments for healthcare}           => {HAS HYPERTENSION} 0.001630324  0.6400000 12.462222    16
+[35] {Mostly visits outpatient departments for healthcare,                                                                       
+      No smokers present in house}                                   => {HAS HYPERTENSION} 0.002853067  0.4000000  7.788889    28
+[36] {Has rode in a vehicle within the past 7 days,                                                                              
+      Mostly visits outpatient departments for healthcare}           => {HAS HYPERTENSION} 0.003566334  0.4117647  8.017974    35
+[37] {Mostly visits outpatient departments for healthcare,                                                                       
+      White}                                                         => {HAS HYPERTENSION} 0.001222743  0.5000000  9.736111    12
+[38] {Male,                                                                                                                      
+      Mostly visits outpatient departments for healthcare}           => {HAS HYPERTENSION} 0.002853067  0.4666667  9.087037    28
+[39] {Born in US,                                                                                                                
+      Mostly visits outpatient departments for healthcare}           => {HAS HYPERTENSION} 0.003260648  0.4324324  8.420420    32
+[40] {Has health insurance coverage,                                                                                             
+      Mostly visits outpatient departments for healthcare}           => {HAS HYPERTENSION} 0.003464439  0.4197531  8.173525    34
+[41] {Mostly visits outpatient departments for healthcare,                                                                       
+      Right-handed}                                                  => {HAS HYPERTENSION} 0.003362543  0.4074074  7.933128    33
+[42] {Mostly visits outpatient departments for healthcare,                                                                       
+      US citizen}                                                    => {HAS HYPERTENSION} 0.003872020  0.4222222  8.221605    38
+[43] {Plays 3 hours of video games over the past 30 days,                                                                        
+      Rarely-less than once a week}                                  => {HAS HYPERTENSION} 0.001120848  0.4400000  8.567778    11
+[44] {HAS DIABETES,                                                                                                              
+      Mostly visits an emergency room for healthcare}                => {HAS HYPERTENSION} 0.001120848  0.5500000 10.709722    11
+[45] {$5000 - $9999,                                                                                                             
+      HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.001222743  0.7500000 14.604167    12
+[46] {HAS DIABETES,                                                                                                              
+      Widowed}                                                       => {HAS HYPERTENSION} 0.002037905  0.7692308 14.978632    20
+[47] {HAS DIABETES,                                                                                                              
+      Plays 1 hour of video games over the past 30 days}             => {HAS HYPERTENSION} 0.001120848  0.6875000 13.387153    11
+[48] {HAS DIABETES,                                                                                                              
+      Has not rode in a vehicle within the past 7 days}              => {HAS HYPERTENSION} 0.002751172  0.6428571 12.517857    27
+[49] {$10000 - $14999,                                                                                                           
+      HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.001426534  0.7368421 14.347953    14
+[50] {$15000 - $19999,                                                                                                           
+      HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.001426534  0.7000000 13.630556    14
+[51] {HAS DIABETES,                                                                                                              
+      Household income between $45000 - $54999}                      => {HAS HYPERTENSION} 0.001018953  0.7692308 14.978632    10
+[52] {HAS DIABETES,                                                                                                              
+      Plays less than an hours of video games over the past 30 days} => {HAS HYPERTENSION} 0.001834115  0.7200000 14.020000    18
+[53] {HAS DIABETES,                                                                                                              
+      Smokers present in house}                                      => {HAS HYPERTENSION} 0.003260648  0.6666667 12.981481    32
+[54] {HAS DIABETES,                                                                                                              
+      Household income between $35000 - $44999}                      => {HAS HYPERTENSION} 0.001018953  0.7142857 13.908730    10
+[55] {HAS DIABETES,                                                                                                              
+      Household income between $20000 - $24999}                      => {HAS HYPERTENSION} 0.002649277  0.8387097 16.331541    26
+[56] {HAS DIABETES,                                                                                                              
+      Other_Hispanic}                                                => {HAS HYPERTENSION} 0.001630324  0.5333333 10.385185    16
+[57] {HAS DIABETES,                                                                                                              
+      Other}                                                         => {HAS HYPERTENSION} 0.001630324  0.4444444  8.654321    16
+[58] {Divorced,                                                                                                                  
+      HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.002343591  0.6764706 13.172386    23
+[59] {HAS DIABETES,                                                                                                              
+      Has requested emergency food assistance}                       => {HAS HYPERTENSION} 0.003158753  0.7209302 14.038114    31
+[60] {Does not play video games,                                                                                                 
+      HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.007845934  0.6581197 12.815052    77
+[61] {HAS DIABETES,                                                                                                              
+      Rarely-less than once a week}                                  => {HAS HYPERTENSION} 0.002241696  0.6111111 11.899691    22
+[62] {Does not drink milk,                                                                                                       
+      HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.002241696  0.5945946 11.578078    22
+[63] {HAS DIABETES,                                                                                                              
+      Never_married}                                                 => {HAS HYPERTENSION} 0.001528429  0.6250000 12.170139    15
+[64] {HAS DIABETES,                                                                                                              
+      No health insurance coverage}                                  => {HAS HYPERTENSION} 0.002649277  0.4905660  9.552411    26
+[65] {HAS DIABETES,                                                                                                              
+      Mexican_American}                                              => {HAS HYPERTENSION} 0.003566334  0.6140351 11.956628    35
+[66] {Born outside of US,                                                                                                        
+      HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.004381496  0.5243902 10.211043    43
+[67] {Black,                                                                                                                     
+      HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.004177705  0.8200000 15.967222    41
+[68] {Drinks milk multiple times a week,                                                                                         
+      HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.004483391  0.7333333 14.279630    44
+[69] {HAS DIABETES,                                                                                                              
+      No smokers present in house}                                   => {HAS HYPERTENSION} 0.009781944  0.6400000 12.462222    96
+[70] {HAS DIABETES,                                                                                                              
+      Mostly visits a clinic or health center for healthcare}        => {HAS HYPERTENSION} 0.010189525  0.6666667 12.981481   100
+[71] {HAS DIABETES,                                                                                                              
+      Has rode in a vehicle within the past 7 days}                  => {HAS HYPERTENSION} 0.010393316  0.6496815 12.650743   102
+[72] {HAS DIABETES,                                                                                                              
+      NO CANCER}                                                     => {HAS HYPERTENSION} 0.010800897  0.6385542 12.434070   106
+[73] {HAS DIABETES,                                                                                                              
+      White}                                                         => {HAS HYPERTENSION} 0.002649277  0.6341463 12.348238    26
+[74] {HAS DIABETES,                                                                                                              
+      Male}                                                          => {HAS HYPERTENSION} 0.006215610  0.5980392 11.645153    61
+[75] {Female,                                                                                                                    
+      HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.006928877  0.7010309 13.650630    68
+[76] {Drinks milk multiple times a day,                                                                                          
+      HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.004177705  0.6212121 12.096380    41
+[77] {HAS DIABETES,                                                                                                              
+      Married}                                                       => {HAS HYPERTENSION} 0.005706134  0.5894737 11.478363    56
+[78] {Born in US,                                                                                                                
+      HAS DIABETES}                                                  => {HAS HYPERTENSION} 0.008762992  0.7350427 14.312915    86
+[79] {HAS DIABETES,                                                                                                              
+      Has health insurance coverage}                                 => {HAS HYPERTENSION} 0.010495211  0.7054795 13.737253   103
+[80] {HAS DIABETES,                                                                                                              
+      Right-handed}                                                  => {HAS HYPERTENSION} 0.011717954  0.6460674 12.580368   115
+[81] {HAS DIABETES,                                                                                                              
+      Has not requested emergency food assistance}                   => {HAS HYPERTENSION} 0.009985735  0.6282051 12.232550    98
+[82] {HAS DIABETES,                                                                                                              
+      US citizen}                                                    => {HAS HYPERTENSION} 0.011514163  0.6975309 13.582476   113
+[83] {Has not rode in a vehicle within the past 7 days,                                                                          
+      Widowed}                                                       => {HAS HYPERTENSION} 0.001120848  0.4400000  8.567778    11
+[84] {Plays less than an hours of video games over the past 30 days,                                                             
+      Widowed}                                                       => {HAS HYPERTENSION} 0.001426534  0.4827586  9.400383    14
+[85] {Does not play video games,                                                                                                 
+      Widowed}                                                       => {HAS HYPERTENSION} 0.002954962  0.5471698 10.654612    29
+[86] {No smokers present in house,                                                                                               
+      Widowed}                                                       => {HAS HYPERTENSION} 0.004585286  0.4945055  9.629121    45
+[87] {Mostly visits a clinic or health center for healthcare,                                                                    
+      Widowed}                                                       => {HAS HYPERTENSION} 0.004075810  0.4597701  8.952746    40
+[88] {Has rode in a vehicle within the past 7 days,                                                                              
+      Widowed}                                                       => {HAS HYPERTENSION} 0.004381496  0.4526316  8.813743    43
+[89] {NO CANCER,                                                                                                                 
+      Widowed}                                                       => {HAS HYPERTENSION} 0.004381496  0.4134615  8.051015    43
+> 
+```
+
+### Interactive Scatter Plots for Cancer
+
+CANCER (large itemsets)
+
+<iframe src="cancer_large.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+CANCER (small itemsets)
+
+<iframe src="cancer_small.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+### Interactive Scatter Plots for Diabetes
+
+DIABETES (large itemsets)
+
+<iframe src="diabetes_large.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+DIABETES (small itemsets)
+
+<iframe src="diabetes_small.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+### Interactive Scatter Plots for Hypertension
+
+HYPER TENSION (large itemsets)
+
+<iframe src="hypertension_large.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+HYPER TENSION (small itemsets)
+
+<iframe src="hypertension_small.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+
+### Interactive Graph Visualization for Cancer
+
+CANCER (large itemset)
+
+<iframe src="cancer_graph_large.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+CANCER (small itemset)
+
+<iframe src="cancer_graph_small.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+
+
+### Interactive Graph Visualization for Diabetes
+
+DIABETES (large itemset)
+<iframe src="diabetes_graph_large.html" width="100%" height="600" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+DIABETES (small itemset)
+
+"hypertension_graph_large.html"
+<iframe src="diabetes_graph_small.html" width="100%" height="600" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+### Interactive Graph Visualization for Hypertension
+
+HYPERTENSION (large itemset)
+
+<iframe src="hypertension_graph_large.html" width="100%" height="600" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+HYPERTENSION (small itemset)
+
+<iframe src="hypertension_graph_small.html" width="100%" height="600" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+### Individual Rule Representation 
+
+Using top 20 rules for Cancer
+
+![](Figures/cancer_top20_paracoord.png){width=800px}
+
+Using top 20 rules for diabetes
+
+![](Figures/diabetes_top20_paracoord.png){width=800px}
+
+Using top 20 rules for hypertension
+
+![](Figures/diabetes_top20_paracoord.png){width=800px}
+
+### Association rules for not having diseases
+
+In the precedin section, we looked at associations for having diseases.  For this section, we look at the inverse, could their value in associations where there is no diseases/health conditions?  
+
+## Conclusion for Problem 2
 
 # Problem 3: Supervised 
 
@@ -1699,13 +2967,54 @@ Time Permitting
 ```{r, eval=FALSE, echo=TRUE}
 ```
 
-## Feature Selection 
-
+## PCA
 Choose attributes to choose the target.
 
+```{r, eval=FALSE, echo=TRUE}
+combined_target_final <- read_csv("Data/Target Datasets/combined_target_final.csv")
+
+library(devtools)
+library(ggbiplot)
+combined_target_final.pca <- prcomp(combined_target_final[,c(4:38)], center = TRUE,scale = TRUE)
+summary(combined_target_final.pca)
+
+screeplot(combined_target_final.pca, type = "l", npcs = 20, main = "Screeplot of the first 20 PCs")
+abline(h = 1, col="red", lty=5)
+legend("topright", legend=c("Eigenvalue = 1"),
+       col=c("red"), lty=5, cex=0.6)
+
+
+cumpro <- cumsum(combined_target_final.pca$sdev^2 / sum(combined_target_final.pca$sdev^2))
+plot(cumpro[0:20], xlab = "PC #", ylab = "Amount of explained variance", main = "Cumulative variance plot")
+abline(v = 9, col="blue", lty=5)
+abline(h = 0.79850, col="blue", lty=5)
+legend("topleft", legend=c("Cut-off @ PC9"),
+       col=c("blue"), lty=5, cex=0.6)
+
+
+```
+
+
+![](Figures/combined/combined_PCA1.png){width=350px}
+![](Figures/combined/combined_PCA2.png){width=350px}
+
+
+We notice is that the first 9 components has an Eigenvalue >1 
+and explains almost 80% of variance. 
+So if  wereduce dimensionality from 35  to 8  we will lose 
+  20% of variance!
+
+![](Figures/combined/combined_PCA3.png){width=350px}
+![](Figures/combined/combined_PCA_diabetes.png){width=350px}
+
+The two first components explains only 30%  of the variance. 
+We need 18 principal components to explain more than 95% of the variance 
+and 27 to explain more than 0.99
 
 
 ## Applying machine learning models  {.tabset}
+
+
 
 ```{r, eval=FALSE, echo=TRUE}
 fitControl <- trainControl(method="cv",
@@ -1795,16 +3104,6 @@ Prediction    X0    X1
 
 
 ```{r, eval=FALSE, echo=TRUE}
-predicted.classes <- ifelse(cm_lr > 0.5,"YES","NO")
-
-# Model Accuracy
-mean(predicted.classes == test_Combined$TARGET
-     
-require(ROCR)
-pred <- prediction(pred_lr, test_Combined$TARGET)
-roc_lr <- performance(pred, measure = "tpr", x.measure = "fpr")
-
-plot(roc_lr, main = "ROC Curve")
 
 
 ```
@@ -2063,55 +3362,151 @@ bwplot(resamples, metric="ROC")
 ![](Figures/combined/bwplot_model_list.png){width=500px}
 
 
-We see here that some models have a great variability depending of the processed sample (NB). The models LDA_NNET, and LDA_NB achieve a great auc with some variability.
+We see here that KNN have a great variability depending of the processed sample. Almost all the models achieve a great auc with some variability.
 
-The ROC metric measure the auc of the roc curve of each model. This metric is independent of any threshold.
+
 Let's remember how these models result with the testing dataset. Prediction classes are obtained by default with 
 a threshold of 0.5 which could not be the best with an unbalanced dataset like this.
-
 
 ```{r, eval=FALSE, echo=TRUE}
 cm_list <- list(LR= model_rf, RF=model_rf, PCA_RF=model_pca_rf,  KNN = model_knn, SVM=model_svm)
 
+$LR
+glmnet 
+
+65420 samples
+   35 predictor
+    2 classes: 'X0', 'X1' 
+
+Pre-processing: centered (35), scaled (35) 
+Resampling: Cross-Validated (5 fold) 
+Summary of sample sizes: 52337, 52336, 52336, 52336, 52335 
+Resampling results across tuning parameters:
+
+  alpha  lambda        ROC        Sens       Spec     
+  0.10   0.0008688346  1.0000000  1.0000000  0.9999594
+  0.10   0.0086883465  0.9999999  0.9996078  0.9999594
+  0.10   0.0868834648  0.9997695  0.9986274  0.9975224
+  0.55   0.0008688346  1.0000000  1.0000000  1.0000000
+  0.55   0.0086883465  1.0000000  1.0000000  1.0000000
+  0.55   0.0868834648  1.0000000  0.9999755  1.0000000
+  1.00   0.0008688346  1.0000000  1.0000000  1.0000000
+  1.00   0.0086883465  1.0000000  1.0000000  1.0000000
+  1.00   0.0868834648  1.0000000  1.0000000  1.0000000
+
+ROC was used to select the optimal model using the largest value.
+The final values used for the model were alpha = 0.55 and lambda = 0.08688346.
+
+$RF
+Random Forest 
+
+65420 samples
+   35 predictor
+    2 classes: 'X0', 'X1' 
+
+Pre-processing: centered (35), scaled (35) 
+Resampling: Cross-Validated (5 fold) 
+Summary of sample sizes: 52337, 52336, 52336, 52336, 52335 
+Resampling results across tuning parameters:
+
+  mtry  splitrule   ROC        Sens       Spec     
+   2    gini        1.0000000  1.0000000  0.9993501
+   2    extratrees  0.9999998  1.0000000  0.9984160
+  18    gini        1.0000000  1.0000000  1.0000000
+  18    extratrees  1.0000000  1.0000000  1.0000000
+  35    gini        1.0000000  1.0000000  1.0000000
+  35    extratrees  1.0000000  0.9999755  1.0000000
+
+Tuning parameter 'min.node.size' was held constant at a value of 1
+ROC was used to select the optimal model using the largest value.
+The final values used for the model were mtry = 2, splitrule = gini
+ and min.node.size = 1.
+
+$PCA_RF
+Random Forest 
+
+65420 samples
+   35 predictor
+    2 classes: 'X0', 'X1' 
+
+Pre-processing: centered (35), scaled (35), principal component signal
+ extraction (35) 
+Resampling: Cross-Validated (5 fold) 
+Summary of sample sizes: 52335, 52336, 52337, 52336, 52336 
+Resampling results across tuning parameters:
+
+  mtry  splitrule   ROC        Sens       Spec     
+   2    gini        0.9999998  0.9999755  0.9995532
+   2    extratrees  0.9999993  0.9999755  0.9982942
+  15    gini        0.9999999  0.9998529  0.9997969
+  15    extratrees  0.9999999  0.9999265  0.9999188
+  28    gini        0.9999870  0.9995588  0.9997563
+  28    extratrees  0.9999999  0.9999510  0.9999594
+
+Tuning parameter 'min.node.size' was held constant at a value of 1
+ROC was used to select the optimal model using the largest value.
+The final values used for the model were mtry = 28, splitrule = extratrees
+ and min.node.size = 1.
+
+$KNN
+k-Nearest Neighbors 
+
+65420 samples
+   35 predictor
+    2 classes: 'X0', 'X1' 
+
+Pre-processing: centered (35), scaled (35) 
+Resampling: Cross-Validated (5 fold) 
+Summary of sample sizes: 52336, 52336, 52336, 52336, 52336 
+Resampling results across tuning parameters:
+
+  k   ROC        Sens       Spec     
+   5  0.9993660  0.9988970  0.9965883
+   7  0.9994197  0.9982353  0.9949231
+   9  0.9994105  0.9978186  0.9932578
+  11  0.9994421  0.9976960  0.9912270
+  13  0.9994510  0.9974755  0.9896836
+  15  0.9994458  0.9974019  0.9882214
+  17  0.9994617  0.9969853  0.9855002
+  19  0.9994655  0.9970588  0.9833881
+  21  0.9994215  0.9962254  0.9810324
+  23  0.9993903  0.9959558  0.9789203
+
+ROC was used to select the optimal model using the largest value.
+The final value used for the model was k = 19.
+
+$SVM
+Support Vector Machines with Radial Basis Function Kernel 
+
+65420 samples
+   35 predictor
+    2 classes: 'X0', 'X1' 
+
+Pre-processing: centered (35), scaled (35) 
+Resampling: Cross-Validated (5 fold) 
+Summary of sample sizes: 52337, 52336, 52336, 52335, 52336 
+Resampling results across tuning parameters:
+
+  C     ROC  Sens  Spec     
+  0.25  1    1     0.9998376
+  0.50  1    1     0.9998376
+  1.00  1    1     0.9998376
+
+Tuning parameter 'sigma' was held constant at a value of 0.02396315
+ROC was used to select the optimal model using the largest value.
+The final values used for the model were sigma = 0.02396315 and C = 1.
 ```
 
-```{r, eval=FALSE, echo=TRUE}
-cm_list_results <- sapply(cm_list, function(x) x$byClass)
-cm_list_results
-```
+The best results for sensitivity (detection of diabetes) are Logistic regression and Random forest. 
 
-```{r, eval=FALSE, echo=TRUE}
-cm_results_max <- apply(cm_list_results, 1, which.is.max)
-```
-
-```{r, eval=FALSE, echo=TRUE}
-output_report <- data.frame(metric=names(cm_results_max), 
-                            best_model=colnames(cm_list_results)[cm_results_max],
-                            value=mapply(function(x,y) {cm_list_results[x,y]}, 
-                            names(cm_results_max), 
-                            cm_results_max))
-rownames(output_report) <- NULL
-output_report
-```
-
-The best results for sensitivity (detection of breast cases) is LDA_NNET which also has a great F1 score.
-
-
+Random forest with PCA is as sensitive as Random forest
 
 ## Conclusions
 
-We have found a model based on neural network and LDA preprocessed data with good results over the test set. 
-This model has a **sensibility of 0.984** with a **F1 score of 0.984**  
+All  modele preprocessed data with good results over the test set. 
+These models have a **sensibility greater than  0.999 ** 
 
-We have tried an stacked model with a little improvement.
 
-Next things to try:
-
-- use unbalanced techinques (oversampling, SMOTE...) previously to apply the models
-
-- modify models to use a different metric rather than ROC (auc) which takes in consideration the best threshold
-
-- Try different stacking models
 
 
 
