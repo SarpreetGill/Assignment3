@@ -1695,6 +1695,9 @@ fviz_pca_ind(demo_subset_8.pca, geom.ind = "point", pointshape = 21,
 ![](Figures/demo/demo8_PCA_hypertension.png){width=260px}
 ![](Figures/demo/demo8_PCA_cancer.png){width=260px}
 
+With just use the first two components, no diseases present separation between sick and healthy people 
+. This  clearly  indicate that the we can not do classification base only on the demographics data. 
+
 
 ```{r, eval=FALSE, echo=TRUE}
 
@@ -2886,6 +2889,10 @@ In the precedin section, we looked at associations for having diseases.  For thi
 # Problem 3: Supervised 
 
 
+Target attributes need to be added .   
+
+
+
 ## Create target dataset
 
 As part of the business problem, we focusing on 3 targets(diabetes, hypertension, cancer):
@@ -3008,9 +3015,556 @@ abline(v = 10, col="blue", lty=5)
 
 
 
-## Feature Selection 
-
+## PCA
 Choose attributes to choose the target.
+
+```{r, eval=FALSE, echo=TRUE}
+combined_target_final <- read_csv("Data/Target Datasets/combined_target_final.csv")
+
+library(devtools)
+library(ggbiplot)
+combined_target_final.pca <- prcomp(combined_target_final[,c(4:38)], center = TRUE,scale = TRUE)
+summary(combined_target_final.pca)
+
+screeplot(combined_target_final.pca, type = "l", npcs = 20, main = "Screeplot of the first 20 PCs")
+abline(h = 1, col="red", lty=5)
+legend("topright", legend=c("Eigenvalue = 1"),
+       col=c("red"), lty=5, cex=0.6)
+
+
+cumpro <- cumsum(combined_target_final.pca$sdev^2 / sum(combined_target_final.pca$sdev^2))
+plot(cumpro[0:20], xlab = "PC #", ylab = "Amount of explained variance", main = "Cumulative variance plot")
+abline(v = 9, col="blue", lty=5)
+abline(h = 0.79850, col="blue", lty=5)
+legend("topleft", legend=c("Cut-off @ PC9"),
+       col=c("blue"), lty=5, cex=0.6)
+
+
+```
+
+
+![](Figures/combined/combined_PCA1.png){width=350px}
+![](Figures/combined/combined_PCA2.png){width=350px}
+
+
+We notice is that the first 9 components has an Eigenvalue >1 
+and explains almost 80% of variance. 
+So if  wereduce dimensionality from 35  to 8  we will lose 
+  20% of variance!
+
+![](Figures/combined/combined_PCA3.png){width=350px}
+![](Figures/combined/combined_PCA_diabetes.png){width=350px}
+
+The two first components explains only 30%  of the variance. 
+We need 18 principal components to explain more than 95% of the variance 
+and 27 to explain more than 0.99
+
+
+## Applying machine learning models  {.tabset}
+
+
+
+```{r, eval=FALSE, echo=TRUE}
+fitControl <- trainControl(method="cv",
+                           number = 5,
+                           preProcOptions = list(thresh = 0.99), # threshold for pca preprocess
+                           classProbs = TRUE,
+                           summaryFunction = twoClassSummary)
+```
+
+
+We are going to create a training and test set of these data:
+
+```{r, eval=FALSE, echo=TRUE}
+combined_target_final <- read_csv("Data/Target Datasets/combined_target_final.csv")
+
+require(caret)
+require(dplyr)
+require(caretEnsemble)
+require(pROC)
+set.seed(101)
+
+
+data_index <- createDataPartition(combined_target_final$TARGET, p=0.75, list = FALSE)
+train_Combined <- combined_target_final[data_index,-c(1,2,39,40,41,42) ]
+test_Combined <- combined_target_final[-data_index, -c(1,2,39,40,41,42)]
+
+ #try to predict class probabilities in R - caret
+levels(train_Combined$TARGET) <- make.names(levels(factor(train_Combined$TARGET)))
+levels(test_Combined$TARGET) <- make.names(levels(factor(test_Combined$TARGET)))
+#train_Combined$TARGET =  as.factor(train_Combined$TARGET)
+#test_Combined$TARGET =  as.factor(test_Combined$TARGET)
+
+```
+
+
+### Logistic Regression
+
+Let's try Logistic Regression:
+
+```{r model_lr, eval=FALSE, echo=TRUE, message=FALSE, warning=FALSE, cache=FALSE}
+
+model_lr <- train(TARGET~.,train_Combined,
+                  method = "glmnet",
+                     metric="ROC",
+                  #tuneGrid = expand.grid(alpha = c(0,  .1,  .2, .4, .6, .8, 1),lambda = seq(.01, .2, length = 20)),
+                     preProcess = c("center", "scale"),
+                  trControl=fitControl) 
+
+
+```
+
+
+```{r, eval=FALSE, echo=TRUE}
+
+pred_lr <- predict(model_lr, test_Combined)
+cm_lr <- confusionMatrix(pred_lr, test_Combined$TARGET, positive = "X1")
+cm_lr
+
+Confusion Matrix and Statistics
+
+          Reference
+Prediction    X0    X1
+        X0 13800     0
+        X1     0  8006
+                                     
+               Accuracy : 1          
+                 95% CI : (0.9998, 1)
+    No Information Rate : 0.6329     
+    P-Value [Acc > NIR] : < 2.2e-16  
+                                     
+                  Kappa : 1          
+                                     
+ Mcnemar's Test P-Value : NA         
+                                     
+            Sensitivity : 1.0000     
+            Specificity : 1.0000     
+         Pos Pred Value : 1.0000     
+         Neg Pred Value : 1.0000     
+             Prevalence : 0.3671     
+         Detection Rate : 0.3671     
+   Detection Prevalence : 0.3671     
+      Balanced Accuracy : 1.0000     
+                                     
+       'Positive' Class : X1  
+```
+
+
+
+```{r, eval=FALSE, echo=TRUE}
+
+
+```
+
+
+### Random Forest
+
+Let's try random forest:
+
+```{r model_rf, eval=FALSE, echo=TRUE, message=FALSE, warning=FALSE, cache=FALSE}
+model_rf <- train(as.factor(TARGET)~.,
+                  train_Combined,
+                  method="ranger",
+                  metric="ROC",
+                  #tuneLength=10,
+                  #tuneGrid = expand.grid(mtry = c(2, 3, 6)),
+                  #tuneGrid = data.frame(mtry = 3)
+                  tuneGrid = tunegrid,
+                  preProcess = c('center', 'scale'),
+                  trControl=fitControl)
+```
+
+
+```{r,eval=FALSE, echo=TRUE}
+pred_rf <- predict(model_rf, test_Combined)
+cm_rf <- confusionMatrix(pred_rf, test_Combined$TARGET, positive = "X1")
+cm_rf
+Confusion Matrix and Statistics
+
+          Reference
+Prediction    X0    X1
+        X0 13800     2
+        X1     0  8004
+                                     
+               Accuracy : 0.9999     
+                 95% CI : (0.9997, 1)
+    No Information Rate : 0.6329     
+    P-Value [Acc > NIR] : <2e-16     
+                                     
+                  Kappa : 0.9998     
+                                     
+ Mcnemar's Test P-Value : 0.4795     
+                                     
+            Sensitivity : 0.9998     
+            Specificity : 1.0000     
+         Pos Pred Value : 1.0000     
+         Neg Pred Value : 0.9999     
+             Prevalence : 0.3671     
+         Detection Rate : 0.3671     
+   Detection Prevalence : 0.3671     
+      Balanced Accuracy : 0.9999     
+                                     
+       'Positive' Class : X1        
+```
+
+### Random Forest with PCA
+
+Random forest with pca
+
+```{r model_pca_rf, eval=FALSE, echo=TRUE,message=FALSE, warning=FALSE, cache=FALSE}
+model_pca_rf <- train(TARGET~.,
+                  train_Combined,
+                  method="ranger",
+                  metric="ROC",
+                  #tuneLength=10,
+                  #tuneGrid = expand.grid(mtry = c(2, 3, 6)),
+                  preProcess = c('center', 'scale', 'pca'),
+                  trControl=fitControl)
+```
+
+```{r, eval=FALSE, echo=TRUE}
+pred_pca_rf <- predict(model_pca_rf, test_Combined)
+cm_pca_rf <- confusionMatrix(pred_pca_rf, test_Combined$TARGET, positive = "X1")
+cm_pca_rf
+
+Confusion Matrix and Statistics
+
+          Reference
+Prediction    X0    X1
+        X0 13799     1
+        X1     1  8005
+                                     
+               Accuracy : 0.9999     
+                 95% CI : (0.9997, 1)
+    No Information Rate : 0.6329     
+    P-Value [Acc > NIR] : <2e-16     
+                                     
+                  Kappa : 0.9998     
+                                     
+ Mcnemar's Test P-Value : 1          
+                                     
+            Sensitivity : 0.9999     
+            Specificity : 0.9999     
+         Pos Pred Value : 0.9999     
+         Neg Pred Value : 0.9999     
+             Prevalence : 0.3671     
+         Detection Rate : 0.3671     
+   Detection Prevalence : 0.3671     
+      Balanced Accuracy : 0.9999     
+                                     
+       'Positive' Class : X1         
+                                
+```
+
+
+### KNN
+
+Let's try KNN model
+
+```{r model_knn, eval=FALSE, echo=TRUE, message=FALSE, warning=FALSE, cache=FALSE}
+
+model_knn <- train(TARGET~.,
+                   train_Combined,
+                   method="knn",
+                   metric="ROC",
+                   preProcess = c('center', 'scale'),
+                   tuneLength=10,
+                   trControl=fitControl)
+```
+
+```{r, eval=FALSE, echo=TRUE}
+pred_knn <- predict(model_knn, test_Combined)
+cm_knn <- confusionMatrix(pred_knn, test_Combined$TARGET, positive = "X1")
+> cm_knn
+Confusion Matrix and Statistics
+
+          Reference
+Prediction    X0    X1
+        X0 13754    77
+        X1    46  7929
+                                          
+               Accuracy : 0.9944          
+                 95% CI : (0.9933, 0.9953)
+    No Information Rate : 0.6329          
+    P-Value [Acc > NIR] : < 2e-16         
+                                          
+                  Kappa : 0.9879          
+                                          
+ Mcnemar's Test P-Value : 0.00683         
+                                          
+            Sensitivity : 0.9904          
+            Specificity : 0.9967          
+         Pos Pred Value : 0.9942          
+         Neg Pred Value : 0.9944          
+             Prevalence : 0.3671          
+         Detection Rate : 0.3636          
+   Detection Prevalence : 0.3657          
+      Balanced Accuracy : 0.9935          
+                                          
+       'Positive' Class : X1     
+```
+
+```{r, eval=FALSE, echo=TRUE}
+pred_prob_knn <- predict(model_knn, test_Combined, type="prob")
+roc_knn <- roc(test_Combined$TARGET, pred_prob_knn$X1)
+plot(roc_knn)
+```
+
+![](Figures/combined/KNN_ROC.png){width=500px}
+### SVM with radial kernel
+ 
+
+```{r model_svm, eval=FALSE, echo=TRUE, message=FALSE, warning=FALSE, cache=FALSE}
+model_svm <- train(TARGET~.,
+                    train_Combined,
+                    method="svmRadial",
+                    metric="ROC",
+                    preProcess=c('center', 'scale'),
+                    trace=FALSE,
+                    trControl=fitControl)
+```
+
+```{r, eval=FALSE, echo=TRUE}
+pred_svm <- predict(model_svm, test_Combined)
+cm_svm <- confusionMatrix(pred_svm, test_Combined$TARGET, positive = "X1")
+> cm_svm
+
+Confusion Matrix and Statistics
+
+          Reference
+Prediction    X0    X1
+        X0 13800     1
+        X1     0  8005
+                                     
+               Accuracy : 1          
+                 95% CI : (0.9997, 1)
+    No Information Rate : 0.6329     
+    P-Value [Acc > NIR] : <2e-16     
+                                     
+                  Kappa : 0.9999     
+                                     
+ Mcnemar's Test P-Value : 1          
+                                     
+            Sensitivity : 0.9999     
+            Specificity : 1.0000     
+         Pos Pred Value : 1.0000     
+         Neg Pred Value : 0.9999     
+             Prevalence : 0.3671     
+         Detection Rate : 0.3671     
+   Detection Prevalence : 0.3671     
+      Balanced Accuracy : 0.9999     
+                                     
+       'Positive' Class : X1 
+``` 
+
+
+```{r, eval=FALSE, echo=TRUE}
+
+
+```
+
+
+## Model result comparasion 
+
+Let's compare the models and check their correlation:
+
+```{r, eval=FALSE, echo=TRUE}
+model_list <- list(LR= model_rf, RF=model_rf, PCA_RF=model_pca_rf,  KNN = model_knn, SVM=model_svm)
+resamples <- resamples(model_list)
+
+```
+
+### Correlation between models {.tabset .tabset-fade}
+
+```{r, eval=FALSE, echo=TRUE}
+model_cor <- modelCor(resamples)
+```
+
+#### Plot 
+```{r, eval=FALSE, echo=TRUE}
+corrplot(model_cor)
+```
+
+![](Figures/combined/corrplot_model_list.png){width=500px}
+
+#### Data
+```{r, eval=FALSE, echo=TRUE}
+model_cor
+
+       LR RF     PCA_RF        KNN        SVM
+LR      1 NA         NA         NA         NA
+RF     NA  1         NA         NA         NA
+PCA_RF NA NA  1.0000000  0.4587672 -0.4482732
+KNN    NA NA  0.4587672  1.0000000 -0.5315354
+SVM    NA NA -0.4482732 -0.5315354  1.0000000
+```
+
+
+### Comparasion
+
+```{r, eval=FALSE, echo=TRUE}
+bwplot(resamples, metric="ROC")
+```
+
+
+![](Figures/combined/bwplot_model_list.png){width=500px}
+
+
+We see here that KNN have a great variability depending of the processed sample. Almost all the models achieve a great auc with some variability.
+
+
+Let's remember how these models result with the testing dataset. Prediction classes are obtained by default with 
+a threshold of 0.5 which could not be the best with an unbalanced dataset like this.
+
+```{r, eval=FALSE, echo=TRUE}
+cm_list <- list(LR= model_rf, RF=model_rf, PCA_RF=model_pca_rf,  KNN = model_knn, SVM=model_svm)
+
+$LR
+glmnet 
+
+65420 samples
+   35 predictor
+    2 classes: 'X0', 'X1' 
+
+Pre-processing: centered (35), scaled (35) 
+Resampling: Cross-Validated (5 fold) 
+Summary of sample sizes: 52337, 52336, 52336, 52336, 52335 
+Resampling results across tuning parameters:
+
+  alpha  lambda        ROC        Sens       Spec     
+  0.10   0.0008688346  1.0000000  1.0000000  0.9999594
+  0.10   0.0086883465  0.9999999  0.9996078  0.9999594
+  0.10   0.0868834648  0.9997695  0.9986274  0.9975224
+  0.55   0.0008688346  1.0000000  1.0000000  1.0000000
+  0.55   0.0086883465  1.0000000  1.0000000  1.0000000
+  0.55   0.0868834648  1.0000000  0.9999755  1.0000000
+  1.00   0.0008688346  1.0000000  1.0000000  1.0000000
+  1.00   0.0086883465  1.0000000  1.0000000  1.0000000
+  1.00   0.0868834648  1.0000000  1.0000000  1.0000000
+
+ROC was used to select the optimal model using the largest value.
+The final values used for the model were alpha = 0.55 and lambda = 0.08688346.
+
+$RF
+Random Forest 
+
+65420 samples
+   35 predictor
+    2 classes: 'X0', 'X1' 
+
+Pre-processing: centered (35), scaled (35) 
+Resampling: Cross-Validated (5 fold) 
+Summary of sample sizes: 52337, 52336, 52336, 52336, 52335 
+Resampling results across tuning parameters:
+
+  mtry  splitrule   ROC        Sens       Spec     
+   2    gini        1.0000000  1.0000000  0.9993501
+   2    extratrees  0.9999998  1.0000000  0.9984160
+  18    gini        1.0000000  1.0000000  1.0000000
+  18    extratrees  1.0000000  1.0000000  1.0000000
+  35    gini        1.0000000  1.0000000  1.0000000
+  35    extratrees  1.0000000  0.9999755  1.0000000
+
+Tuning parameter 'min.node.size' was held constant at a value of 1
+ROC was used to select the optimal model using the largest value.
+The final values used for the model were mtry = 2, splitrule = gini
+ and min.node.size = 1.
+
+$PCA_RF
+Random Forest 
+
+65420 samples
+   35 predictor
+    2 classes: 'X0', 'X1' 
+
+Pre-processing: centered (35), scaled (35), principal component signal
+ extraction (35) 
+Resampling: Cross-Validated (5 fold) 
+Summary of sample sizes: 52335, 52336, 52337, 52336, 52336 
+Resampling results across tuning parameters:
+
+  mtry  splitrule   ROC        Sens       Spec     
+   2    gini        0.9999998  0.9999755  0.9995532
+   2    extratrees  0.9999993  0.9999755  0.9982942
+  15    gini        0.9999999  0.9998529  0.9997969
+  15    extratrees  0.9999999  0.9999265  0.9999188
+  28    gini        0.9999870  0.9995588  0.9997563
+  28    extratrees  0.9999999  0.9999510  0.9999594
+
+Tuning parameter 'min.node.size' was held constant at a value of 1
+ROC was used to select the optimal model using the largest value.
+The final values used for the model were mtry = 28, splitrule = extratrees
+ and min.node.size = 1.
+
+$KNN
+k-Nearest Neighbors 
+
+65420 samples
+   35 predictor
+    2 classes: 'X0', 'X1' 
+
+Pre-processing: centered (35), scaled (35) 
+Resampling: Cross-Validated (5 fold) 
+Summary of sample sizes: 52336, 52336, 52336, 52336, 52336 
+Resampling results across tuning parameters:
+
+  k   ROC        Sens       Spec     
+   5  0.9993660  0.9988970  0.9965883
+   7  0.9994197  0.9982353  0.9949231
+   9  0.9994105  0.9978186  0.9932578
+  11  0.9994421  0.9976960  0.9912270
+  13  0.9994510  0.9974755  0.9896836
+  15  0.9994458  0.9974019  0.9882214
+  17  0.9994617  0.9969853  0.9855002
+  19  0.9994655  0.9970588  0.9833881
+  21  0.9994215  0.9962254  0.9810324
+  23  0.9993903  0.9959558  0.9789203
+
+ROC was used to select the optimal model using the largest value.
+The final value used for the model was k = 19.
+
+$SVM
+Support Vector Machines with Radial Basis Function Kernel 
+
+65420 samples
+   35 predictor
+    2 classes: 'X0', 'X1' 
+
+Pre-processing: centered (35), scaled (35) 
+Resampling: Cross-Validated (5 fold) 
+Summary of sample sizes: 52337, 52336, 52336, 52335, 52336 
+Resampling results across tuning parameters:
+
+  C     ROC  Sens  Spec     
+  0.25  1    1     0.9998376
+  0.50  1    1     0.9998376
+  1.00  1    1     0.9998376
+
+Tuning parameter 'sigma' was held constant at a value of 0.02396315
+ROC was used to select the optimal model using the largest value.
+The final values used for the model were sigma = 0.02396315 and C = 1.
+```
+
+The best results for sensitivity (detection of diabetes) are Logistic regression and Random forest. 
+
+Random forest with PCA is as sensitive as Random forest
+
+## Conclusions
+
+All  modele preprocessed data with good results over the test set. 
+These models have a **sensibility greater than  0.999 ** 
+
+
+
+
+
+```{r, eval=FALSE, echo=TRUE}
+
+
+```
+
+
+
 
 
 # Shiny App
