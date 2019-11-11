@@ -2570,42 +2570,316 @@ write.csv(target_disease_dataset,file = "Data/Working/target_disease_dataset.csv
 
 
 
+################### CLASSIFICATION #####################
+
+combined_target_final <- read_csv("Data/Target Datasets/combined_target_final.csv")
+
+names(combined_target_final)
+
+library(devtools)
+#install_github("vqv/ggbiplot")
+library(ggbiplot)
+
+#+++++++++++++++++++++++++ full+++++++++++++++++++++++++++
+
+str(combined_target_final)
+combined_target_final.pca <- prcomp(combined_target_final[,c(4:38)], center = TRUE,scale = TRUE)
+summary(combined_target_final.pca)
+
+ggbiplot(combined_target_final.pca)
+
+str(combined_target_final.pca)
+
+fviz_eig(combined_target_final.pca, addlabels = TRUE, ylim = c(0, 20))
 
 
-#Define the predictors
+screeplot(combined_target_final.pca, type = "l", npcs = 20, main = "Screeplot of the first 20 PCs")
+abline(h = 1, col="red", lty=5)
+legend("topright", legend=c("Eigenvalue = 1"),
+       col=c("red"), lty=5, cex=0.6)
+
+
+#The two first components explains only 30%  of the variance. 
+#We need 18 principal components to explain more than 95% of the variance 
+#and 27 to explain more than 0.99
+
+#We notice is that the first 9 components has an Eigenvalue >1 
+#and explains almost 80% of variance, this is not great! 
+#We can therefore reduce dimensionality from 35  to 8 and lose 
+# only 20% of variance!
+
+#Proportion of Variance: PC1 accounts for >16% of total variance!
+
+cumpro <- cumsum(combined_target_final.pca$sdev^2 / sum(combined_target_final.pca$sdev^2))
+plot(cumpro[0:20], xlab = "PC #", ylab = "Amount of explained variance", main = "Cumulative variance plot")
+abline(v = 9, col="blue", lty=5)
+abline(h = 0.79850, col="blue", lty=5)
+legend("topleft", legend=c("Cut-off @ PC9"),
+       col=c("blue"), lty=5, cex=0.6)
+
+#The data can be easly separated.
+library(gridExtra)
+library(grid)
+combined_pca_df <- as.data.frame(combined_target_final.pca$x)
+g_pc1 <- ggplot(combined_pca_df, aes(x=PC1, fill=combined_target_final$HAS_DIABETES)) + geom_density(alpha=0.25)  
+g_pc2 <- ggplot(combined_pca_df, aes(x=PC2, fill=combined_target_final$HAS_DIABETES)) + geom_density(alpha=0.25)  
+grid.arrange(g_pc1, g_pc2, ncol=2)
+
+
+
+library("factoextra")
+fviz_pca_ind(combined_target_final.pca, geom.ind = "point", pointshape = 21, 
+             pointsize = 2, 
+             fill.ind = combined_target_final$HAS_DIABETES, 
+             col.ind = "black", 
+             palette = "jco", 
+             addEllipses = TRUE,
+             label = "var",
+             col.var = "black",
+             repel = TRUE,
+             legend.title = "HAS_DIABETES") +
+  ggtitle("2D PCA-plot from combined dataset") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+
+
+#The first to compenent represent only 30% of the variance.
+
+
+
+#-----------------  K-means -------------------------------
+
+
+#Elbow plot method.
+library(purrr)
+set.seed(330)
+# function to calculate total intra-cluster sum of square
+combined_iss <- function(k) {
+  kmeans(combined_target_final[,c(4:38)],k,iter.max=100,nstart=100,algorithm="Lloyd" )$tot.withinss
+}
+k.values <- 1:10
+combined_iss_values <- map_dbl(k.values, combined_iss)
+plot(k.values, combined_iss_values,
+     type="b", pch = 19, frame = FALSE,
+     xlab="Number of clusters K",
+     ylab="Total intra-clusters sum of squares")
+
+
+# From the above graph, we conclude that 4 is the appropriate number of clusters 
+#since it seems to be appearing at the bend in the elbow plot.
+
+
+# Now, let us take k = 6 as our optimal cluster –
+
+combined_k4<-kmeans(combined_target_final[,c(4:38)],4,iter.max=100,nstart=50,algorithm="Lloyd")
+combined_k4
+
+# Visualizing the Clustering Results using the First Two Principle Components
+
+pcclust=prcomp(combined_target_final[,c(4:38)],scale=TRUE) #principal component analysis
+summary(pcclust)
+pcclust$rotation[,1:2]
 
 
 
 
-#Train the model
+names(combined_final_labelled)
+set.seed(200)
+ggplot(combined_target_final, aes(x =DR1TS180, y = DR1TSFAT)) +
+  geom_point(stat = "identity", aes(color = as.factor(combined_k4$cluster))) +
+  scale_color_discrete(name=" ",
+                       breaks=c("1", "2", "3", "4"),
+                       labels=c("Cluster 1", "Cluster 2", "Cluster 3", "Cluster 4")) +
+  ggtitle("Combined Data ", subtitle = "Using K-means Clustering")
+
+#From the above visualization, we observe that
 
 
 
-
-#Evaluate the model
-
-
-
-
-
-#Define the predictors
-
-
-
-#Train the model
+###########################  Supervized #############################
+require(glmnet)
+require(caret)
+require(dplyr)
+require(caretEnsemble)
+require(pROC)
+set.seed(101)
+data_index <- createDataPartition(combined_target_final$TARGET, p=0.75, list = FALSE)
+train_Combined <- combined_target_final[data_index,-c(1,2,39,40,41,42) ]
+test_Combined <- combined_target_final[-data_index, -c(1,2,39,40,41,42)]
 
 
+#train_Combined$TARGET =  as.factor(train_Combined$TARGET)
+#test_Combined$TARGET =  as.factor(test_Combined$TARGET)
+#try to predict class probabilities in R - caret
+
+levels(train_Combined$TARGET) <- make.names(levels(factor(train_Combined$TARGET)))
+levels(test_Combined$TARGET) <- make.names(levels(factor(test_Combined$TARGET)))
 
 
-#Evaluate the model
+str(train_Combined)
+
+
+#Applying machine learning models
+
+
+fitControl <- trainControl(method="cv",
+                           number = 5,
+                           preProcOptions = list(thresh = 0.99), # threshold for pca preprocess
+                           classProbs = TRUE,
+                           summaryFunction = twoClassSummary)
+
+#++++++++++++++++++++++ Logistic Regression ++++++++++++++++
+ 
+
+#Let's try Logistic Regression:
 
 
 
+model_lr <- train(TARGET~.,train_Combined,
+                     method = "glm",
+                     metric="ROC",
+                  family = "binomial", 
+                  #tuneGrid = expand.grid(alpha = c(0,  .1,  .2, .4, .6, .8, 1),lambda = seq(.01, .2, length = 20)),
+                     preProcess = c("center", "scale"),
+                  trControl=fitControl) 
+
+
+pred_lr <- predict(model_lr, test_Combined)
+cm_lr <- confusionMatrix(pred_lr, test_Combined$TARGET, positive = "X1")
+cm_lr
+
+
+predicted.classes <- ifelse(cm_lr > 0.5,"X1","X0")
+
+# Model Accuracy
+mean(predicted.classes == test_Combined$TARGET)
+
+require(ROCR)
+pred <- prediction(pred_lr, test_Combined$TARGET)
+roc_lr <- performance(pred, measure = "tpr", x.measure = "fpr")
+
+plot(roc_lr, main = "ROC Curve")
+
+# save the model to disk
+saveRDS(model_lr, "./model_lr.rds")
+
+
+#++++++++++++++++++++++ random forest ++++++++++++++++
+
+#Let's try random forest:
 
 
 
+model_rf <- train(TARGET~.,
+                  train_Combined,
+                  method="ranger",
+                  metric="ROC",
+                  #tuneLength=10,
+                  #tuneGrid = expand.grid(mtry = c(2, 3, 6)),
+                  preProcess = c('center', 'scale'),
+                  trControl=fitControl)
 
 
+pred_rf <- predict(model_rf, test_Combined)
+cm_rf <- confusionMatrix(pred_rf, test_Combined$TARGET, positive = "X1")
+cm_rf
+
+# save the model to disk
+saveRDS(model_rf, "./model_rf.rds")
+
+#++++++++++++++++++++++ random forest  with PCA  ++++++++++++++++
+
+model_pca_rf <- train(TARGET~.,
+                      train_Combined,
+                      method="ranger",
+                      metric="ROC",
+                      #tuneLength=10,
+                      #tuneGrid = expand.grid(mtry = c(2, 3, 6)),
+                      preProcess = c('center', 'scale', 'pca'),
+                      trControl=fitControl)
+
+
+
+pred_pca_rf <- predict(model_pca_rf, test_Combined)
+cm_pca_rf <- confusionMatrix(pred_pca_rf, test_Combined$TARGET, positive = "X1")
+cm_pca_rf
+
+
+# save the model to disk
+saveRDS(model_pca_rf, "./model_pca_rf.rds")
+#++++++++++++++++++++++    KNN        ++++++++++++++++++
+
+model_knn <- train(TARGET~.,
+                   train_Combined,
+                   method="knn",
+                   metric="ROC",
+                   preProcess = c('center', 'scale'),
+                   tuneLength=10,
+                   trControl=fitControl)
+
+
+pred_knn <- predict(model_knn, test_Combined)
+cm_knn <- confusionMatrix(pred_knn, test_Combined$TARGET, positive = "X1")
+cm_knn
+
+pred_prob_knn <- predict(model_knn, test_Combined, type="prob")
+roc_knn <- roc(test_Combined$TARGET, pred_prob_knn$X1)
+plot(roc_knn)
+
+
+saveRDS(model_knn, "./model_knn.rds")
+#++++++++++++++++++++++        SVN         ++++++++++++++++++
+
+
+model_svm <- train(TARGET~.,
+                   train_Combined,
+                   method="svmRadial",
+                   metric="ROC",
+                   preProcess=c('center', 'scale'),
+                   trace=FALSE,
+                   trControl=fitControl)
+
+pred_svm <- predict(model_svm, test_Combined)
+cm_svm <- confusionMatrix(pred_svm, test_Combined$TARGET, positive = "X1")
+cm_svm
+
+
+saveRDS(model_svm, "./model_svm.rds")
+
+
+
+## Model result comparasion 
+
+#Let's compare the models and check their correlation:
+
+model_list <- list(LR= model_rf, RF=model_rf, PCA_RF=model_pca_rf,  KNN = model_knn, SVM=model_svm)
+resamples <- resamples(model_list)
+
+model_cor <- modelCor(resamples)
+
+require(corrplot)
+corrplot(model_cor)
+
+model_cor
+
+bwplot(resamples, metric="ROC")
+
+
+cm_list <- list(LR= model_rf, RF=model_rf, PCA_RF=model_pca_rf,  KNN = model_knn, SVM=model_svm)
+
+cm_list_results <- sapply(cm_list, function(x) x$byClass)
+cm_list_results
+
+cm_results_max <- apply(cm_list_results, 1, which.is.max)
+
+
+output_report <- data.frame(metric=names(cm_results_max), 
+                            best_model=colnames(cm_list_results)[cm_results_max],
+                            value=mapply(function(x,y) {cm_list_results[x,y]}, 
+                                         names(cm_results_max), 
+                                         cm_results_max))
+rownames(output_report) <- NULL
+output_report
 
 summary(Working_Data$LBXGH)
 
