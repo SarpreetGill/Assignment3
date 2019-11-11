@@ -1628,9 +1628,9 @@ demographic_MS &lt;- gather(demographic_MS, key = &quot;variables&quot;, value =
 demographic_MS &lt;- demographic_MS[demographic_MS$percent_missing &gt; 0.0, ] 
 demographic_MS_plot  &lt;- ggplot(demographic_MS, aes(x = reorder(variables,percent_missing), 
                                                    y = percent_missing)) +
-  geom_bar(stat = &quot;identity&quot;, fill = &quot;blue&quot;, aes(color = I('white')), 
+  geom_bar(stat = &quot;identity&quot;, fill = &quot;blue&quot;, aes(color = I(&#39;white&#39;)), 
            size = 0.3, alpha = 0.8)+
-  xlab('variables')+ coord_flip()+ 
+  xlab(&#39;variables&#39;)+ coord_flip()+ 
   #theme_fivethirtyeight() +
   ggtitle(&quot;Demographic Missing Data By Columns&quot;)
 #demographic_MS_plot
@@ -1647,9 +1647,9 @@ diet_MS &lt;- diet_MS[diet_MS$percent_missing &gt; 0.0, ]
 diet_MS_plot &lt;- ggplot(diet_MS, aes(x = reorder(variables, percent_missing),
                                     y = percent_missing)
                        ) +
-  geom_bar(stat = &quot;identity&quot;, fill = &quot;blue&quot;, aes(color = I('blue')), 
+  geom_bar(stat = &quot;identity&quot;, fill = &quot;blue&quot;, aes(color = I(&#39;blue&#39;)), 
            size = 0.3, alpha = 0.8)+
-  xlab('variables') + coord_flip()+ 
+  xlab(&#39;variables&#39;) + coord_flip()+ 
   #theme_fivethirtyeight() +
   ggtitle(&quot;Diet Missing Data By Columns&quot;)+
   theme(axis.text.y=element_text(size=3))
@@ -1666,9 +1666,9 @@ examination_MS &lt;- gather(examination_MS, key = &quot;variables&quot;, value =
 examination_MS &lt;- examination_MS[examination_MS$percent_missing &gt; 0.0, ] 
 examination_MS_plot &lt;- ggplot(examination_MS, aes(x = reorder(variables, percent_missing), 
                                                   y = percent_missing)) +
-  geom_bar(stat = &quot;identity&quot;, fill = &quot;blue&quot;, aes(color = I('blue')),
+  geom_bar(stat = &quot;identity&quot;, fill = &quot;blue&quot;, aes(color = I(&#39;blue&#39;)),
            size = 0.3, alpha = 0.8)+
-  xlab('variables')+ coord_flip()+ 
+  xlab(&#39;variables&#39;)+ coord_flip()+ 
   #theme_fivethirtyeight() +
   ggtitle(&quot;Examination Missing Data By Columns&quot;)+
   theme(axis.text.y=element_text(size=3))
@@ -1686,9 +1686,9 @@ labs_MS &lt;- labs_MS[labs_MS$percent_missing &gt; 0.0, ]
 labs_MS_plot &lt;- ggplot(labs_MS, aes(x = reorder(variables, percent_missing),
                                     y = percent_missing)
                        ) +
-  geom_bar(stat = &quot;identity&quot;, fill = &quot;blue&quot;, aes(color = I('blue')), 
+  geom_bar(stat = &quot;identity&quot;, fill = &quot;blue&quot;, aes(color = I(&#39;blue&#39;)), 
            size = 0.3, alpha = 0.8)+
-  xlab('variables') + coord_flip()+ 
+  xlab(&#39;variables&#39;) + coord_flip()+ 
   ggtitle(&quot;Labs Missing Data By Columns&quot;)+
   theme(axis.text.y=element_text(size=3))
 #labs_MS_plot
@@ -1704,9 +1704,9 @@ medications_MS &lt;- gather(medications_MS, key = &quot;variables&quot;, value =
 medications_MS &lt;- medications_MS[medications_MS$percent_missing &gt; 0.0, ] 
 medications_MS_plot &lt;- ggplot(medications_MS, aes(x = reorder(variables, percent_missing),
                                                   y = percent_missing)) +
-  geom_bar(stat = &quot;identity&quot;, fill = &quot;blue&quot;, aes(color = I('white')),
+  geom_bar(stat = &quot;identity&quot;, fill = &quot;blue&quot;, aes(color = I(&#39;white&#39;)),
            size = 0.3, alpha = 0.8)+
-  xlab('variables')+  coord_flip()+ 
+  xlab(&#39;variables&#39;)+  coord_flip()+ 
   #theme_fivethirtyeight() +
   ggtitle(&quot;Medications Missing Data By Columns&quot;)
 #medications_MS_plot
@@ -1722,9 +1722,9 @@ questionnaire_MS &lt;- gather(questionnaire_MS, key = &quot;variables&quot;, val
 questionnaire_MS &lt;- questionnaire_MS[questionnaire_MS$percent_missing &gt; 0.0, ] 
 questionnaire_MS_plot &lt;- ggplot(questionnaire_MS, aes(x = reorder(variables, percent_missing),
                                                       y = percent_missing)) +
-geom_bar(stat = &quot;identity&quot;, fill = &quot;blue&quot;, aes(color = I('blue')),
+geom_bar(stat = &quot;identity&quot;, fill = &quot;blue&quot;, aes(color = I(&#39;blue&#39;)),
            size = 0.3, alpha = 0.8)+
-xlab('variables')+  coord_flip()+ 
+xlab(&#39;variables&#39;)+  coord_flip()+ 
 ggtitle(&quot;Questionnaire Missing Data By Columns&quot;)+
 theme(axis.text.y=element_text(size=3))
 #questionnaire_MS_plot
@@ -1738,25 +1738,96 @@ ggsave(plot = questionnaire_MS_plot, width = 8, height = 4, dpi = 300,
 <h2><span class="header-section-number">5.2</span> Data Imputation</h2>
 <p>As per our guidelines, we will select attributes/columns of interest based on our business/personal judgements. The full NHANES data dictionary/variable list is available at the following URL:</p>
 <p><a href="https://wwwn.cdc.gov/nchs/nhanes/continuousnhanes/default.aspx?BeginYear=2013" class="uri">https://wwwn.cdc.gov/nchs/nhanes/continuousnhanes/default.aspx?BeginYear=2013</a></p>
-<p>We have inspected the above data dictionary and we have selected the following relevant values for further analysis:</p>
+<p>We first remove the variables having near zero variance in the dataset.Later we will remove the variables having more that 25% missing values in the dataset for Demographics.</p>
+<pre class="r"><code>if (length(nearZeroVar(demographic_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
+                       names = FALSE, foreach = FALSE, allowParallel = TRUE)) &gt; 0){
+  demographic_major &lt;- demographic_major[, -nearZeroVar(demographic_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
+                                                        names = FALSE, foreach = FALSE, allowParallel = TRUE)] 
+  
+}
+
+
+# Check the columns for missing values &gt;25%
+
+sapply(demographic_major, function(x) ((sum(is.na(x))))*.01) %&gt;%
+  stack %&gt;% rev %&gt;% filter(values &gt; 25) %&gt;% setNames(nm=c(&quot;variable&quot;, &quot;missing&quot;))
+
+
+Null_Num &lt;- apply(demographic_major, 2, function(x) length(which(is.na(x) | x == &quot;NA&quot;))/length(x))
+Null_Colms &lt;- colnames(demographic_major)[Null_Num &gt; 0.25]
+demographic75 &lt;- select(demographic_major, -Null_Colms)</code></pre>
+<p>We will now refer to our Dictionary for making a reference dataframe to differentiate between different forms of variables in a fast and effective way:</p>
+<pre class="r"><code>demographic_indexed &lt;- demographic75
+colnames(demographic_indexed) &lt;- with(Dictionary,
+                                      Dictionary$Variable.Description[match(colnames(demographic75),
+                                                                            Dictionary$Variable.Name,
+                                                                            nomatch = Dictionary$Variable.Name
+                                      )])
+
+Demogramphic_Col_Labels &lt;- data.frame(&quot;Code&quot;=c(colnames(demographic75)), 
+                                      &quot;Desp&quot;=c(colnames(demographic_indexed)))</code></pre>
+<div style="page-break-after: always;"></div>
+<p>Categorization of variables</p>
+<p>We have to now enter categorization of Factor/Numeric/ ‘Computation not required’ in the excel file generated <br /> * Only to be done in 3rd column…<br /> * Code is….<br /> * <strong>0</strong> = Factor requiring no computation.<br /> * <strong>1</strong> = Numeric requiring computation.<br /> * <strong>2</strong> = Factor requiring computation.<br /> * <strong>Please write Column name for the category as “Cat” </strong><br /> Reading Index again</p>
+<pre class="r"><code>Cat_demo &lt;- c(0,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1)
+Demogramphic_Col_Labels &lt;- data.frame(Demogramphic_Col_Labels,Cat = Cat_demo)</code></pre>
+<p>Now we prepare the dataset for impute from all the information.</p>
+<pre class="r"><code>Catcolmn &lt;- Demogramphic_Col_Labels[Demogramphic_Col_Labels$Cat ==2 , 2 ] 
+Numcolmn &lt;- Demogramphic_Col_Labels[Demogramphic_Col_Labels$Cat ==1 , 2 ] 
+Catcolmn_Nul &lt;- Demogramphic_Col_Labels[Demogramphic_Col_Labels$Cat ==0 , 2 ] 
+WorkingColm &lt;- c(Catcolmn_Nul, Numcolmn, Catcolmn)
+WorkingColm
+)
+demographic_selected = demographic75[ Catcolmn_Nul ]
+
+demographic_selected = demographic75[ WorkingColm ]
+
+demographic_selected[, Catcolmn] &lt;- sapply(demographic_selected[, Catcolmn], as.numeric)
+demographic_selected[, Catcolmn_Nul] &lt;- sapply(demographic_selected[, Catcolmn_Nul], as.numeric)
+demographic_selected[, Numcolmn] &lt;- sapply(demographic_selected[, Numcolmn], as.numeric)</code></pre>
+<div style="page-break-after: always;"></div>
+<ul>
+<li>========================== IMPUTATION( MICE package) =======================<br /></li>
+<li>Precisely, the methods used by this package are:<br /></li>
+<li>1)-PMM (Predictive Mean Matching) For numeric variables<br /></li>
+<li>2)-logreg(Logistic Regression) For Binary Variables( with 2 levels)<br /></li>
+<li>3)-polyreg(Bayesian polytomous regression) For Factor Variables (&gt;= 2 levels)<br /></li>
+<li>4)-Proportional odds model (ordered, &gt;= 2 levels)<br /></li>
+<li>5)-cart Classification and regression trees (any) <br /></li>
+<li>6)rf Random forest imputations (any)<br /></li>
+<li>==============================================================================<br /> Imputation and save results:</li>
+</ul>
+<pre class="r"><code>meth = init$method
+predM = init$predictorMatrix
+predM[, c(&quot;SEQN&quot;)]=0
+meth[Catcolmn_Nul] = &quot;&quot;
+meth[Catcolmn]=&quot;cart&quot;
+meth[Numcolmn]=&quot;rf&quot;
+set.seed(103)
+imputed = mice(demographic_selected, method=meth, predictorMatrix=predM, m=5)
+
+#Create a dataset after imputation.
+
+demographic_imputed&lt;- complete(imputed)
+rm(Demogramphic_Col_Labels,demographic75,demographic_selected, imputed)
+
+dir.create(&quot;Data/Clean_Imputes&quot;)
+#write.csv(demographic_imputed , &quot;Data/Clean_Imputes/demographic_imputed.csv&quot;,row.names = FALSE)
+demographic_imputed   = read.csv(&quot;Data/Clean_Imputes/demographic_imputed.csv&quot;, header = TRUE, na.strings = c(&quot;NA&quot;,&quot;&quot;,&quot;#NA&quot;))</code></pre>
 <div id="demographic-1" class="section level3">
 <h3><span class="header-section-number">5.2.1</span> Demographic</h3>
 <p>We have selected the following 8 relevant columns among the 32 that have less than 25% of missing values:</p>
-<ul>
-<li><strong>ID (SEQN)</strong> - Respondent sequence number..</li>
-<li><strong>Gender (RIAGENDR)</strong> - Gender of the participant..</li>
-<li><strong>Age (RIDAGEYR)</strong> - Age in years of the participant at the time of screening. Individuals 80 and over are topcoded at 80 years of age..</li>
-<li><strong>Race (RIDRETH3)</strong> - Recode of reported race and Hispanic origin information, with Non-Hispanic Asian Category.</li>
-<li><strong>Country_of_birth (DMDBORN4)</strong> - In what country {were you/was SP} born?.</li>
-<li><strong>Citizenship_status (DMDCITZN)</strong> - {Are you/Is SP} a citizen of the United States? [Information about citizenship is being collected by the U.S. Public Health Service to perform health related research. Providing this information is voluntary and is collected under the authority of the Public Health Service Act. There will be no effect on pending immigration or citizenship petitions.].</li>
-<li><strong>Family_members (DMDFMSIZ)</strong> - Total number of people in the Family.</li>
-<li><strong>Marital_status (DMDHRMAR)</strong> - HH reference person’s marital status.</li>
-<li><strong>Family_income (INDFMIN2)</strong> - Total family income (reported as a range value in dollars).</li>
-</ul>
-<pre class="r"><code>demo_subset_8_list = c(&quot;RIAGENDR&quot;, &quot;RIDAGEYR&quot;, &quot;RIDRETH3&quot;, &quot;DMDBORN4&quot;,
-                        &quot;DMDCITZN&quot;, &quot;DMDFMSIZ&quot;, &quot;DMDHRMAR&quot;, &quot;INDFMIN2&quot;)
-demo_subset_8  &lt;- demographic%&gt;% 
-  select(&quot;SEQN&quot;,demo_subset_8_list)
+<!-- * **ID (SEQN)** - Respondent sequence number.. -->
+<!-- * **Gender (RIAGENDR)** - Gender of the participant.. -->
+<!-- * **Age (RIDAGEYR)** - Age in years of the participant at the time of screening. Individuals 80 and over are topcoded at 80 years of age.. -->
+<!-- * **Race (RIDRETH3)** - Recode of reported race and Hispanic origin information, with Non-Hispanic Asian Category. -->
+<!-- * **Country_of_birth (DMDBORN4)** - In what country {were you/was SP} born?. -->
+<!-- * **Citizenship_status (DMDCITZN)** - {Are you/Is SP} a citizen of the United States? [Information about citizenship is being collected by the U.S. Public Health Service to perform health related research. Providing this information is voluntary and is collected under the authority of the Public Health Service Act. There will be no effect on pending immigration or citizenship petitions.]. -->
+<!-- * **Family_members (DMDFMSIZ)** - Total number of people in the Family. -->
+<!-- * **Marital_status (DMDHRMAR)** - HH reference person's marital status. -->
+<!-- * **Family_income (INDFMIN2)** - Total family income (reported as a range value in dollars). -->
+<p>Now we will label the dataset for visualizations.</p>
+<pre class="r"><code>multi.hist(demo_subset_8_imputed[,sapply(demo_subset_8_imputed, is.numeric)])
   
 demo_subset_8&lt;- demo_subset_8 %&gt;% 
   rename(&quot;ID&quot;                 =         &quot;SEQN&quot;,  
@@ -1770,37 +1841,6 @@ demo_subset_8&lt;- demo_subset_8 %&gt;%
          &quot;Family_income&quot;      =     &quot;INDFMIN2&quot;  )
     
 sapply(demo_subset_8, function(x) sum(is.na(x)))</code></pre>
-<pre class="r"><code>## conversion to factors
-demo_subset_8$Gender &lt;- as.factor(demo_subset_8$Gender)
-demo_subset_8$Race  &lt;- as.factor(demo_subset_8$Race )
-demo_subset_8$Country_of_birth &lt;- as.factor(demo_subset_8$Country_of_birth)
-demo_subset_8$Citizenship_status &lt;- as.factor(demo_subset_8$Citizenship_status)
-demo_subset_8$Marital_status &lt;- as.factor(demo_subset_8$Marital_status)
-#demo_subset_8$Family_income &lt;- as.factor(demo_subset_8$Family_income)
-require(mice)
-init = mice(demo_subset_8, maxit=0)
-meth = init$method
-predM = init$predictorMatrix
-# select the &quot;ID&quot; variable to not be included as predictor during imputation.
-predM[, c(&quot;ID&quot;)]=0
-#Skip a variable from imputation, this variable will still be used for prediction
-meth[c(&quot;ID&quot;)]=&quot;&quot;
-meth[c(&quot;Gender&quot;)]=&quot;&quot;
-meth[c(&quot;Age&quot;)]=&quot;&quot;
-meth[c(&quot;Race&quot;)]=&quot;&quot;
-meth[c(&quot;Country_of_birth&quot;)]=&quot;&quot;
-meth[c(&quot;Family_members&quot;)]=&quot;&quot;
-#Now let specify the methods for imputing the missing values.
-meth[c(&quot;Citizenship_status&quot;)]=&quot;cart&quot;
-meth[c(&quot;Marital_status&quot;)]=&quot;cart&quot;
-meth[c(&quot;Family_income&quot;)]=&quot;rf&quot; # require randomforest 
-set.seed(145)
-imputed = mice(demo_subset_8, method=meth, predictorMatrix=predM, m=5)
-#Create a dataset after imputation.
-demo_subset_8_imputed&lt;- complete(imputed)</code></pre>
-<pre class="r"><code>#demo_subset_8_imputed$Family_income &lt;- as.factor(demo_subset_8_imputed$Family_income)
-#Check for missings in the imputed dataset.
-sapply(demo_subset_8_imputed, function(x) sum(is.na(x)))</code></pre>
 <div style="page-break-after: always;"></div>
 <pre class="r"><code>require(dplyr)# because Race is a factor of level 6
 demo_subset_8_labeled &lt;- demo_subset_8_labeled %&gt;%
@@ -1846,7 +1886,7 @@ demo_subset_8_labeled &lt;- demo_subset_8_labeled %&gt;%
                                 &quot;15&quot; = &quot;$100000 and Over&quot;,  
                                 &quot;77&quot; =  &quot;Refused&quot;,
                                 &quot;99&quot; =  &quot;Unknown&quot;   ))
-demo_subset_8_labeled$Family_income &lt;- as.factor(demo_subset_8_labeled$Family_income)
+demo_subset_8_imputed$Family_income &lt;- as.factor(demo_subset_8_imputed$Family_income)
 #write.csv(demo_subset_8_labeled,file = &quot;Data/Working/demo_subset_8_labeled.csv&quot;)</code></pre>
 <div style="page-break-after: always;"></div>
 <div id="gender" class="section level4">
@@ -1950,6 +1990,23 @@ Race_plot &lt;- ggplot(Race, aes(x = reorder(Race, -pct),y = pct)) +
 <div id="diet-1" class="section level3">
 <h3><span class="header-section-number">5.2.2</span> Diet</h3>
 <!-- https://wwwn.cdc.gov/nchs/nhanes/search/variablelist.aspx?Component=Dietary&CycleBeginYear=2013 -->
+<p>First we would remove all the Near Zero Variance features from the data set, Cutt off being 45% :</p>
+<pre class="r"><code>diet_major &lt;- diet
+
+if (length(nearZeroVar(diet_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
+                       names = FALSE, foreach = FALSE, allowParallel = TRUE)) &gt; 0){
+  diet_major &lt;- diet_major[, -nearZeroVar(diet_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
+                                          names = FALSE, foreach = FALSE, allowParallel = TRUE)] 
+  
+}</code></pre>
+<div style="page-break-after: always;"></div>
+<p>Now, we will remove the features having a missing values of more that 25% as decided before:</p>
+<pre class="r"><code>Null_Num_diet &lt;- apply(diet_major, 2, function(x) length(which(x == &quot;&quot; | is.na(x) | x == &quot;NA&quot; | x == &quot;-999&quot; ))/length(x))
+Null_Colms_diet &lt;- colnames(diet_major)[Null_Num_diet &gt; 0.25]
+diet75 &lt;- select(diet_major, -Null_Colms_diet)
+
+colSums(is.na(diet75))
+diet75 %&gt;% summarise_all(~(sum(is.na(.))/n()*100))</code></pre>
 <p>We have selected the following 69 relevant columns among the 88 that have less than 25% of missing values:</p>
 <ul>
 <li><strong>ID (SEQN)</strong> - Respondent sequence number.</li>
@@ -2022,57 +2079,101 @@ Race_plot &lt;- ggplot(Race, aes(x = reorder(Race, -pct),y = pct)) +
 <li><strong>Food_yesterday (DR1_300)</strong> - Was the amount of food that {you/NAME} ate yesterday much more than usual, usual, or much less than usual?.</li>
 <li><strong>Water_yesterday (DR1_320Z)</strong> - Total plain water drank yesterday - including plain tap water, water from a drinking fountain, water from a water cooler, bottled water, and spring water..</li>
 </ul>
-<p>diet_subset -&gt; Need to impute it.</p>
-<p>Before imputation missing values: &gt; sapply(diet_subset, function(x) sum(is.na(x))) SEQN DR1TNUMF DR1TKCAL DR1TPROT DR1TCARB DR1TSUGR DR1TFIBE DR1TTFAT DR1TSFAT 0 1152 1282 1282 1282 1282 1282 1282 1282 DR1TMFAT DR1TPFAT DR1TCHOL DR1TATOC DR1TATOA DR1TRET DR1TVARA DR1TACAR DR1TBCAR 1282 1282 1282 1282 1282 1282 1282 1282 1282 DR1TCRYP DR1TLYCO DR1TLZ DR1TVB1 DR1TVB2 DR1TNIAC DR1TVB6 DR1TFOLA DR1TFA 1282 1282 1282 1282 1282 1282 1282 1282 1282 DR1TFF DR1TFDFE DR1TCHL DR1TVB12 DR1TB12A DR1TVC DR1TVD DR1TVK DR1TCALC 1282 1282 1282 1282 1282 1282 1282 1282 1282 DR1TPHOS DR1TMAGN DR1TIRON DR1TZINC DR1TCOPP DR1TSODI DR1TPOTA DR1TSELE DR1TCAFF 1282 1282 1282 1282 1282 1282 1282 1282 1282 DR1TTHEO DR1TALCO DR1TMOIS DR1TS040 DR1TS060 DR1TS080 DR1TS100 DR1TS120 DR1TS140 1282 1282 1282 1282 1282 1282 1282 1282 1282 DR1TS160 DR1TS180 DR1TM161 DR1TM181 DR1TM201 DR1TM221 DR1TP182 DR1TP183 DR1TP184 1282 1282 1282 1282 1282 1282 1282 1282 1282 DR1TP204 DR1TP205 DR1TP225 DR1TP226 DR1.300 DR1.320Z</p>
-<pre class="r"><code># Using diet csv, we selected &quot;interesting&quot; values from and impute #
-one_day_diet  &lt;- c(&quot;SEQN&quot;,&quot;DR1TNUMF&quot;,&quot;DR1TKCAL&quot;,&quot;DR1TPROT&quot;,&quot;DR1TCARB&quot;,&quot;DR1TSUGR&quot;,&quot;DR1TFIBE&quot;,&quot;DR1TTFAT&quot;,&quot;DR1TSFAT&quot;,&quot;DR1TMFAT&quot;,&quot;DR1TPFAT&quot;,&quot;DR1TCHOL&quot;,&quot;DR1TATOC&quot;,&quot;DR1TATOA&quot;,&quot;DR1TRET&quot;,&quot;DR1TVARA&quot;,&quot;DR1TACAR&quot;,&quot;DR1TBCAR&quot;,&quot;DR1TCRYP&quot;,&quot;DR1TLYCO&quot;,&quot;DR1TLZ&quot;,&quot;DR1TVB1&quot;,&quot;DR1TVB2&quot;,&quot;DR1TNIAC&quot;,&quot;DR1TVB6&quot;,&quot;DR1TFOLA&quot;,&quot;DR1TFA&quot;,&quot;DR1TFF&quot;,&quot;DR1TFDFE&quot;,&quot;DR1TCHL&quot;,&quot;DR1TVB12&quot;,&quot;DR1TB12A&quot;,&quot;DR1TVC&quot;,&quot;DR1TVD&quot;,&quot;DR1TVK&quot;,&quot;DR1TCALC&quot;,&quot;DR1TPHOS&quot;,&quot;DR1TMAGN&quot;,&quot;DR1TIRON&quot;,&quot;DR1TZINC&quot;,&quot;DR1TCOPP&quot;,&quot;DR1TSODI&quot;,&quot;DR1TPOTA&quot;,&quot;DR1TSELE&quot;,&quot;DR1TCAFF&quot;,&quot;DR1TTHEO&quot;,&quot;DR1TALCO&quot;,&quot;DR1TMOIS&quot;,&quot;DR1TS040&quot;,&quot;DR1TS060&quot;,&quot;DR1TS080&quot;,&quot;DR1TS100&quot;,&quot;DR1TS120&quot;,&quot;DR1TS140&quot;,&quot;DR1TS160&quot;,&quot;DR1TS180&quot;,&quot;DR1TM161&quot;,&quot;DR1TM181&quot;,&quot;DR1TM201&quot;,&quot;DR1TM221&quot;,&quot;DR1TP182&quot;,&quot;DR1TP183&quot;,&quot;DR1TP184&quot;,&quot;DR1TP204&quot;,&quot;DR1TP205&quot;,&quot;DR1TP225&quot;,&quot;DR1TP226&quot;,&quot;DR1.300&quot;,&quot;DR1.320Z&quot;)
-diet_subset = subset(diet,select=one_day_diet )
-sapply(diet_subset, function(x) sum(is.na(x)))
-imputed_diet_subset &lt;- mice(diet_subset, m=5, maxit= 50, method = 'pmm', seed=501)
-sapply(diet_subset, function(x) sum(is.na(x)))
-imputed_diet_subset_complete &lt;- mice::complete(imputed_diet_subset, 2)
-imputed_diet_subset$method
-str(imputed_diet_subset_complete)
-sapply(imputed_diet_subset_complete, function(x) sum(is.na(x)))
-write.csv(imputed_diet_subset_complete, &quot;diet_subset_processed.csv&quot;)</code></pre>
-<p>After imputation missing values:</p>
-<p>These variables/attributes are referring to the one day nutrituion numerical attributes.</p>
-<p>We’ve further reduced the diet subset to 10 attributes as per our guidelines:</p>
-<pre class="r"><code>ten_attributes_diet = c(&quot;SEQN&quot;, &quot;DR1TCARB&quot;,&quot;DR1TSUGR&quot;, &quot;DR1TFIBE&quot;,&quot;DR1TTFAT&quot;,&quot;DR1TSFAT&quot;, &quot;DR1TZINC&quot;,&quot;DR1TCOPP&quot;,&quot;DR1TSODI&quot;,&quot;DR1TPOTA&quot;,&quot;DR1TSELE&quot; )
-ten_attributes_diet_subset = subset(imputed_diet_subset_complete, select=ten_attributes_diet)
-str(ten_attributes_diet_subset)
-sapply(ten_attributes_diet_subset, function(x) sum(is.na(x)))
-#&quot;SEQN&quot; - ID
-#&quot;DR1TCARB&quot; - Carbs
-#&quot;DR1TSUGR&quot; - Sugar
-#&quot;DR1TFIBE&quot; - Fiber
-#&quot;DR1TTFAT&quot; - Trans Fat
-#&quot;DR1TSFAT&quot; - Saturated Fat
-#&quot;DR1TZINC&quot; - Zinc
-#&quot;DR1TCOPP&quot; - Copper
-#&quot;DR1TSODI&quot; - Sodium 
-#&quot;DR1TPOTA&quot; - Potatssium
-#&quot;DR1TSELE&quot; - Selenium
-ten_attributes_diet_subset &lt;- ten_attributes_diet_subset %&gt;% 
-  rename(&quot;ID&quot;                =         &quot;SEQN&quot;,  
-         &quot;Carbs_diet&quot;        =     &quot;DR1TCARB&quot;,  
-         &quot;Sugar_diet&quot;        =     &quot;DR1TSUGR&quot;,  
-         &quot;Fiber_diet&quot;        =     &quot;DR1TFIBE&quot;,  
-         &quot;transfat_diet&quot;     =     &quot;DR1TTFAT&quot;,  
-         &quot;satfat_diet&quot;       =     &quot;DR1TSFAT&quot;,   
-         &quot;zinc_diet&quot;         =     &quot;DR1TZINC&quot;,  
-         &quot;copper_diet&quot;       =     &quot;DR1TCOPP&quot;,  
-         &quot;sodium_diet&quot;       =     &quot;DR1TSODI&quot;,  
-         &quot;pota_diet&quot;         =     &quot;DR1TPOTA&quot;, 
-         &quot;selenium_diet&quot;     =     &quot;DR1TSELE&quot;  )
-sapply(ten_attributes_diet_subset, function(x) sum(is.na(x)))
-str(ten_attributes_diet_subset)
-write.csv(imputed_diet_subset_complete, &quot;diet_subset_10_attributes_processed.csv&quot;)</code></pre>
+<p>We will now refer to our Dictionary for making a reference dataframe to differentiate between different forms of variables in a fast and effective way:</p>
+<pre class="r"><code>diet_indexed &lt;- diet75
+colnames(diet_indexed) &lt;- with(Dictionary,
+                               Dictionary$Variable.Description[match(colnames(diet75),
+                                                                     Dictionary$Variable.Name,
+                                                                     nomatch = Dictionary$Variable.Name
+                               )])
+
+diet_Col_Labels &lt;- data.frame(&quot;Code&quot;=c(colnames(diet75)), 
+                              &quot;Desp&quot;=c(colnames(diet_indexed)))</code></pre>
+<div style="page-break-after: always;"></div>
+<p>Categorization of variables</p>
+<p>We have to now enter categorization of Factor/Numeric/ ‘Computation not required’ in the excel file generated <br /> * Only to be done in 3rd column…<br /> * Code is….<br /> * <strong>0</strong> = Factor requiring no computation.<br /> * <strong>1</strong> = Numeric requiring computation.<br /> * <strong>2</strong> = Factor requiring computation.<br /> * <strong>Please write Column name for the category as “Cat” </strong><br /> Reading Index again</p>
+<pre class="r"><code>Cat_diet &lt;- c(0,1,1,2,2,2,1,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+              1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+              1,1,1,1,1,1,1,1,1,1,1,1,2,2,2)
+diet_Col_Labels &lt;- data.frame(diet_Col_Labels,Cat = Cat_diet)
+
+diet_Col_Labels   = read.csv(&quot;Data/Labels/diet_Col_Labels.csv&quot;, header = TRUE, na.strings = c(&quot;NA&quot;,&quot;&quot;,&quot;#NA&quot;))
+
+diet_Col_Labels[, 2] &lt;- sapply(diet_Col_Labels[, 2], as.character)</code></pre>
+<p>Now we prepare the dataset for impute from all the information.</p>
+<pre class="r"><code>Catcolmn_diet &lt;- diet_Col_Labels[diet_Col_Labels$Cat ==2 , 2 ] 
+Numcolmn_diet &lt;- diet_Col_Labels[diet_Col_Labels$Cat ==1 , 2 ] 
+Catcolmn_Nul_diet &lt;- diet_Col_Labels[diet_Col_Labels$Cat ==0 , 2 ] 
+WorkingColm_diet &lt;- c(Catcolmn_Nul_diet, Numcolmn_diet, Catcolmn_diet)</code></pre>
+<div style="page-break-after: always;"></div>
+<ul>
+<li>========================== IMPUTATION( MICE package) =======================<br /></li>
+<li>Precisely, the methods used by this package are:<br /></li>
+<li>1)-PMM (Predictive Mean Matching) For numeric variables<br /></li>
+<li>2)-logreg(Logistic Regression) For Binary Variables( with 2 levels)<br /></li>
+<li>3)-polyreg(Bayesian polytomous regression) For Factor Variables (&gt;= 2 levels)<br /></li>
+<li>4)-Proportional odds model (ordered, &gt;= 2 levels)<br /></li>
+<li>5)-cart Classification and regression trees (any) <br /></li>
+<li>6)rf Random forest imputations (any)<br /></li>
+<li>==============================================================================<br /></li>
+</ul>
+<pre class="r"><code>meth_diet = init_diet$method
+predM_diet = init_diet$predictorMatrix
+predM_diet[, c(&quot;SEQN&quot;)]=0
+meth_diet[Catcolmn_Nul_diet] = &quot;&quot;
+meth_diet[Catcolmn_diet]=&quot;cart&quot;
+meth_diet[Numcolmn_diet]=&quot;pmm&quot;
+set.seed(256)
+imputed_diet = mice(diet_selected, method=meth_diet, predictorMatrix=predM_diet, m=5)
+
+#Create a dataset after imputation.
+
+diet_imputed&lt;- complete(imputed_diet)
+
+#######################################  Saving Impute
+
+#write.csv(diet_imputed , &quot;Data/Clean_Imputes/diet_imputed.csv&quot;,row.names = FALSE)
+diet_imputed   = read.csv(&quot;Data/Clean_Imputes/diet_imputed.csv&quot;, header = TRUE, na.strings = c(&quot;NA&quot;,&quot;&quot;,&quot;#NA&quot;))</code></pre>
+<div style="page-break-after: always;"></div>
+<p>Labeling the dataset:</p>
+<pre class="r"><code>diet_labeled &lt;- diet_imputed
+rm(diet_imputed)
+
+diet_labeled &lt;- diet_labeled %&gt;% 
+  dplyr::rename(&quot;ID&quot;                =         &quot;SEQN&quot;,  
+                &quot;Carbs_diet&quot;        =     &quot;DR1TCARB&quot;,  
+                &quot;Sugar_diet&quot;        =     &quot;DR1TSUGR&quot;,  
+                &quot;Fiber_diet&quot;        =     &quot;DR1TFIBE&quot;,  
+                &quot;transfat_diet&quot;     =     &quot;DR1TTFAT&quot;,  
+                &quot;satfat_diet&quot;       =     &quot;DR1TSFAT&quot;,   
+                &quot;zinc_diet&quot;         =     &quot;DR1TZINC&quot;,  
+                &quot;copper_diet&quot;       =     &quot;DR1TCOPP&quot;,  
+                &quot;sodium_diet&quot;       =     &quot;DR1TSODI&quot;,  
+                &quot;pota_diet&quot;         =     &quot;DR1TPOTA&quot;, 
+                &quot;selenium_diet&quot;     =     &quot;DR1TSELE&quot;  )</code></pre>
 <div style="page-break-after: always;"></div>
 </div>
 <div id="examination-1" class="section level3">
 <h3><span class="header-section-number">5.2.3</span> Examination</h3>
 <!-- https://wwwn.cdc.gov/nchs/nhanes/search/variablelist.aspx?Component=Examination&CycleBeginYear=2013 -->
+<p>First we would remove all the Near Zero Variance features from the data set, Cutt off being 45% :</p>
+<pre class="r"><code>exam_major &lt;- examination
+rm(examination)
+
+if (length(nearZeroVar(exam_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
+                       names = FALSE, foreach = FALSE, allowParallel = TRUE)) &gt; 0){
+  exam_major &lt;- exam_major[, -nearZeroVar(exam_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
+                                          names = FALSE, foreach = FALSE, allowParallel = TRUE)] 
+  
+}</code></pre>
+<div style="page-break-after: always;"></div>
+<p>Now, we will remove the features having a missing values of more that 25% as decided before:</p>
+<pre class="r"><code>Null_Num_diet &lt;- apply(diet_major, 2, function(x) length(which(x == &quot;&quot; | is.na(x) | x == &quot;NA&quot; | x == &quot;-999&quot; ))/length(x))
+Null_Colms_diet &lt;- colnames(diet_major)[Null_Num_diet &gt; 0.25]
+diet75 &lt;- select(diet_major, -Null_Colms_diet)
+
+colSums(is.na(diet75))
+diet75 %&gt;% summarise_all(~(sum(is.na(.))/n()*100))</code></pre>
 <p>We have selected the following 12 relevant columns among the 105 that have less than 25% of missing values:</p>
 <ul>
 <li><strong>ID (SEQN)</strong> - Respondent sequence number.</li>
@@ -2088,22 +2189,68 @@ write.csv(imputed_diet_subset_complete, &quot;diet_subset_10_attributes_processe
 <li><strong>Dominant_hand_exam (MGD130)</strong> - Are you right-handed, left-handed, or do you use both hands equally?.</li>
 <li><strong>Grip_strength_exam (MGDCGSZ)</strong> - Combined grip strength (kg): the sum of the largest reading from each hand..</li>
 </ul>
-<!--TODO split code in segments and explain it a  bit-->
-<pre class="r"><code># Import libraries
-require(AMR)
-require(mice)
-require(randomForest)
-# Import the raw dataset
-examination = read.csv(file.choose(), header = TRUE, na.strings = c(&quot;NA&quot;,&quot;&quot;,&quot;#NA&quot;))
-# Select relevant columns
-examination_subset = subset(
-  examination,
-  select=c('SEQN', 'PEASCTM1', 'BPAARM', 'BPXSY2', 'BPXDI2', 'BMXWT', 'BMXHT', 'BMXBMI', 'BMXLEG',
-           'BMXWAIST', 'MGD130', 'MGDCGSZ')
-  )
-# Rename columns to meaningful names
-examination_renamed = rename(
-  examination_subset,
+<p>We will now refer to our Dictionary for making a reference dataframe to differentiate between different forms of variables in a fast and effective way:</p>
+<pre class="r"><code>exam_indexed &lt;- exam75
+colnames(exam_indexed) &lt;- with(Dictionary,
+                               Dictionary$Variable.Description[match(colnames(exam75),
+                                                                     Dictionary$Variable.Name,
+                                                                     nomatch = Dictionary$Variable.Name
+                               )])
+
+exam_Col_Labels &lt;- data.frame(&quot;Code&quot;=c(colnames(exam75)), 
+                              &quot;Desp&quot;=c(colnames(exam_indexed)))</code></pre>
+<div style="page-break-after: always;"></div>
+<p>Categorization of variables</p>
+<p>We have to now enter categorization of Factor/Numeric/ ‘Computation not required’ in the excel file generated <br /> * Only to be done in 3rd column…<br /> * Code is….<br /> * <strong>0</strong> = Factor requiring no computation.<br /> * <strong>1</strong> = Numeric requiring computation.<br /> * <strong>2</strong> = Factor requiring computation.<br /> * <strong>Please write Column name for the category as “Cat” </strong><br /> Reading Index again</p>
+<pre class="r"><code>Cat_exam &lt;- c(0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+              1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+              1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+              1,1,1,1,1,1,1,1,1,1)
+exam_Col_Labels &lt;- data.frame(exam_Col_Labels,Cat = Cat_exam)</code></pre>
+<p>Now we prepare the dataset for impute from all the information.</p>
+<pre class="r"><code>Catcolmn_exam &lt;- exam_Col_Labels[exam_Col_Labels$Cat ==2 , 2 ] 
+Numcolmn_exam &lt;- exam_Col_Labels[exam_Col_Labels$Cat ==1 , 2 ] 
+Catcolmn_Nul_exam &lt;- exam_Col_Labels[exam_Col_Labels$Cat ==0 , 2 ] 
+WorkingColm_exam &lt;- c(Catcolmn_Nul_exam, Numcolmn_exam, Catcolmn_exam)</code></pre>
+<div style="page-break-after: always;"></div>
+<ul>
+<li>========================== IMPUTATION( MICE package) =======================<br /></li>
+<li>Precisely, the methods used by this package are:<br /></li>
+<li>1)-PMM (Predictive Mean Matching) For numeric variables<br /></li>
+<li>2)-logreg(Logistic Regression) For Binary Variables( with 2 levels)<br /></li>
+<li>3)-polyreg(Bayesian polytomous regression) For Factor Variables (&gt;= 2 levels)<br /></li>
+<li>4)-Proportional odds model (ordered, &gt;= 2 levels)<br /></li>
+<li>5)-cart Classification and regression trees (any) <br /></li>
+<li>6)rf Random forest imputations (any)<br /></li>
+<li>==============================================================================<br /></li>
+</ul>
+<pre class="r"><code>meth_exam = init_exam$method
+predM_exam = init_exam$predictorMatrix
+predM_exam[, c(&quot;SEQN&quot;)]=0
+meth_exam[Catcolmn_Nul_exam] = &quot;&quot;
+meth_exam[Catcolmn_exam]=&quot;cart&quot;
+meth_exam[Numcolmn_exam]=&quot;pmm&quot;
+
+set.seed(311)
+imputed_exam = mice(exam_selected, method=meth_exam, predictorMatrix=predM_exam, m=5)
+
+#Create a dataset after imputation.
+
+exam_imputed&lt;- complete(imputed_exam)
+rm(imputed_exam)
+
+#######################################  Saving Impute
+
+
+#write.csv(exam_imputed , &quot;Data/Clean_Imputes/exam_imputed.csv&quot;,row.names = FALSE)
+exam_imputed   = read.csv(&quot;Data/Clean_Imputes/exam_imputed.csv&quot;, header = TRUE, na.strings = c(&quot;NA&quot;,&quot;&quot;,&quot;#NA&quot;))</code></pre>
+<div style="page-break-after: always;"></div>
+<p>Labeling the dataset:</p>
+<pre class="r"><code>exam_labeled &lt;- exam_imputed
+rm(exam_imputed)
+
+exam_labeled = dplyr::rename(
+  exam_labeled,
   &quot;ID&quot;                  = &quot;SEQN&quot;,
   &quot;BP_test_time_exam&quot;        = &quot;PEASCTM1&quot;,
   &quot;BP_arm_exam&quot;              = &quot;BPAARM&quot;,
@@ -2116,37 +2263,10 @@ examination_renamed = rename(
   &quot;Waist_circumference_exam&quot; = &quot;BMXWAIST&quot;,
   &quot;Dominant_hand_exam&quot;       = &quot;MGD130&quot;,
   &quot;Grip_strength_exam&quot;       = &quot;MGDCGSZ&quot;
-  )
-# Check if there are no missing values:
-0 == sum(sapply(examination_renamed, function(x) sum(is.na(x)))) # FALSE
-# Explore the columns in the subset
-summary(examination_renamed[2:12])
-# Numerical: 9 - pmm or rf
-# 2 Factors: 1 - logreg or cart
-# 3 Factors: 1 - polyreg or cart
-freq(examination_renamed$BP_arm_exam)
-# BP_arm_exam has 2 factors. 1=Left, 2=Right, 8=Right (maybe 8 was a typo)
-examination_renamed$BP_arm_exam[examination_renamed$BP_arm_exam == 8] = 2
-examination_renamed$BP_arm_exam = as.factor(examination_renamed$BP_arm_exam)
-freq(examination_renamed$Dominant_hand_exam)
-# Dominant_hand_exam has 3 factors: 1=Right, 2=Left, 3=Neither
-examination_renamed$Dominant_hand_exam = as.factor(examination_renamed$Dominant_hand_exam)
-set.seed(125)
-# Configure and run mice
-examination_mice = mice(examination_renamed, m=5) # slow line
-examination_mice$predictorMatrix[, 'ID']=0
-examination_mice$method[c(2:12)] = 'rf'
-examination_mice$method['BP_arm_exam'] = 'logreg'
-examination_mice$method['Dominant_hand_exam'] = 'polyreg'
-examination_imputed = complete(examination_mice)
-# Check there are no missing values
-0 == sum(sapply(examination_imputed, function(x) sum(is.na(x)))) # TRUE
-summary(examination_imputed)
-# Export the dataset
-##write.csv(examination_imputed, file.choose())
-# Label the data
-examination_labeled = mutate(
-  examination_imputed,
+)
+
+exam_labeled = mutate(
+  exam_labeled,
   BP_arm_exam = recode(BP_arm_exam,
                        &quot;1&quot; = &quot;Left&quot;,
                        &quot;2&quot; = &quot;Right&quot;),
@@ -2154,14 +2274,28 @@ examination_labeled = mutate(
                               &quot;1&quot;=&quot;Right&quot;,
                               &quot;2&quot;=&quot;Left&quot;,
                               &quot;3&quot;=&quot;Neither&quot;)
-  )
-# Export the dataset
-##write.csv(examination_labeled, file.choose())</code></pre>
-<div style="page-break-after: always;"></div>
+)
+
+exam_labeled[ , 70:97]  &lt;- lapply(exam_labeled[ ,70:97] , FUN = function(x) recode(x, &quot;1=&#39;D&#39;;2=&#39;E&#39;;3=&#39;J&#39;;4=&#39;K&#39;;5=&#39;M&#39;;6=&#39;P&#39;;7=&#39;Q&#39;;8=&#39;R&#39;;9=&#39;S&#39;;10=&#39;T&#39;;11=&#39;U&#39;;12=&#39;X&#39;;13=&#39;Y&#39;;14=&#39;Z&#39;&quot;))</code></pre>
+
 </div>
 <div id="labs-1" class="section level3">
 <h3><span class="header-section-number">5.2.4</span> Labs</h3>
 <!-- https://wwwn.cdc.gov/nchs/nhanes/search/variablelist.aspx?Component=Laboratory&CycleBeginYear=2013 -->
+<p>First we would remove all the Near Zero Variance features from the data set, Cutt off being 45% :</p>
+<pre class="r"><code>labsdata_major &lt;- labs
+
+if (length(nearZeroVar(labsdata_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
+                       names = FALSE, foreach = FALSE, allowParallel = TRUE)) &gt; 0){
+  labsdata_major &lt;- labsdata_major[, -nearZeroVar(labsdata_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
+                                                  names = FALSE, foreach = FALSE, allowParallel = TRUE)] 
+  
+}</code></pre>
+<div style="page-break-after: always;"></div>
+<p>Now, we will remove the features having a missing values of more that 25% as decided before:</p>
+<pre class="r"><code>Null_Num_labsdata &lt;- apply(labsdata_major, 2, function(x) length(which(x == &quot;&quot; | is.na(x) | x == &quot;NA&quot; | x == &quot;-999&quot; ))/length(x))
+Null_Colms_labsdata &lt;- colnames(labsdata_major)[Null_Num_labsdata &gt; 0.35]
+labsdata75 &lt;- select(labsdata_major, -Null_Colms_labsdata)</code></pre>
 <p>We have selected the following 9 relevant columns among the 46 that have less than 25% of missing values:</p>
 <ul>
 <li><strong>ID (SEQN)</strong> - Respondent sequence number..</li>
@@ -2174,98 +2308,108 @@ examination_labeled = mutate(
 <li><strong>Hepatitis_b_labs (LBXHBC)</strong> - Hepatitis B core antibody.</li>
 <li><strong>Cholesterol_labs (LBXTC)</strong> - Total Cholesterol( mg/dL).</li>
 </ul>
-<p>First we create a subset of labs data and then relabel the columns to meaningful names.</p>
-<pre class="r"><code>select_columns_labs &lt;- c(&quot;SEQN&quot;, &quot;LBXWBCSI&quot;, &quot;LBXRBCSI&quot;, &quot;PHQ020&quot;, &quot;PHQ030&quot;, &quot;PHQ060&quot;, &quot;LBXHA&quot;, &quot;LBXHBC&quot;, &quot;LBXTC&quot; )
-labs_subset = subset(labs, select=select_columns_labs)
-# Relabel the columns to meaningful names.  
-labs_subset &lt;- labs_subset %&gt;% 
-  rename(&quot;ID&quot;                =         &quot;SEQN&quot;,  
-         &quot;White_blood_cells_labs&quot; =     &quot;LBXWBCSI&quot;,  
-         &quot;Red_bloods_cells_labs&quot;  =     &quot;LBXRBCSI&quot;,  
-         &quot;Caffeine_labs&quot;          =     &quot;PHQ020&quot;,  
-         &quot;Alcohol_labs&quot;           =     &quot;PHQ030&quot;,  
-         &quot;Supplements_labs&quot;       =     &quot;PHQ060&quot;,   
-         &quot;Hepatitis_a_labs&quot;       =     &quot;LBXHA&quot;,  
-         &quot;Hepatitis_b_labs&quot;       =     &quot;LBXHBC&quot;,  
-         &quot;Cholesterol_labs&quot;       =     &quot;LBXTC&quot;  )</code></pre>
-<p>A look at the structure of the data.</p>
-<blockquote>
-<p>str(labs_subset) ‘data.frame’: 9813 obs. of 9 variables: $ ID : int 73557 73558 73559 73560 73561 73562 73563 73564 73566 73567 … $ White_blood_cells_labs: num 4.7 12.6 7.2 7.8 6.6 9.4 NA 5.2 9.5 6.3 … $ Red_bloods_cells_labs : num 5.09 3.84 5.53 4.61 4.72 4.93 NA 4.66 4.43 4.35 … $ Caffeine_labs : int 2 2 2 2 2 2 NA 2 2 2 … $ Alcohol_labs : int 2 2 2 2 2 2 NA 2 2 2 … $ Supplements_labs : int 2 2 2 2 2 2 NA 2 2 2 … $ Hepatitis_a_labs : int 1 2 2 1 2 2 NA 2 2 2 … $ Hepatitis_b_labs : int 1 2 2 2 2 2 NA 2 2 2 … $ Cholesterol_labs : int 167 170 126 168 201 226 NA 168 278 173 …</p>
-</blockquote>
-<p>Convert the categorical values into factors, clean-up:</p>
-<p>Now we perform imputation:</p>
-<pre class="r"><code>labs_subset$Caffeine_labs &lt;- as.factor(labs_subset$Caffeine_labs)
-labs_subset$Alcohol_labs &lt;- as.factor(labs_subset$Alcohol_labs)
-labs_subset$Supplements_labs &lt;- as.factor(labs_subset$Supplements_labs)
-labs_subset$Hepatitis_a_labs &lt;- as.factor(labs_subset$Hepatitis_a_labs)
-labs_subset$Hepatitis_b_labs &lt;- as.factor(labs_subset$Hepatitis_b_labs)</code></pre>
-<blockquote>
-<p>str(labs_subset) ‘data.frame’: 9813 obs. of 9 variables: $ ID : int 73557 73558 73559 73560 73561 73562 73563 73564 73566 73567 … $ White_blood_cells_labs: num 4.7 12.6 7.2 7.8 6.6 9.4 NA 5.2 9.5 6.3 … $ Red_bloods_cells_labs : num 5.09 3.84 5.53 4.61 4.72 4.93 NA 4.66 4.43 4.35 … $ Caffeine_labs : Factor w/ 2 levels “1”,“2”: 2 2 2 2 2 2 NA 2 2 2 … $ Alcohol_labs : Factor w/ 2 levels “1”,“2”: 2 2 2 2 2 2 NA 2 2 2 … $ Supplements_labs : Factor w/ 2 levels “1”,“2”: 2 2 2 2 2 2 NA 2 2 2 … $ Hepatitis_a_labs : Factor w/ 2 levels “1”,“2”: 1 2 2 1 2 2 NA 2 2 2 … $ Hepatitis_b_labs : Factor w/ 2 levels “1”,“2”: 1 2 2 2 2 2 NA 2 2 2 … $ Cholesterol_labs : int 167 170 126 168 201 226 NA 168 278 173 ..</p>
-</blockquote>
-<p>Perform imputation:</p>
-<pre class="r"><code>init = mice(labs_subset, maxit=0)
-meth = init$method
-predM = init$predictorMatrix
-# select the &quot;ID&quot; variable to not be included as predictor during imputation.
-predM[, c(&quot;ID&quot;)]=0
-# Cart usage: https://stefvanbuuren.name/fimd/sec-cart.html
-# https://en.wikipedia.org/wiki/Random_forest 
-#Skip a variable from imputation, this variable will still be used for prediction
-meth[c(&quot;ID&quot;)]=&quot;&quot;
-#Now let specify the methods for imputing the missing values.
-meth[c(&quot;White_blood_cells_labs&quot;)]=&quot;rf&quot;
-meth[c(&quot;Red_bloods_cells_labs&quot; )]=&quot;rf&quot;
-meth[c(&quot;Caffeine_labs&quot;)]=&quot;cart&quot;
-meth[c(&quot;Alcohol_labs&quot;)]=&quot;cart&quot;
-meth[c(&quot;Supplements_labs&quot;)]=&quot;cart&quot;
-meth[c(&quot;Hepatitis_a_labs&quot;  )] =&quot;cart&quot;
-meth[c(&quot;Hepatitis_b_labs&quot; )] =&quot;cart&quot;
-meth[c(&quot;Cholesterol_labs&quot;)]=&quot;rf&quot;
-set.seed(145)
-imputed = mice(labs_subset, method=meth, predictorMatrix=predM, m=5)
-#Create a dataset after imputation.
-labs_subset_imputed&lt;- complete(imputed)
-sapply(labs_subset_imputed, function(x) sum(is.na(x)))
-write.csv(labs_subset_imputed,file = &quot;labs_subset_imputed.csv&quot;)</code></pre>
-<p>Now we shall labelled the data:</p>
-<pre class="r"><code># Label the data for factor/categorical values from imputed dataset.
-labs_subset_labelled &lt;- labs_subset_imputed
-labs_subset_labelled = labs_subset_labelled %&gt;% 
+<p>We will now refer to our Dictionary for making a reference dataframe to differentiate between different forms of variables in a fast and effective way:</p>
+<pre class="r"><code>labsdata_indexed &lt;- labsdata75
+colnames(labsdata_indexed) &lt;- with(Dictionary,
+                                   Dictionary$Variable.Description[match(colnames(labsdata75),
+                                                                         Dictionary$Variable.Name,
+                                                                         nomatch = Dictionary$Variable.Name
+                                   )])
+
+labsdata_Col_Labels &lt;- data.frame(&quot;Code&quot;=c(colnames(labsdata75)), 
+                                  &quot;Desp&quot;=c(colnames(labsdata_indexed)))</code></pre>
+<div style="page-break-after: always;"></div>
+<p>Categorization of variables</p>
+<p>We have to now enter categorization of Factor/Numeric/ ‘Computation not required’ in the excel file generated <br /> * Only to be done in 3rd column…<br /> * Code is….<br /> * <strong>0</strong> = Factor requiring no computation.<br /> * <strong>1</strong> = Numeric requiring computation.<br /> * <strong>2</strong> = Factor requiring computation.<br /> * <strong>Please write Column name for the category as “Cat” </strong><br /> Reading Index again</p>
+<pre class="r"><code>Cat_labs &lt;- c(0,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+              1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+              1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+              2,2,2,2,1,1,2,2,2,2,1,1,1,1,1)
+labsdata_Col_Labels &lt;- data.frame(labsdata_Col_Labels,Cat = Cat_labs)</code></pre>
+<p>Now we prepare the dataset for impute from all the information.</p>
+<pre class="r"><code>Catcolmn_labsdata &lt;- labsdata_Col_Labels[labsdata_Col_Labels$Cat ==2 , 2 ] 
+Numcolmn_labsdata &lt;- labsdata_Col_Labels[labsdata_Col_Labels$Cat ==1 , 2 ] 
+Catcolmn_Nul_labsdata &lt;- labsdata_Col_Labels[labsdata_Col_Labels$Cat ==0 , 2 ] 
+WorkingColm_labsdata &lt;- c(Catcolmn_Nul_labsdata, Numcolmn_labsdata, Catcolmn_labsdata)</code></pre>
+<div style="page-break-after: always;"></div>
+<ul>
+<li>========================== IMPUTATION( MICE package) =======================<br /></li>
+<li>Precisely, the methods used by this package are:<br /></li>
+<li>1)-PMM (Predictive Mean Matching) For numeric variables<br /></li>
+<li>2)-logreg(Logistic Regression) For Binary Variables( with 2 levels)<br /></li>
+<li>3)-polyreg(Bayesian polytomous regression) For Factor Variables (&gt;= 2 levels)<br /></li>
+<li>4)-Proportional odds model (ordered, &gt;= 2 levels)<br /></li>
+<li>5)-cart Classification and regression trees (any) <br /></li>
+<li>6)rf Random forest imputations (any)<br /></li>
+<li>==============================================================================<br /></li>
+</ul>
+<pre class="r"><code>meth_labsdata = init_labsdata$method
+predM_labsdata = init_labsdata$predictorMatrix
+predM_labsdata[, c(&quot;SEQN&quot;)]=0
+meth_labsdata[Catcolmn_Nul_labsdata] = &quot;&quot;
+meth_labsdata[Catcolmn_labsdata]=&quot;cart&quot;
+meth_labsdata[Numcolmn_labsdata]=&quot;pmm&quot;
+set.seed(415)
+imputed_labsdata = mice(labsdata_selected, method=meth_labsdata, predictorMatrix=predM_labsdata, m=5)
+labsdata_imputed&lt;- complete(imputed_labsdata)
+
+rm(imputed_labsdata)
+
+#Check for missings in the imputed dataset.
+sapply(labsdata_imputed, function(x) sum(is.na(x)))
+
+#######################################  Saving Impute
+
+#write.csv(labsdata_imputed , &quot;Data/Clean_Imputes/labsdata_imputed.csv&quot;,row.names = FALSE)
+labsdata_imputed   = read.csv(&quot;Data/Clean_Imputes/labsdata_imputed.csv&quot;, header = TRUE, na.strings = c(&quot;NA&quot;,&quot;&quot;,&quot;#NA&quot;))</code></pre>
+<div style="page-break-after: always;"></div>
+<p>Labeling the dataset:</p>
+<pre class="r"><code>labs_labeled &lt;- labs_labeled %&gt;% 
+  dplyr::rename(&quot;ID&quot;                =         &quot;SEQN&quot;,  
+                &quot;White_blood_cells_labs&quot; =     &quot;LBXWBCSI&quot;,  
+                &quot;Red_bloods_cells_labs&quot;  =     &quot;LBXRBCSI&quot;,  
+                &quot;Caffeine_labs&quot;          =     &quot;PHQ020&quot;,  
+                &quot;Alcohol_labs&quot;           =     &quot;PHQ030&quot;,  
+                &quot;Supplements_labs&quot;       =     &quot;PHQ060&quot;,   
+                &quot;Hepatitis_a_labs&quot;       =     &quot;LBXHA&quot;,  
+                &quot;Hepatitis_b_labs&quot;       =     &quot;LBXHBC&quot;,  
+                &quot;Cholesterol_labs&quot;       =     &quot;LBXTC&quot;  )
+
+
+labs_labeled = labs_labeled %&gt;% 
   mutate(Caffeine_labs= recode(Caffeine_labs, &quot;1&quot; = &quot;Yes&quot;,
+                               &quot;2&quot; = &quot;No&quot;, 
+                               &quot;NA&quot; = &quot;Not Tested&quot;))
+
+
+labs_labeled = labs_labeled %&gt;% 
+  mutate(Alcohol_labs= recode(Alcohol_labs, &quot;1&quot; = &quot;Yes&quot;,
                               &quot;2&quot; = &quot;No&quot;, 
                               &quot;NA&quot; = &quot;Not Tested&quot;))
-labs_subset_labelled = labs_subset_labelled %&gt;% 
-  mutate(Alcohol_labs= recode(Alcohol_labs, &quot;1&quot; = &quot;Yes&quot;,
-                               &quot;2&quot; = &quot;No&quot;, 
-                               &quot;NA&quot; = &quot;Not Tested&quot;))
-labs_subset_labelled = labs_subset_labelled %&gt;% 
+
+labs_labeled = labs_labeled %&gt;% 
   mutate(Supplements_labs= recode(Supplements_labs, &quot;1&quot; = &quot;Yes&quot;,
-                               &quot;2&quot; = &quot;No&quot;, 
-                               &quot;NA&quot; = &quot;Not Tested&quot;))
-labs_subset_labelled = labs_subset_labelled %&gt;% 
+                                  &quot;2&quot; = &quot;No&quot;, 
+                                  &quot;NA&quot; = &quot;Not Tested&quot;))
+
+
+
+labs_labeled = labs_labeled %&gt;% 
   mutate(Hepatitis_a_labs= recode(Hepatitis_a_labs, &quot;1&quot; = &quot;Positive&quot;,
                                   &quot;2&quot; = &quot;Negative&quot;,
                                   &quot;3&quot; = &quot;Indeterminate&quot;,
                                   &quot;NA&quot; = &quot;Not Tested&quot;))
-labs_subset_labelled = labs_subset_labelled %&gt;% 
+
+
+labs_labeled = labs_labeled %&gt;% 
   mutate(Hepatitis_b_labs= recode(Hepatitis_b_labs, &quot;1&quot; = &quot;Positive&quot;,
                                   &quot;2&quot; = &quot;Negative&quot;,
-                                  &quot;NA&quot; = &quot;Not Tested&quot;))
-str(labs_subset_labelled)
-write.csv(labs_subset_labelled,file = &quot;labs_subset_labelled.csv&quot;)</code></pre>
+                                  &quot;NA&quot; = &quot;Not Tested&quot;))</code></pre>
 <div style="page-break-after: always;"></div>
 </div>
 <div id="medication" class="section level3">
 <h3><span class="header-section-number">5.2.5</span> Medication</h3>
 <!-- https://wwwn.cdc.gov/Nchs/Nhanes/2013-2014/RXQ_RX_H.htm -->
-<p>All of the columns had more than 25% missing values. Among the 8 columns with less than 32% of missing value we have selected the following 5 relevant columns:</p>
-<ul>
-<li><strong>ID (SEQN)</strong> - Respondent sequence number.</li>
-<li><strong>Medication (RXDDRGID)</strong> - Generic drug name.</li>
-<li><strong>Days_taken (RXDDAYS)</strong> - Number of days taken medicine.</li>
-<li><strong>Medication_purpose (RXDRSD1)</strong> - Reasons for use reported by participants.</li>
-<li><strong>Amount_taken (RXDCOUNT)</strong> - Number of prescription medicines taken.</li>
-</ul>
 <p>First we would remove all the Near Zero Variance features from the data set, Cutt off being 45% :</p>
 <pre class="r"><code>medsdata_major &lt;- medications
 if (length(nearZeroVar(medsdata_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
@@ -2279,6 +2423,14 @@ if (length(nearZeroVar(medsdata_major, freqCut = 90/2, uniqueCut = 10, saveMetri
 <pre class="r"><code>Null_Num_medsdata &lt;- apply(medsdata_major, 2, function(x) length(which(x == &quot;&quot; | is.na(x) | x == &quot;NA&quot; | x == &quot;-999&quot; ))/length(x))
 Null_Colms_medsdata &lt;- colnames(medsdata_major)[Null_Num_medsdata &gt; 0.33]
 medsdata68 &lt;- select(medsdata_major, -Null_Colms_medsdata)</code></pre>
+<p>All of the columns had more than 25% missing values. Among the 8 columns with less than 32% of missing value we have selected the following 5 relevant columns:</p>
+<ul>
+<li><strong>ID (SEQN)</strong> - Respondent sequence number.</li>
+<li><strong>Medication (RXDDRGID)</strong> - Generic drug name.</li>
+<li><strong>Days_taken (RXDDAYS)</strong> - Number of days taken medicine.</li>
+<li><strong>Medication_purpose (RXDRSD1)</strong> - Reasons for use reported by participants.</li>
+<li><strong>Amount_taken (RXDCOUNT)</strong> - Number of prescription medicines taken.</li>
+</ul>
 <p>We will now refer to our Dictionary for making a reference dataframe to differentiate between different forms of variables in a fast and effective way:</p>
 <pre class="r"><code>medsdata_indexed &lt;- medsdata68
 colnames(medsdata_indexed) &lt;- with(Dictionary,
@@ -2341,7 +2493,6 @@ write.csv(meds_subset_labelled,file = &quot;meds_subset_labelled.csv&quot;)</cod
 <div id="questionnaire-1" class="section level3">
 <h3><span class="header-section-number">5.2.6</span> Questionnaire</h3>
 <!-- https://wwwn.cdc.gov/nchs/nhanes/search/variablelist.aspx?Component=Questionnaire&CycleBeginYear=2013 -->
-<p>We have selected the following 38 relevant columns among the 79 that have less than 25% of missing values: * <strong>ID (SEQN)</strong> - Respondent sequence number. * <strong>Spent_total (CBD070)</strong> - The next questions are about how much money {your family spends/you spend} on food. First I’ll ask you about money spent at supermarkets or grocery stores. Then we will talk about money spent at other types of stores. During the past 30 days, how much money {did your family/did you} spend at supermarkets or grocery stores? Please include purchases made with food stamps.. * <strong>Spent_groceries (CBD110)</strong> - About how much money {did your family/did you} spend on food at these types of stores? (Please do not include any stores you have already told me about.). * <strong>Spent_vending (CBD120)</strong> - During the past 30 days, how much money {did your family/did you} spend on eating out? Please include money spent in cafeterias at work or at school or on vending machines, for all family members.. * <strong>Spent_delivered (CBD130)</strong> - During the past 30 days, how much money {did your family/did you} spend on food carried out or delivered? Please do not include money you have already told me about.. * <strong>Cold_30 (HSQ500)</strong> - Did {you/SP} have a head cold or chest cold that started during those 30 days?. * <strong>Stomach_30 (HSQ510)</strong> - Did {you/SP} have a stomach or intestinal illness with vomiting or diarrhea that started during those 30 days?. * <strong>Flu_30 (HSQ520)</strong> - Did {you/SP} have flu, pneumonia, or ear infections that started during those 30 days?. * <strong>Diabetes (DIQ010)</strong> - The next questions are about specific medical conditions. {Other than during pregnancy, {have you/has SP}/{Have you/Has SP}} ever been told by a doctor or health professional that {you have/{he/she/SP} has} diabetes or sugar diabetes?. * <strong>Taking_insuline (DIQ050)</strong> - {Is SP/Are you} now taking insulin. * <strong>Milk_30 (DBQ197)</strong> - Now I’m going to ask a few questions about milk products. Do not include their use in cooking. In the past 30 days, how often did {you/SP} have milk to drink or on {your/his/her} cereal? Please include chocolate and other flavored milks as well as hot cocoa made with milk. Do not count small amounts of milk added to coffee or tea. Would you say…. * <strong>Meals_outside (DBD895)</strong> - Next I’m going to ask you about meals. By meal, I mean breakfast, lunch and dinner. During the past 7 days, how many meals {did you/did SP} get that were prepared away from home in places such as restaurants, fast food places, food stands, grocery stores, or from vending machines? {Please do not include meals provided as part of the school lunch or school breakfast./Please do not include meals provided as part of the community programs you reported earlier.}. * <strong>Meals_premade (DBD905)</strong> - Some grocery stores sell “ready to eat” foods such as salads, soups, chicken, sandwiches and cooked vegetables in their salad bars and deli counters. During the past 30 days, how often did {you/SP} eat “ready to eat” foods from the grocery store? Please do not include sliced meat or cheese you buy for sandwiches and frozen or canned foods.. * <strong>Meals_frozen (DBD910)</strong> - During the past 30 days, how often did you {SP} eat frozen meals or frozen pizzas? Here are some examples of frozen meals and frozen pizzas.. * <strong>Deafness (DLQ010)</strong> - With this next set of questions, we want to learn about people who have physical, mental, or emotional conditions that cause serious difficulties with their daily activities. Though different, these questions may sound similar to ones I asked earlier. {Are you/Is SP} deaf or {do you/does he/does she} have serious difficulty hearing?. * <strong>Blindness (DLQ020)</strong> - {Are you/Is SP} blind or {do you/does he/does she} have serious difficulty seeing even when wearing glasses?. * <strong>Forgetfulness (DLQ040)</strong> - Because of a physical, mental, or emotional condition, {do you/does he/does she} have serious difficulty concentrating, remembering, or making decisions?. * <strong>Food_assistance (FSD151)</strong> - In the last 12 months, did {you/you or any member of your household} ever get emergency food from a church, a food pantry, or a food bank, or eat in a soup kitchen?. * <strong>WIC_assistance (FSQ162)</strong> - In the last 12 months, did {you/you or any member of your household} receive benefits from the WIC program, that is, the Women, Infants and Children program?. * <strong>Hepatitis_b (HEQ010)</strong> - Has a doctor or other health professional ever told {you/SP} that {you have/s/he/SP has} Hepatitis B? (Hepatitis is a form of liver disease. Hepatitis B is an infection of the liver from the Hepatitis B virus (HBV).). * <strong>Hepatitis_c (HEQ030)</strong> - Has a doctor or other health professional ever told {you/SP} that {you have/s/he/SP has} Hepatitis C? (Hepatitis is a form of liver disease. Hepatitis C is an infection of the liver from the Hepatitis C virus (HCV).). * <strong>Insurance_current (HIQ011)</strong> - The (first/next) questions are about health insurance. {Are you/Is SP} covered by health insurance or some other kind of health care plan? [Include health insurance obtained through employment or purchased directly as well as government programs like Medicare and Medicaid that provide medical care or help pay medical bills.]. * <strong>Insurance_lapse_12 (HIQ210)</strong> - In the past 12 months, was there any time when {you/SP} did not have any health insurance coverage?. * <strong>House_rooms (HOD050)</strong> - How many rooms are in this home? Count the kitchen but not the bathroom.. * <strong>Health_current (HUQ010)</strong> - {First/Next} I have some general questions about {your/SP’s} health. Would you say {your/SP’s} health in general is . . .. * <strong>Health_institution (HUQ041)</strong> - {What kind of place is it - a clinic, doctor’s office, emergency room, or some other place?} {What kind of place {do you/does SP} go to most often - a clinic, doctor’s office, emergency room, or some other place?}. * <strong>Doctor_visits_12 (HUQ051)</strong> - {During the past 12 months, how/How} many times {have you/has SP} seen a doctor or other health care professional about {your/his/her} health at a doctor’s office, a clinic or some other place? Do not include times {you were/s/he was} hospitalized overnight, visits to hospital emergency rooms, home visits or telephone calls.. * <strong>Health_mental_12 (HUQ090)</strong> - During the past 12 months, that is since {DISPLAY CURRENT MONTH} of {DISPLAY LAST YEAR}, {have you/has SP} seen or talked to a mental health professional such as a psychologist, psychiatrist, psychiatric nurse or clinical social worker about {your/his/her} health?. * <strong>Family_income_mo (IND235)</strong> - Monthly family income (reported as a range value in dollars).. * <strong>Asthma (MCQ010)</strong> - The following questions are about different medical conditions. Has a doctor or other health professional ever told {you/SP} that {you have/s/he/SP has} asthma (az-ma)?. * <strong>Anemia (MCQ053)</strong> - During the past 3 months, {have you/has SP} been on treatment for anemia (a-nee-me-a), sometimes called “tired blood” or “low blood”? [Include diet, iron pills, iron shots, transfusions as treatment.]. * <strong>Celiac (MCQ082)</strong> - Has a doctor or other health professional ever told {you/SP} that {you have/s/he/SP has} celiac (sele-ak) disease, also called or sprue (sproo)?. * <strong>Gluten_free_diet (MCQ086)</strong> - {Are you/is SP} on a gluten-free diet?. * <strong>Jaundice (MCQ203)</strong> - Has anyone ever told {you/SP} that {you/she/he/SP} had yellow skin, yellow eyes or jaundice? Please do not include infant jaundice, which is common during the first weeks after birth.. * <strong>Asthma_relatives (MCQ300B)</strong> - Including living and deceased, were any of {SP’s/your} close biological that is, blood relatives including father, mother, sisters or brothers, ever told by a health professional that they had asthma (az-ma)?. * <strong>Dentist_visit_since (OHQ030)</strong> - The next questions are about {your/SP’s} teeth and gums. About how long has it been since {you/SP} last visited a dentist? Include all types of dentists, such as, orthodontists, oral surgeons, and all other dental specialists, as well as dental hygienists.. * <strong>TV_30 (PAQ710)</strong> - Now I will ask you first about TV watching and then about computer use. Over the past 30 days, on average how many hours per day did {you/SP} sit and watch TV or videos? Would you say . . .. * <strong>Gaming_hours (PAQ715)</strong> - Over the past 30 days, on average how many hours per day did {you/SP} use a computer or play computer games outside of school? Include Playstation, Nintendo DS, or other portable video games Would you say . . .. * <strong>Smoking_relatives (SMD460)</strong> - Now I would like to ask you a few questions about smoking in this home. How many people who live here smoke cigarettes, cigars, little cigars, pipes, water pipes, hookah, or any other tobacco product?. * <strong>Ride_motor_vehicle (SMQ870)</strong> - During the last 7 days, did {you/SP} ride in a car or motor vehicle?.</p>
 <p>First, we will remove the near zero vairiance variables.</p>
 <pre class="r"><code>ques_data_major &lt;- questionnaire
 if (length(nearZeroVar(ques_data_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
@@ -2356,6 +2507,7 @@ Null_Colms_ques_data &lt;- colnames(ques_data_major)[Null_Num_ques_data &gt; 0.2
 ques_data75 &lt;- select(ques_data_major, -Null_Colms_ques_data)
 colSums(is.na(ques_data75))
 ques_data75 %&gt;% summarise_all(~(sum(is.na(.))/n()*100))</code></pre>
+<p>We have selected the following 38 relevant columns among the 79 that have less than 25% of missing values: * <strong>ID (SEQN)</strong> - Respondent sequence number. * <strong>Spent_total (CBD070)</strong> - The next questions are about how much money {your family spends/you spend} on food. First I’ll ask you about money spent at supermarkets or grocery stores. Then we will talk about money spent at other types of stores. During the past 30 days, how much money {did your family/did you} spend at supermarkets or grocery stores? Please include purchases made with food stamps.. * <strong>Spent_groceries (CBD110)</strong> - About how much money {did your family/did you} spend on food at these types of stores? (Please do not include any stores you have already told me about.). * <strong>Spent_vending (CBD120)</strong> - During the past 30 days, how much money {did your family/did you} spend on eating out? Please include money spent in cafeterias at work or at school or on vending machines, for all family members.. * <strong>Spent_delivered (CBD130)</strong> - During the past 30 days, how much money {did your family/did you} spend on food carried out or delivered? Please do not include money you have already told me about.. * <strong>Cold_30 (HSQ500)</strong> - Did {you/SP} have a head cold or chest cold that started during those 30 days?. * <strong>Stomach_30 (HSQ510)</strong> - Did {you/SP} have a stomach or intestinal illness with vomiting or diarrhea that started during those 30 days?. * <strong>Flu_30 (HSQ520)</strong> - Did {you/SP} have flu, pneumonia, or ear infections that started during those 30 days?. * <strong>Diabetes (DIQ010)</strong> - The next questions are about specific medical conditions. {Other than during pregnancy, {have you/has SP}/{Have you/Has SP}} ever been told by a doctor or health professional that {you have/{he/she/SP} has} diabetes or sugar diabetes?. * <strong>Taking_insuline (DIQ050)</strong> - {Is SP/Are you} now taking insulin. * <strong>Milk_30 (DBQ197)</strong> - Now I’m going to ask a few questions about milk products. Do not include their use in cooking. In the past 30 days, how often did {you/SP} have milk to drink or on {your/his/her} cereal? Please include chocolate and other flavored milks as well as hot cocoa made with milk. Do not count small amounts of milk added to coffee or tea. Would you say…. * <strong>Meals_outside (DBD895)</strong> - Next I’m going to ask you about meals. By meal, I mean breakfast, lunch and dinner. During the past 7 days, how many meals {did you/did SP} get that were prepared away from home in places such as restaurants, fast food places, food stands, grocery stores, or from vending machines? {Please do not include meals provided as part of the school lunch or school breakfast./Please do not include meals provided as part of the community programs you reported earlier.}. * <strong>Meals_premade (DBD905)</strong> - Some grocery stores sell “ready to eat” foods such as salads, soups, chicken, sandwiches and cooked vegetables in their salad bars and deli counters. During the past 30 days, how often did {you/SP} eat “ready to eat” foods from the grocery store? Please do not include sliced meat or cheese you buy for sandwiches and frozen or canned foods.. * <strong>Meals_frozen (DBD910)</strong> - During the past 30 days, how often did you {SP} eat frozen meals or frozen pizzas? Here are some examples of frozen meals and frozen pizzas.. * <strong>Deafness (DLQ010)</strong> - With this next set of questions, we want to learn about people who have physical, mental, or emotional conditions that cause serious difficulties with their daily activities. Though different, these questions may sound similar to ones I asked earlier. {Are you/Is SP} deaf or {do you/does he/does she} have serious difficulty hearing?. * <strong>Blindness (DLQ020)</strong> - {Are you/Is SP} blind or {do you/does he/does she} have serious difficulty seeing even when wearing glasses?. * <strong>Forgetfulness (DLQ040)</strong> - Because of a physical, mental, or emotional condition, {do you/does he/does she} have serious difficulty concentrating, remembering, or making decisions?. * <strong>Food_assistance (FSD151)</strong> - In the last 12 months, did {you/you or any member of your household} ever get emergency food from a church, a food pantry, or a food bank, or eat in a soup kitchen?. * <strong>WIC_assistance (FSQ162)</strong> - In the last 12 months, did {you/you or any member of your household} receive benefits from the WIC program, that is, the Women, Infants and Children program?. * <strong>Hepatitis_b (HEQ010)</strong> - Has a doctor or other health professional ever told {you/SP} that {you have/s/he/SP has} Hepatitis B? (Hepatitis is a form of liver disease. Hepatitis B is an infection of the liver from the Hepatitis B virus (HBV).). * <strong>Hepatitis_c (HEQ030)</strong> - Has a doctor or other health professional ever told {you/SP} that {you have/s/he/SP has} Hepatitis C? (Hepatitis is a form of liver disease. Hepatitis C is an infection of the liver from the Hepatitis C virus (HCV).). * <strong>Insurance_current (HIQ011)</strong> - The (first/next) questions are about health insurance. {Are you/Is SP} covered by health insurance or some other kind of health care plan? [Include health insurance obtained through employment or purchased directly as well as government programs like Medicare and Medicaid that provide medical care or help pay medical bills.]. * <strong>Insurance_lapse_12 (HIQ210)</strong> - In the past 12 months, was there any time when {you/SP} did not have any health insurance coverage?. * <strong>House_rooms (HOD050)</strong> - How many rooms are in this home? Count the kitchen but not the bathroom.. * <strong>Health_current (HUQ010)</strong> - {First/Next} I have some general questions about {your/SP’s} health. Would you say {your/SP’s} health in general is . . .. * <strong>Health_institution (HUQ041)</strong> - {What kind of place is it - a clinic, doctor’s office, emergency room, or some other place?} {What kind of place {do you/does SP} go to most often - a clinic, doctor’s office, emergency room, or some other place?}. * <strong>Doctor_visits_12 (HUQ051)</strong> - {During the past 12 months, how/How} many times {have you/has SP} seen a doctor or other health care professional about {your/his/her} health at a doctor’s office, a clinic or some other place? Do not include times {you were/s/he was} hospitalized overnight, visits to hospital emergency rooms, home visits or telephone calls.. * <strong>Health_mental_12 (HUQ090)</strong> - During the past 12 months, that is since {DISPLAY CURRENT MONTH} of {DISPLAY LAST YEAR}, {have you/has SP} seen or talked to a mental health professional such as a psychologist, psychiatrist, psychiatric nurse or clinical social worker about {your/his/her} health?. * <strong>Family_income_mo (IND235)</strong> - Monthly family income (reported as a range value in dollars).. * <strong>Asthma (MCQ010)</strong> - The following questions are about different medical conditions. Has a doctor or other health professional ever told {you/SP} that {you have/s/he/SP has} asthma (az-ma)?. * <strong>Anemia (MCQ053)</strong> - During the past 3 months, {have you/has SP} been on treatment for anemia (a-nee-me-a), sometimes called “tired blood” or “low blood”? [Include diet, iron pills, iron shots, transfusions as treatment.]. * <strong>Celiac (MCQ082)</strong> - Has a doctor or other health professional ever told {you/SP} that {you have/s/he/SP has} celiac (sele-ak) disease, also called or sprue (sproo)?. * <strong>Gluten_free_diet (MCQ086)</strong> - {Are you/is SP} on a gluten-free diet?. * <strong>Jaundice (MCQ203)</strong> - Has anyone ever told {you/SP} that {you/she/he/SP} had yellow skin, yellow eyes or jaundice? Please do not include infant jaundice, which is common during the first weeks after birth.. * <strong>Asthma_relatives (MCQ300B)</strong> - Including living and deceased, were any of {SP’s/your} close biological that is, blood relatives including father, mother, sisters or brothers, ever told by a health professional that they had asthma (az-ma)?. * <strong>Dentist_visit_since (OHQ030)</strong> - The next questions are about {your/SP’s} teeth and gums. About how long has it been since {you/SP} last visited a dentist? Include all types of dentists, such as, orthodontists, oral surgeons, and all other dental specialists, as well as dental hygienists.. * <strong>TV_30 (PAQ710)</strong> - Now I will ask you first about TV watching and then about computer use. Over the past 30 days, on average how many hours per day did {you/SP} sit and watch TV or videos? Would you say . . .. * <strong>Gaming_hours (PAQ715)</strong> - Over the past 30 days, on average how many hours per day did {you/SP} use a computer or play computer games outside of school? Include Playstation, Nintendo DS, or other portable video games Would you say . . .. * <strong>Smoking_relatives (SMD460)</strong> - Now I would like to ask you a few questions about smoking in this home. How many people who live here smoke cigarettes, cigars, little cigars, pipes, water pipes, hookah, or any other tobacco product?. * <strong>Ride_motor_vehicle (SMQ870)</strong> - During the last 7 days, did {you/SP} ride in a car or motor vehicle?.</p>
 <p>We will now refer to our Dictionary for making a reference dataframe to differentiate between different forms of variables in a fast and effective way:</p>
 <pre class="r"><code>ques_data_indexed &lt;- ques_data75
 colnames(ques_data_indexed) &lt;- with(Dictionary,
@@ -2448,11 +2600,11 @@ ques_data_imputed_subset &lt;- ques_data_imputed_subset %&gt;%
 ques_data_imputed_subset &lt;- ques_data_imputed_subset %&gt;%
   mutate(HUQ041  = recode(HUQ041 ,
                           &quot;1&quot;=  &quot;Clinic or health center&quot;,  
-                          &quot;2&quot;=  &quot;Doctor's office or HMO&quot;,   
+                          &quot;2&quot;=  &quot;Doctor&#39;s office or HMO&quot;,   
                           &quot;3&quot;=  &quot;Hospital emergency room&quot;,  
                           &quot;4&quot;=  &quot;Hospital outpatient department&quot;,   
                           &quot;5&quot;=  &quot;Some other place&quot;, 
-                          &quot;6&quot;=  &quot;Doesn't go to one place most often&quot;,   
+                          &quot;6&quot;=  &quot;Doesn&#39;t go to one place most often&quot;,   
                           &quot;77&quot;= &quot;Refused&quot;,  
                           &quot;99&quot;= &quot;Unknown&quot;))</code></pre>
 <pre class="r"><code>ques_data_imputed_subset &lt;- ques_data_imputed_subset %&gt;%
@@ -2503,7 +2655,7 @@ ques_data_imputed_subset &lt;- ques_data_imputed_subset %&gt;%
                           &quot;3&quot;=  &quot;3 hours&quot;,  
                           &quot;4&quot;=  &quot;4 hours&quot;,  
                           &quot;5&quot;=  &quot;5 hours or more&quot;,  
-                          &quot;8&quot;=  &quot;{You don't/SP does not} watch TV or videos&quot;,   
+                          &quot;8&quot;=  &quot;{You don&#39;t/SP does not} watch TV or videos&quot;,   
                           &quot;77&quot;= &quot;Refused&quot;,  
                           &quot;99&quot;= &quot;Unknown&quot;   ))</code></pre>
 <pre class="r"><code>ques_data_imputed_subset &lt;- ques_data_imputed_subset %&gt;%
@@ -2762,30 +2914,111 @@ ggplot(demo_subset_8, aes(x =Gender, y = Age)) +
 <div id="problem-2-unsupervised-association" class="section level1">
 <h1><span class="header-section-number">9</span> Problem 2: Unsupervised Association</h1>
 <p>Find associations with diseases and diet/demographics data.</p>
-<p>I’ve started work on association</p>
-<pre class="r"><code>library(arules)
-library(arulesViz)
+<div id="introduction-1" class="section level2">
+<h2><span class="header-section-number">9.1</span> Introduction</h2>
+<p>Associating mining if often used with market basket analysis. However, for healthcare dataset used NHANES, we will explore the associations between the data and attempt to provide value to addressing marketing business problems for the pharmedical company in adversiting their drugs and attracting individuals to clinical trails.</p>
+</div>
+<div id="preparing-the-data-for-association-algorithms." class="section level2">
+<h2><span class="header-section-number">9.2</span> Preparing the data for association algorithms.</h2>
+<p>Our first task is to prepare the data for associating mining algorithms.</p>
+<pre class="r"><code># Take interesting attributes from &quot;data_selected&quot; data
+# &quot;data_selected&quot; is a subset of all the dataset combined.
 association_dataset &lt;- data_selected
 association_target_dataset &lt;- target_disease_dataset[ -c(2,3,4)]
-summary(association_target_dataset)
-summary(association_dataset)
 
-association_target_dataset = dplyr::rename(
-  association_target_dataset,
-  &quot;ID&quot;                  = &quot;SEQN&quot;)
+# Merge our association data with the target dataset 
+# Target dataset contains all diseases (diabetes, cancer, hypertension)
+association_dataset &lt;- merge(association_dataset, association_target_dataset,by=&quot;ID&quot;)</code></pre>
+<p>Since the associations rules will reference the values of the attributes. If a value says “Yes”, it might be ambigious what this means. However, if the value was, “US Citizen”, then the meaning would be precise. Below are a couple of examples where, we have re-coded the values for attributes as shown below:</p>
+<pre class="r"><code>association_dataset &lt;- association_dataset %&gt;%
+  mutate(Milk_30   = recode(Milk_30 ,
+                                      &quot;Never&quot; = &quot;Does not drink milk&quot;,  
+                                      &quot;Often-once a day or more?&quot;  =    &quot;Drinks milk multiple times a day&quot;, 
+                                      &quot;Rarely-less than once a week &quot;  =    &quot;Drinks milk once a week&quot;,
+                                      &quot;Refused&quot; = &quot;Might be a milk drinker&quot;,
+                                      &quot;Sometimes-once a week or more, but less than once a day&quot; = &quot;Drinks milk multiple times a week&quot;,
+                                      &quot;Varied&quot;  = &quot;Might be a milk drinker&quot;
+  ) )
 
-#Combine targets with labelled datasets 
-association_dataset &lt;- merge(association_dataset, association_target_dataset,by=&quot;ID&quot;)
-association_dataset &lt;- lapply(association_dataset, function(x){as.factor(x)})
-str(association_dataset)
+association_dataset &lt;- association_dataset %&gt;%
+  mutate(Food_assistance   = recode(Food_assistance ,
+                            &quot;No&quot; =  &quot;Has not requested emergency food assistance&quot;,  
+                            &quot;Refused&quot;  =    &quot;Unknown if emergency food assistance was requested&quot;,   
+                            &quot;Yes&quot;  =    &quot;Has requested emergency food assistance&quot;
+  ) )
 
-write.csv(association_dataset, &quot;Data/Working/association_dataset.csv&quot;)
-# Convert into matrix
-association_dataset$const = TRUE
-association_matrix &lt;- as.matrix(association_dataset)
+association_dataset &lt;- association_dataset %&gt;%
+  mutate(Insurance_current   = recode(Insurance_current ,
+                                    &quot;No&quot; =  &quot;No health insurance coverage&quot;, 
+                                    &quot;Refused&quot;  =    &quot;Health insurance coverage unknown&quot;,    
+                                    &quot;Unknown&quot;  =    &quot;Health insurance coverage unknown&quot;,
+                                    &quot;Yes&quot;    = &quot;Has health insurance coverage&quot;
+  ) )
 
-#This code to turn the dataset into a transactional database is not working.  
-association_dataset_transactional &lt;- as(association_matrix, &quot;transactions&quot;)</code></pre>
+
+association_dataset &lt;- association_dataset %&gt;%
+  mutate(HAS_CANCER   = recode(HAS_CANCER ,
+                                 &quot;YES&quot; =    &quot;HAS CANCER&quot;,   
+                                 &quot;NO&quot;  =    &quot;NO CANCER&quot;
+  ) )</code></pre>
+<p>The above recoding was performed for 18 attributes. Within the association dataset, we selected 18 attributes. We focused on attributes that were categorial values. For the purpose of association mining, numerical values may not add value unless they are binned into categories. For now, we have focused on 18 attributes that were available in the cleaned dataset. Sincer, the dataset is rich with many attributes. In the future, more attributes could be added into association mining algorithms if the business finds value in the suggestions of this type of analysis.</p>
+</div>
+<div id="transform-dataset-into-a-transactional-dataset" class="section level2">
+<h2><span class="header-section-number">9.3</span> Transform dataset into a transactional dataset</h2>
+<p>In order to apply association algorithms, the dataset has to transformed into a tranactional dataset. First, we need to merge all categorical values requiring for mining into a single description attriubte:</p>
+<pre class="r"><code># Select columns required for mining analysis
+association_test_columns &lt;- c(&quot;ID&quot;, &quot;Gender&quot;, &quot;Race&quot;, &quot;Country_of_birth&quot;, &quot;Citizenship_status&quot;,
+                              &#39;Marital_status&#39;, &quot;Family_income&quot;, &quot;Dominant_hand_exam&quot;, &quot;Milk_30&quot;, &quot;Food_assistance&quot;,
+                              &quot;Insurance_current&quot;, &quot;Health_institution&quot;, &quot;Gaming_hours&quot;, &quot;Smoking_relatives&quot;, &quot;Ride_motor_vehicle&quot;,
+                              &#39;HAS_DIABETES&#39;, &#39;HAS_CANCER&#39;, &#39;HAS_HYPERTENSION&#39;)
+
+subset_association = subset(association_dataset, select=association_test_columns)
+
+# Add a description attribute with all the attributes requried for unsupervised association mining analysis 
+subset_association &lt;- subset_association %&gt;% 
+  mutate(description= paste(subset_association$Race, &quot;,&quot;,
+                            subset_association$Gender, &quot;,&quot;,
+                            subset_association$Country_of_birth, &quot;,&quot;,
+                            subset_association$Citizenship_status, &quot;,&quot;,
+                            subset_association$Marital_status, &quot;,&quot;,
+                            subset_association$Family_income, &quot;,&quot;,
+                            subset_association$Dominant_hand_exam, &quot;,&quot;,
+                            subset_association$Milk_30, &quot;,&quot;,
+                            subset_association$Food_assistance, &quot;,&quot;, 
+                            subset_association$Insurance_current, &quot;,&quot;,
+                            subset_association$Health_institution, &quot;,&quot;,
+                            subset_association$Gaming_hours, &quot;,&quot;,
+                            subset_association$Smoking_relatives, &quot;,&quot;,
+                            subset_association$Ride_motor_vehicle, &quot;,&quot; ,
+                            subset_association$HAS_DIABETES, &quot;,&quot;,
+                            subset_association$HAS_CANCER, &quot;,&quot;, 
+                            subset_association$HAS_HYPERTENSION
+                            ))
+
+#Group descriptions by individual IDs and place into transactionData dataset.
+transactionData &lt;- ddply(subset_association, c(&quot;ID&quot;),
+                         function(subset_association)paste(subset_association$description))
+
+# Remove the ID from the transaction dataset as it is not used.
+transactionData$ID &lt;- NULL
+
+# Write the transaction dataset
+write.csv(transactionData, &quot;Data/Working/transactiondata.csv&quot;, quote=FALSE , row.names = FALSE)
+
+# Read in the transaction dataset for use with the unsupervised algorithms
+individuals_transaction_class &lt;- read.transactions(&#39;Data/Working/transactiondata.csv&#39;, format = &#39;basket&#39;,sep=&#39;,&#39;)</code></pre>
+</div>
+<div id="apply-association-algorithms-to-the-data" class="section level2">
+<h2><span class="header-section-number">9.4</span> Apply Association algorithms to the data</h2>
+<p>Now data is prepared, we can apply the association algorithms.</p>
+<div id="frequent-values" class="section level3">
+<h3><span class="header-section-number">9.4.1</span> Frequent values</h3>
+<p>First, we create association rules against the dataset.</p>
+<pre class="r"><code># Create mining rules for all values.  This will tell us which values are likely to be found together
+rules_for_individuals &lt;- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.85, maxlen=5))</code></pre>
+<p>We plot the 20 most frequent values found within the data.</p>
+</div>
+</div>
 </div>
 <div id="problem-3-supervised" class="section level1">
 <h1><span class="header-section-number">10</span> Problem 3: Supervised</h1>
