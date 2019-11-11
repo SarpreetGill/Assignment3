@@ -607,6 +607,37 @@ Our samples is pretty representative of the US population:
 
 ### Diet
 <!-- https://wwwn.cdc.gov/nchs/nhanes/search/variablelist.aspx?Component=Dietary&CycleBeginYear=2013 -->
+
+First we would remove all the Near Zero Variance features from the data set, Cutt off being 45% :
+
+```{r, eval=FALSE, echo=TRUE}
+diet_major <- diet
+
+if (length(nearZeroVar(diet_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
+                       names = FALSE, foreach = FALSE, allowParallel = TRUE)) > 0){
+  diet_major <- diet_major[, -nearZeroVar(diet_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
+                                          names = FALSE, foreach = FALSE, allowParallel = TRUE)] 
+  
+}
+
+```
+
+
+\pagebreak
+
+
+Now, we will remove the features having a missing values of more that 25% as decided before:
+
+```{r, eval=FALSE, echo=TRUE}
+Null_Num_diet <- apply(diet_major, 2, function(x) length(which(x == "" | is.na(x) | x == "NA" | x == "-999" ))/length(x))
+Null_Colms_diet <- colnames(diet_major)[Null_Num_diet > 0.25]
+diet75 <- select(diet_major, -Null_Colms_diet)
+
+colSums(is.na(diet75))
+diet75 %>% summarise_all(~(sum(is.na(.))/n()*100))
+
+```
+
 We have selected the following 69 relevant columns among the 88 that have less than 25% of missing values:
 
 * **ID (SEQN)** - Respondent sequence number.
@@ -680,82 +711,147 @@ We have selected the following 69 relevant columns among the 88 that have less t
 * **Water_yesterday (DR1_320Z)** - Total plain water drank yesterday - including plain tap water, water from a drinking fountain, water from a water cooler, bottled water, and spring water..
 
 
-diet_subset -> Need to impute it.  
 
-Before imputation missing values: 
-> sapply(diet_subset, function(x) sum(is.na(x)))
-    SEQN DR1TNUMF DR1TKCAL DR1TPROT DR1TCARB DR1TSUGR DR1TFIBE DR1TTFAT DR1TSFAT 
-       0     1152     1282     1282     1282     1282     1282     1282     1282 
-DR1TMFAT DR1TPFAT DR1TCHOL DR1TATOC DR1TATOA  DR1TRET DR1TVARA DR1TACAR DR1TBCAR 
-    1282     1282     1282     1282     1282     1282     1282     1282     1282 
-DR1TCRYP DR1TLYCO   DR1TLZ  DR1TVB1  DR1TVB2 DR1TNIAC  DR1TVB6 DR1TFOLA   DR1TFA 
-    1282     1282     1282     1282     1282     1282     1282     1282     1282 
-  DR1TFF DR1TFDFE  DR1TCHL DR1TVB12 DR1TB12A   DR1TVC   DR1TVD   DR1TVK DR1TCALC 
-    1282     1282     1282     1282     1282     1282     1282     1282     1282 
-DR1TPHOS DR1TMAGN DR1TIRON DR1TZINC DR1TCOPP DR1TSODI DR1TPOTA DR1TSELE DR1TCAFF 
-    1282     1282     1282     1282     1282     1282     1282     1282     1282 
-DR1TTHEO DR1TALCO DR1TMOIS DR1TS040 DR1TS060 DR1TS080 DR1TS100 DR1TS120 DR1TS140 
-    1282     1282     1282     1282     1282     1282     1282     1282     1282 
-DR1TS160 DR1TS180 DR1TM161 DR1TM181 DR1TM201 DR1TM221 DR1TP182 DR1TP183 DR1TP184 
-    1282     1282     1282     1282     1282     1282     1282     1282     1282 
-DR1TP204 DR1TP205 DR1TP225 DR1TP226  DR1.300 DR1.320Z 
-```{r, eval=FALSE, echo=TRUE}
-# Using diet csv, we selected "interesting" values from and impute #
-one_day_diet  <- c("SEQN","DR1TNUMF","DR1TKCAL","DR1TPROT","DR1TCARB","DR1TSUGR","DR1TFIBE","DR1TTFAT","DR1TSFAT","DR1TMFAT","DR1TPFAT","DR1TCHOL","DR1TATOC","DR1TATOA","DR1TRET","DR1TVARA","DR1TACAR","DR1TBCAR","DR1TCRYP","DR1TLYCO","DR1TLZ","DR1TVB1","DR1TVB2","DR1TNIAC","DR1TVB6","DR1TFOLA","DR1TFA","DR1TFF","DR1TFDFE","DR1TCHL","DR1TVB12","DR1TB12A","DR1TVC","DR1TVD","DR1TVK","DR1TCALC","DR1TPHOS","DR1TMAGN","DR1TIRON","DR1TZINC","DR1TCOPP","DR1TSODI","DR1TPOTA","DR1TSELE","DR1TCAFF","DR1TTHEO","DR1TALCO","DR1TMOIS","DR1TS040","DR1TS060","DR1TS080","DR1TS100","DR1TS120","DR1TS140","DR1TS160","DR1TS180","DR1TM161","DR1TM181","DR1TM201","DR1TM221","DR1TP182","DR1TP183","DR1TP184","DR1TP204","DR1TP205","DR1TP225","DR1TP226","DR1.300","DR1.320Z")
-diet_subset = subset(diet,select=one_day_diet )
-sapply(diet_subset, function(x) sum(is.na(x)))
-imputed_diet_subset <- mice(diet_subset, m=5, maxit= 50, method = 'pmm', seed=501)
-sapply(diet_subset, function(x) sum(is.na(x)))
-imputed_diet_subset_complete <- mice::complete(imputed_diet_subset, 2)
-imputed_diet_subset$method
-str(imputed_diet_subset_complete)
-sapply(imputed_diet_subset_complete, function(x) sum(is.na(x)))
-write.csv(imputed_diet_subset_complete, "diet_subset_processed.csv")
-```
 
-After imputation missing values: 
-
-These variables/attributes are referring to the one day nutrituion numerical attributes.  
-
-We've further reduced the diet subset to 10 attributes as per our guidelines: 
+We will now refer to our Dictionary for making a reference dataframe to differentiate between different forms of variables in a fast and effective way:
 
 ```{r, eval=FALSE, echo=TRUE}
-ten_attributes_diet = c("SEQN", "DR1TCARB","DR1TSUGR", "DR1TFIBE","DR1TTFAT","DR1TSFAT", "DR1TZINC","DR1TCOPP","DR1TSODI","DR1TPOTA","DR1TSELE" )
-ten_attributes_diet_subset = subset(imputed_diet_subset_complete, select=ten_attributes_diet)
-str(ten_attributes_diet_subset)
-sapply(ten_attributes_diet_subset, function(x) sum(is.na(x)))
-#"SEQN" - ID
-#"DR1TCARB" - Carbs
-#"DR1TSUGR" - Sugar
-#"DR1TFIBE" - Fiber
-#"DR1TTFAT" - Trans Fat
-#"DR1TSFAT" - Saturated Fat
-#"DR1TZINC" - Zinc
-#"DR1TCOPP" - Copper
-#"DR1TSODI" - Sodium 
-#"DR1TPOTA" - Potatssium
-#"DR1TSELE" - Selenium
-ten_attributes_diet_subset <- ten_attributes_diet_subset %>% 
-  rename("ID"                =         "SEQN",  
-         "Carbs_diet"        =     "DR1TCARB",  
-         "Sugar_diet"        =     "DR1TSUGR",  
-         "Fiber_diet"        =     "DR1TFIBE",  
-         "transfat_diet"     =     "DR1TTFAT",  
-         "satfat_diet"       =     "DR1TSFAT",   
-         "zinc_diet"         =     "DR1TZINC",  
-         "copper_diet"       =     "DR1TCOPP",  
-         "sodium_diet"       =     "DR1TSODI",  
-         "pota_diet"         =     "DR1TPOTA", 
-         "selenium_diet"     =     "DR1TSELE"  )
-sapply(ten_attributes_diet_subset, function(x) sum(is.na(x)))
-str(ten_attributes_diet_subset)
-write.csv(imputed_diet_subset_complete, "diet_subset_10_attributes_processed.csv")
+diet_indexed <- diet75
+colnames(diet_indexed) <- with(Dictionary,
+                               Dictionary$Variable.Description[match(colnames(diet75),
+                                                                     Dictionary$Variable.Name,
+                                                                     nomatch = Dictionary$Variable.Name
+                               )])
+
+diet_Col_Labels <- data.frame("Code"=c(colnames(diet75)), 
+                              "Desp"=c(colnames(diet_indexed)))
 ```
 
 \pagebreak
 
+ Categorization of variables
+
+ 
+ We have to now enter categorization of Factor/Numeric/ 'Computation not required' in the excel file generated <br />
+* Only to be done in 3rd column...<br />
+* Code is....<br />
+* **0** = Factor requiring no computation.<br />
+* **1** = Numeric requiring computation.<br />
+* **2** = Factor requiring computation.<br />
+* **Please write Column name for the category as "Cat" **<br />
+Reading Index again
+```{r, eval=FALSE, echo=TRUE}
+Cat_diet <- c(0,1,1,2,2,2,1,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+              1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+              1,1,1,1,1,1,1,1,1,1,1,1,2,2,2)
+diet_Col_Labels <- data.frame(diet_Col_Labels,Cat = Cat_diet)
+
+diet_Col_Labels   = read.csv("Data/Labels/diet_Col_Labels.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+diet_Col_Labels[, 2] <- sapply(diet_Col_Labels[, 2], as.character)
+
+```
+Now we prepare the dataset for impute from all the information.
+```{r, eval=FALSE, echo=TRUE}
+
+Catcolmn_diet <- diet_Col_Labels[diet_Col_Labels$Cat ==2 , 2 ] 
+Numcolmn_diet <- diet_Col_Labels[diet_Col_Labels$Cat ==1 , 2 ] 
+Catcolmn_Nul_diet <- diet_Col_Labels[diet_Col_Labels$Cat ==0 , 2 ] 
+WorkingColm_diet <- c(Catcolmn_Nul_diet, Numcolmn_diet, Catcolmn_diet)
+
+```
+\pagebreak
+* ==========================  IMPUTATION( MICE package)   =======================<br />
+* Precisely, the methods used by this package are:<br />
+* 1)-PMM (Predictive Mean Matching) For numeric variables<br />
+* 2)-logreg(Logistic Regression) For Binary Variables( with 2 levels)<br />
+* 3)-polyreg(Bayesian polytomous regression) For Factor Variables (>= 2 levels)<br />
+* 4)-Proportional odds model (ordered, >= 2 levels)<br />
+* 5)-cart  Classification and regression trees (any) <br />
+* 6)rf Random forest imputations (any)<br />
+* ==============================================================================<br />
+```{r, eval=FALSE, echo=TRUE}
+meth_diet = init_diet$method
+predM_diet = init_diet$predictorMatrix
+predM_diet[, c("SEQN")]=0
+meth_diet[Catcolmn_Nul_diet] = ""
+meth_diet[Catcolmn_diet]="cart"
+meth_diet[Numcolmn_diet]="pmm"
+set.seed(256)
+imputed_diet = mice(diet_selected, method=meth_diet, predictorMatrix=predM_diet, m=5)
+
+#Create a dataset after imputation.
+
+diet_imputed<- complete(imputed_diet)
+
+#######################################  Saving Impute
+
+#write.csv(diet_imputed , "Data/Clean_Imputes/diet_imputed.csv",row.names = FALSE)
+diet_imputed   = read.csv("Data/Clean_Imputes/diet_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+```
+\pagebreak
+
+Labeling the dataset:
+```{r, eval=FALSE, echo=TRUE}
+diet_labeled <- diet_imputed
+rm(diet_imputed)
+
+diet_labeled <- diet_labeled %>% 
+  dplyr::rename("ID"                =         "SEQN",  
+                "Carbs_diet"        =     "DR1TCARB",  
+                "Sugar_diet"        =     "DR1TSUGR",  
+                "Fiber_diet"        =     "DR1TFIBE",  
+                "transfat_diet"     =     "DR1TTFAT",  
+                "satfat_diet"       =     "DR1TSFAT",   
+                "zinc_diet"         =     "DR1TZINC",  
+                "copper_diet"       =     "DR1TCOPP",  
+                "sodium_diet"       =     "DR1TSODI",  
+                "pota_diet"         =     "DR1TPOTA", 
+                "selenium_diet"     =     "DR1TSELE"  )
+
+```
+
+\pagebreak
+
+
 ### Examination
 <!-- https://wwwn.cdc.gov/nchs/nhanes/search/variablelist.aspx?Component=Examination&CycleBeginYear=2013 -->
+
+
+First we would remove all the Near Zero Variance features from the data set, Cutt off being 45% :
+
+```{r, eval=FALSE, echo=TRUE}
+
+exam_major <- examination
+rm(examination)
+
+if (length(nearZeroVar(exam_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
+                       names = FALSE, foreach = FALSE, allowParallel = TRUE)) > 0){
+  exam_major <- exam_major[, -nearZeroVar(exam_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
+                                          names = FALSE, foreach = FALSE, allowParallel = TRUE)] 
+  
+}
+
+
+```
+
+
+\pagebreak
+
+
+Now, we will remove the features having a missing values of more that 25% as decided before:
+
+```{r, eval=FALSE, echo=TRUE}
+Null_Num_diet <- apply(diet_major, 2, function(x) length(which(x == "" | is.na(x) | x == "NA" | x == "-999" ))/length(x))
+Null_Colms_diet <- colnames(diet_major)[Null_Num_diet > 0.25]
+diet75 <- select(diet_major, -Null_Colms_diet)
+
+colSums(is.na(diet75))
+diet75 %>% summarise_all(~(sum(is.na(.))/n()*100))
+
+```
+
 We have selected the following 12 relevant columns among the 105 that have less than 25% of missing values:
 
 * **ID (SEQN)** - Respondent sequence number.
@@ -771,24 +867,92 @@ We have selected the following 12 relevant columns among the 105 that have less 
 * **Dominant_hand_exam (MGD130)** - Are you right-handed, left-handed, or do you use both hands equally?.
 * **Grip_strength_exam (MGDCGSZ)** - Combined grip strength (kg): the sum of the largest reading from each hand..
 
-<!--TODO split code in segments and explain it a  bit-->
+We will now refer to our Dictionary for making a reference dataframe to differentiate between different forms of variables in a fast and effective way:
 
 ```{r, eval=FALSE, echo=TRUE}
-# Import libraries
-require(AMR)
-require(mice)
-require(randomForest)
-# Import the raw dataset
-examination = read.csv(file.choose(), header = TRUE, na.strings = c("NA","","#NA"))
-# Select relevant columns
-examination_subset = subset(
-  examination,
-  select=c('SEQN', 'PEASCTM1', 'BPAARM', 'BPXSY2', 'BPXDI2', 'BMXWT', 'BMXHT', 'BMXBMI', 'BMXLEG',
-           'BMXWAIST', 'MGD130', 'MGDCGSZ')
-  )
-# Rename columns to meaningful names
-examination_renamed = rename(
-  examination_subset,
+exam_indexed <- exam75
+colnames(exam_indexed) <- with(Dictionary,
+                               Dictionary$Variable.Description[match(colnames(exam75),
+                                                                     Dictionary$Variable.Name,
+                                                                     nomatch = Dictionary$Variable.Name
+                               )])
+
+exam_Col_Labels <- data.frame("Code"=c(colnames(exam75)), 
+                              "Desp"=c(colnames(exam_indexed)))
+```
+
+\pagebreak
+
+ Categorization of variables
+
+ 
+ We have to now enter categorization of Factor/Numeric/ 'Computation not required' in the excel file generated <br />
+* Only to be done in 3rd column...<br />
+* Code is....<br />
+* **0** = Factor requiring no computation.<br />
+* **1** = Numeric requiring computation.<br />
+* **2** = Factor requiring computation.<br />
+* **Please write Column name for the category as "Cat" **<br />
+Reading Index again
+```{r, eval=FALSE, echo=TRUE}
+Cat_exam <- c(0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+              1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+              1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+              1,1,1,1,1,1,1,1,1,1)
+exam_Col_Labels <- data.frame(exam_Col_Labels,Cat = Cat_exam)
+
+```
+Now we prepare the dataset for impute from all the information.
+```{r, eval=FALSE, echo=TRUE}
+
+Catcolmn_exam <- exam_Col_Labels[exam_Col_Labels$Cat ==2 , 2 ] 
+Numcolmn_exam <- exam_Col_Labels[exam_Col_Labels$Cat ==1 , 2 ] 
+Catcolmn_Nul_exam <- exam_Col_Labels[exam_Col_Labels$Cat ==0 , 2 ] 
+WorkingColm_exam <- c(Catcolmn_Nul_exam, Numcolmn_exam, Catcolmn_exam)
+
+```
+\pagebreak
+* ==========================  IMPUTATION( MICE package)   =======================<br />
+* Precisely, the methods used by this package are:<br />
+* 1)-PMM (Predictive Mean Matching) For numeric variables<br />
+* 2)-logreg(Logistic Regression) For Binary Variables( with 2 levels)<br />
+* 3)-polyreg(Bayesian polytomous regression) For Factor Variables (>= 2 levels)<br />
+* 4)-Proportional odds model (ordered, >= 2 levels)<br />
+* 5)-cart  Classification and regression trees (any) <br />
+* 6)rf Random forest imputations (any)<br />
+* ==============================================================================<br />
+```{r, eval=FALSE, echo=TRUE}
+meth_exam = init_exam$method
+predM_exam = init_exam$predictorMatrix
+predM_exam[, c("SEQN")]=0
+meth_exam[Catcolmn_Nul_exam] = ""
+meth_exam[Catcolmn_exam]="cart"
+meth_exam[Numcolmn_exam]="pmm"
+
+set.seed(311)
+imputed_exam = mice(exam_selected, method=meth_exam, predictorMatrix=predM_exam, m=5)
+
+#Create a dataset after imputation.
+
+exam_imputed<- complete(imputed_exam)
+rm(imputed_exam)
+
+#######################################  Saving Impute
+
+
+#write.csv(exam_imputed , "Data/Clean_Imputes/exam_imputed.csv",row.names = FALSE)
+exam_imputed   = read.csv("Data/Clean_Imputes/exam_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+```
+\pagebreak
+
+Labeling the dataset:
+```{r, eval=FALSE, echo=TRUE}
+exam_labeled <- exam_imputed
+rm(exam_imputed)
+
+exam_labeled = dplyr::rename(
+  exam_labeled,
   "ID"                  = "SEQN",
   "BP_test_time_exam"        = "PEASCTM1",
   "BP_arm_exam"              = "BPAARM",
@@ -801,37 +965,10 @@ examination_renamed = rename(
   "Waist_circumference_exam" = "BMXWAIST",
   "Dominant_hand_exam"       = "MGD130",
   "Grip_strength_exam"       = "MGDCGSZ"
-  )
-# Check if there are no missing values:
-0 == sum(sapply(examination_renamed, function(x) sum(is.na(x)))) # FALSE
-# Explore the columns in the subset
-summary(examination_renamed[2:12])
-# Numerical: 9 - pmm or rf
-# 2 Factors: 1 - logreg or cart
-# 3 Factors: 1 - polyreg or cart
-freq(examination_renamed$BP_arm_exam)
-# BP_arm_exam has 2 factors. 1=Left, 2=Right, 8=Right (maybe 8 was a typo)
-examination_renamed$BP_arm_exam[examination_renamed$BP_arm_exam == 8] = 2
-examination_renamed$BP_arm_exam = as.factor(examination_renamed$BP_arm_exam)
-freq(examination_renamed$Dominant_hand_exam)
-# Dominant_hand_exam has 3 factors: 1=Right, 2=Left, 3=Neither
-examination_renamed$Dominant_hand_exam = as.factor(examination_renamed$Dominant_hand_exam)
-set.seed(125)
-# Configure and run mice
-examination_mice = mice(examination_renamed, m=5) # slow line
-examination_mice$predictorMatrix[, 'ID']=0
-examination_mice$method[c(2:12)] = 'rf'
-examination_mice$method['BP_arm_exam'] = 'logreg'
-examination_mice$method['Dominant_hand_exam'] = 'polyreg'
-examination_imputed = complete(examination_mice)
-# Check there are no missing values
-0 == sum(sapply(examination_imputed, function(x) sum(is.na(x)))) # TRUE
-summary(examination_imputed)
-# Export the dataset
-##write.csv(examination_imputed, file.choose())
-# Label the data
-examination_labeled = mutate(
-  examination_imputed,
+)
+
+exam_labeled = mutate(
+  exam_labeled,
   BP_arm_exam = recode(BP_arm_exam,
                        "1" = "Left",
                        "2" = "Right"),
@@ -839,15 +976,51 @@ examination_labeled = mutate(
                               "1"="Right",
                               "2"="Left",
                               "3"="Neither")
-  )
-# Export the dataset
-##write.csv(examination_labeled, file.choose())
+)
+
+exam_labeled[ , 70:97]  <- lapply(exam_labeled[ ,70:97] , FUN = function(x) recode(x, "1='D';2='E';3='J';4='K';5='M';6='P';7='Q';8='R';9='S';10='T';11='U';12='X';13='Y';14='Z'"))
+
 ```
 
+\pagebreak
 \pagebreak
 
 ### Labs
 <!-- https://wwwn.cdc.gov/nchs/nhanes/search/variablelist.aspx?Component=Laboratory&CycleBeginYear=2013 -->
+
+
+First we would remove all the Near Zero Variance features from the data set, Cutt off being 45% :
+
+```{r, eval=FALSE, echo=TRUE}
+
+
+labsdata_major <- labs
+
+if (length(nearZeroVar(labsdata_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
+                       names = FALSE, foreach = FALSE, allowParallel = TRUE)) > 0){
+  labsdata_major <- labsdata_major[, -nearZeroVar(labsdata_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
+                                                  names = FALSE, foreach = FALSE, allowParallel = TRUE)] 
+  
+}
+
+```
+
+
+\pagebreak
+
+
+Now, we will remove the features having a missing values of more that 25% as decided before:
+
+```{r, eval=FALSE, echo=TRUE}
+
+
+Null_Num_labsdata <- apply(labsdata_major, 2, function(x) length(which(x == "" | is.na(x) | x == "NA" | x == "-999" ))/length(x))
+Null_Colms_labsdata <- colnames(labsdata_major)[Null_Num_labsdata > 0.35]
+labsdata75 <- select(labsdata_major, -Null_Colms_labsdata)
+
+
+```
+
 We have selected the following 9 relevant columns among the 46 that have less than 25% of missing values:
 
 * **ID (SEQN)** - Respondent sequence number..
@@ -860,125 +1033,130 @@ We have selected the following 9 relevant columns among the 46 that have less th
 * **Hepatitis_b_labs (LBXHBC)** - Hepatitis B core antibody.
 * **Cholesterol_labs (LBXTC)** - Total Cholesterol( mg/dL).
 
-First we create a subset of labs data and then relabel the columns to meaningful names.  
+
+We will now refer to our Dictionary for making a reference dataframe to differentiate between different forms of variables in a fast and effective way:
 
 ```{r, eval=FALSE, echo=TRUE}
-select_columns_labs <- c("SEQN", "LBXWBCSI", "LBXRBCSI", "PHQ020", "PHQ030", "PHQ060", "LBXHA", "LBXHBC", "LBXTC" )
-labs_subset = subset(labs, select=select_columns_labs)
-# Relabel the columns to meaningful names.  
-labs_subset <- labs_subset %>% 
-  rename("ID"                =         "SEQN",  
-         "White_blood_cells_labs" =     "LBXWBCSI",  
-         "Red_bloods_cells_labs"  =     "LBXRBCSI",  
-         "Caffeine_labs"          =     "PHQ020",  
-         "Alcohol_labs"           =     "PHQ030",  
-         "Supplements_labs"       =     "PHQ060",   
-         "Hepatitis_a_labs"       =     "LBXHA",  
-         "Hepatitis_b_labs"       =     "LBXHBC",  
-         "Cholesterol_labs"       =     "LBXTC"  )
-```
-A look at the structure of the data.
+labsdata_indexed <- labsdata75
+colnames(labsdata_indexed) <- with(Dictionary,
+                                   Dictionary$Variable.Description[match(colnames(labsdata75),
+                                                                         Dictionary$Variable.Name,
+                                                                         nomatch = Dictionary$Variable.Name
+                                   )])
 
-> str(labs_subset)
-'data.frame':	9813 obs. of  9 variables:
- $ ID                    : int  73557 73558 73559 73560 73561 73562 73563 73564 73566 73567 ...
- $ White_blood_cells_labs: num  4.7 12.6 7.2 7.8 6.6 9.4 NA 5.2 9.5 6.3 ...
- $ Red_bloods_cells_labs : num  5.09 3.84 5.53 4.61 4.72 4.93 NA 4.66 4.43 4.35 ...
- $ Caffeine_labs         : int  2 2 2 2 2 2 NA 2 2 2 ...
- $ Alcohol_labs          : int  2 2 2 2 2 2 NA 2 2 2 ...
- $ Supplements_labs      : int  2 2 2 2 2 2 NA 2 2 2 ...
- $ Hepatitis_a_labs      : int  1 2 2 1 2 2 NA 2 2 2 ...
- $ Hepatitis_b_labs      : int  1 2 2 2 2 2 NA 2 2 2 ...
- $ Cholesterol_labs      : int  167 170 126 168 201 226 NA 168 278 173 ...
+labsdata_Col_Labels <- data.frame("Code"=c(colnames(labsdata75)), 
+                                  "Desp"=c(colnames(labsdata_indexed)))
+```
+
+\pagebreak
+
+ Categorization of variables
+
  
- Convert the categorical values into factors, clean-up: 
- 
-
-
-
-Now we perform imputation: 
-
+ We have to now enter categorization of Factor/Numeric/ 'Computation not required' in the excel file generated <br />
+* Only to be done in 3rd column...<br />
+* Code is....<br />
+* **0** = Factor requiring no computation.<br />
+* **1** = Numeric requiring computation.<br />
+* **2** = Factor requiring computation.<br />
+* **Please write Column name for the category as "Cat" **<br />
+Reading Index again
 ```{r, eval=FALSE, echo=TRUE}
-labs_subset$Caffeine_labs <- as.factor(labs_subset$Caffeine_labs)
-labs_subset$Alcohol_labs <- as.factor(labs_subset$Alcohol_labs)
-labs_subset$Supplements_labs <- as.factor(labs_subset$Supplements_labs)
-labs_subset$Hepatitis_a_labs <- as.factor(labs_subset$Hepatitis_a_labs)
-labs_subset$Hepatitis_b_labs <- as.factor(labs_subset$Hepatitis_b_labs)
+Cat_labs <- c(0,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+              1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+              1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+              2,2,2,2,1,1,2,2,2,2,1,1,1,1,1)
+labsdata_Col_Labels <- data.frame(labsdata_Col_Labels,Cat = Cat_labs)
 ```
-
-
-
-> str(labs_subset)
-'data.frame':	9813 obs. of  9 variables:
- $ ID                    : int  73557 73558 73559 73560 73561 73562 73563 73564 73566 73567 ...
- $ White_blood_cells_labs: num  4.7 12.6 7.2 7.8 6.6 9.4 NA 5.2 9.5 6.3 ...
- $ Red_bloods_cells_labs : num  5.09 3.84 5.53 4.61 4.72 4.93 NA 4.66 4.43 4.35 ...
- $ Caffeine_labs         : Factor w/ 2 levels "1","2": 2 2 2 2 2 2 NA 2 2 2 ...
- $ Alcohol_labs          : Factor w/ 2 levels "1","2": 2 2 2 2 2 2 NA 2 2 2 ...
- $ Supplements_labs      : Factor w/ 2 levels "1","2": 2 2 2 2 2 2 NA 2 2 2 ...
- $ Hepatitis_a_labs      : Factor w/ 2 levels "1","2": 1 2 2 1 2 2 NA 2 2 2 ...
- $ Hepatitis_b_labs      : Factor w/ 2 levels "1","2": 1 2 2 2 2 2 NA 2 2 2 ...
- $ Cholesterol_labs      : int  167 170 126 168 201 226 NA 168 278 173 ..
-
-Perform imputation: 
-
+Now we prepare the dataset for impute from all the information.
 ```{r, eval=FALSE, echo=TRUE}
-init = mice(labs_subset, maxit=0)
-meth = init$method
-predM = init$predictorMatrix
-# select the "ID" variable to not be included as predictor during imputation.
-predM[, c("ID")]=0
-# Cart usage: https://stefvanbuuren.name/fimd/sec-cart.html
-# https://en.wikipedia.org/wiki/Random_forest 
-#Skip a variable from imputation, this variable will still be used for prediction
-meth[c("ID")]=""
-#Now let specify the methods for imputing the missing values.
-meth[c("White_blood_cells_labs")]="rf"
-meth[c("Red_bloods_cells_labs" )]="rf"
-meth[c("Caffeine_labs")]="cart"
-meth[c("Alcohol_labs")]="cart"
-meth[c("Supplements_labs")]="cart"
-meth[c("Hepatitis_a_labs"  )] ="cart"
-meth[c("Hepatitis_b_labs" )] ="cart"
-meth[c("Cholesterol_labs")]="rf"
-set.seed(145)
-imputed = mice(labs_subset, method=meth, predictorMatrix=predM, m=5)
-#Create a dataset after imputation.
-labs_subset_imputed<- complete(imputed)
-sapply(labs_subset_imputed, function(x) sum(is.na(x)))
-write.csv(labs_subset_imputed,file = "labs_subset_imputed.csv")
+
+Catcolmn_labsdata <- labsdata_Col_Labels[labsdata_Col_Labels$Cat ==2 , 2 ] 
+Numcolmn_labsdata <- labsdata_Col_Labels[labsdata_Col_Labels$Cat ==1 , 2 ] 
+Catcolmn_Nul_labsdata <- labsdata_Col_Labels[labsdata_Col_Labels$Cat ==0 , 2 ] 
+WorkingColm_labsdata <- c(Catcolmn_Nul_labsdata, Numcolmn_labsdata, Catcolmn_labsdata)
+
 ```
-
-Now we shall labelled the data: 
-
+\pagebreak
+* ==========================  IMPUTATION( MICE package)   =======================<br />
+* Precisely, the methods used by this package are:<br />
+* 1)-PMM (Predictive Mean Matching) For numeric variables<br />
+* 2)-logreg(Logistic Regression) For Binary Variables( with 2 levels)<br />
+* 3)-polyreg(Bayesian polytomous regression) For Factor Variables (>= 2 levels)<br />
+* 4)-Proportional odds model (ordered, >= 2 levels)<br />
+* 5)-cart  Classification and regression trees (any) <br />
+* 6)rf Random forest imputations (any)<br />
+* ==============================================================================<br />
 ```{r, eval=FALSE, echo=TRUE}
-# Label the data for factor/categorical values from imputed dataset.
-labs_subset_labelled <- labs_subset_imputed
-labs_subset_labelled = labs_subset_labelled %>% 
+meth_labsdata = init_labsdata$method
+predM_labsdata = init_labsdata$predictorMatrix
+predM_labsdata[, c("SEQN")]=0
+meth_labsdata[Catcolmn_Nul_labsdata] = ""
+meth_labsdata[Catcolmn_labsdata]="cart"
+meth_labsdata[Numcolmn_labsdata]="pmm"
+set.seed(415)
+imputed_labsdata = mice(labsdata_selected, method=meth_labsdata, predictorMatrix=predM_labsdata, m=5)
+labsdata_imputed<- complete(imputed_labsdata)
+
+rm(imputed_labsdata)
+
+#Check for missings in the imputed dataset.
+sapply(labsdata_imputed, function(x) sum(is.na(x)))
+
+#######################################  Saving Impute
+
+#write.csv(labsdata_imputed , "Data/Clean_Imputes/labsdata_imputed.csv",row.names = FALSE)
+labsdata_imputed   = read.csv("Data/Clean_Imputes/labsdata_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+```
+\pagebreak
+
+Labeling the dataset:
+```{r, eval=FALSE, echo=TRUE}
+labs_labeled <- labs_labeled %>% 
+  dplyr::rename("ID"                =         "SEQN",  
+                "White_blood_cells_labs" =     "LBXWBCSI",  
+                "Red_bloods_cells_labs"  =     "LBXRBCSI",  
+                "Caffeine_labs"          =     "PHQ020",  
+                "Alcohol_labs"           =     "PHQ030",  
+                "Supplements_labs"       =     "PHQ060",   
+                "Hepatitis_a_labs"       =     "LBXHA",  
+                "Hepatitis_b_labs"       =     "LBXHBC",  
+                "Cholesterol_labs"       =     "LBXTC"  )
+
+
+labs_labeled = labs_labeled %>% 
   mutate(Caffeine_labs= recode(Caffeine_labs, "1" = "Yes",
+                               "2" = "No", 
+                               "NA" = "Not Tested"))
+
+
+labs_labeled = labs_labeled %>% 
+  mutate(Alcohol_labs= recode(Alcohol_labs, "1" = "Yes",
                               "2" = "No", 
                               "NA" = "Not Tested"))
-labs_subset_labelled = labs_subset_labelled %>% 
-  mutate(Alcohol_labs= recode(Alcohol_labs, "1" = "Yes",
-                               "2" = "No", 
-                               "NA" = "Not Tested"))
-labs_subset_labelled = labs_subset_labelled %>% 
+
+labs_labeled = labs_labeled %>% 
   mutate(Supplements_labs= recode(Supplements_labs, "1" = "Yes",
-                               "2" = "No", 
-                               "NA" = "Not Tested"))
-labs_subset_labelled = labs_subset_labelled %>% 
+                                  "2" = "No", 
+                                  "NA" = "Not Tested"))
+
+
+
+labs_labeled = labs_labeled %>% 
   mutate(Hepatitis_a_labs= recode(Hepatitis_a_labs, "1" = "Positive",
                                   "2" = "Negative",
                                   "3" = "Indeterminate",
                                   "NA" = "Not Tested"))
-labs_subset_labelled = labs_subset_labelled %>% 
+
+
+labs_labeled = labs_labeled %>% 
   mutate(Hepatitis_b_labs= recode(Hepatitis_b_labs, "1" = "Positive",
                                   "2" = "Negative",
                                   "NA" = "Not Tested"))
-str(labs_subset_labelled)
-write.csv(labs_subset_labelled,file = "labs_subset_labelled.csv")
-```
 
+
+```
 
 \pagebreak
 
