@@ -322,47 +322,113 @@ demographic75 <- select(demographic_major, -Null_Colms)
   
 ```
 
-We will create an index to help up to quickly identify the variables and create a code to impute the same . We will use MICE package to compute the same.
-
-```{r, eval=F, echo=TRUE, warning = F, message=F}
+We will now refer to our Dictionary for making a reference dataframe to differentiate between different forms of variables in a fast and effective way:
 
 
 
+```{r, eval=FALSE, echo=TRUE}
 
+demographic_indexed <- demographic75
+colnames(demographic_indexed) <- with(Dictionary,
+                                      Dictionary$Variable.Description[match(colnames(demographic75),
+                                                                            Dictionary$Variable.Name,
+                                                                            nomatch = Dictionary$Variable.Name
+                                      )])
+
+Demogramphic_Col_Labels <- data.frame("Code"=c(colnames(demographic75)), 
+                                      "Desp"=c(colnames(demographic_indexed)))
 ```
 
 
+\pagebreak
 
+ Categorization of variables
 
+ 
+ We have to now enter categorization of Factor/Numeric/ 'Computation not required' in the excel file generated <br />
+* Only to be done in 3rd column...<br />
+* Code is....<br />
+* **0** = Factor requiring no computation.<br />
+* **1** = Numeric requiring computation.<br />
+* **2** = Factor requiring computation.<br />
+* **Please write Column name for the category as "Cat" **<br />
+Reading Index again
+```{r, eval=FALSE, echo=TRUE}
 
+Cat_demo <- c(0,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1)
+Demogramphic_Col_Labels <- data.frame(Demogramphic_Col_Labels,Cat = Cat_demo)
 
+```
+Now we prepare the dataset for impute from all the information.
+```{r, eval=FALSE, echo=TRUE}
 
+Catcolmn <- Demogramphic_Col_Labels[Demogramphic_Col_Labels$Cat ==2 , 2 ] 
+Numcolmn <- Demogramphic_Col_Labels[Demogramphic_Col_Labels$Cat ==1 , 2 ] 
+Catcolmn_Nul <- Demogramphic_Col_Labels[Demogramphic_Col_Labels$Cat ==0 , 2 ] 
+WorkingColm <- c(Catcolmn_Nul, Numcolmn, Catcolmn)
+WorkingColm
+)
+demographic_selected = demographic75[ Catcolmn_Nul ]
 
+demographic_selected = demographic75[ WorkingColm ]
 
+demographic_selected[, Catcolmn] <- sapply(demographic_selected[, Catcolmn], as.numeric)
+demographic_selected[, Catcolmn_Nul] <- sapply(demographic_selected[, Catcolmn_Nul], as.numeric)
+demographic_selected[, Numcolmn] <- sapply(demographic_selected[, Numcolmn], as.numeric)
 
+```
+\pagebreak
+* ==========================  IMPUTATION( MICE package)   =======================<br />
+* Precisely, the methods used by this package are:<br />
+* 1)-PMM (Predictive Mean Matching) For numeric variables<br />
+* 2)-logreg(Logistic Regression) For Binary Variables( with 2 levels)<br />
+* 3)-polyreg(Bayesian polytomous regression) For Factor Variables (>= 2 levels)<br />
+* 4)-Proportional odds model (ordered, >= 2 levels)<br />
+* 5)-cart  Classification and regression trees (any) <br />
+* 6)rf Random forest imputations (any)<br />
+* ==============================================================================<br />
+Imputation and save results:
+```{r, eval=FALSE, echo=TRUE}
 
+meth = init$method
+predM = init$predictorMatrix
+predM[, c("SEQN")]=0
+meth[Catcolmn_Nul] = ""
+meth[Catcolmn]="cart"
+meth[Numcolmn]="rf"
+set.seed(103)
+imputed = mice(demographic_selected, method=meth, predictorMatrix=predM, m=5)
 
+#Create a dataset after imputation.
 
+demographic_imputed<- complete(imputed)
+rm(Demogramphic_Col_Labels,demographic75,demographic_selected, imputed)
+
+dir.create("Data/Clean_Imputes")
+#write.csv(demographic_imputed , "Data/Clean_Imputes/demographic_imputed.csv",row.names = FALSE)
+demographic_imputed   = read.csv("Data/Clean_Imputes/demographic_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+```
 
 ### Demographic 
 We have selected the following 8 relevant columns among the 32 that have less than 25% of missing values:
 
 
-* **ID (SEQN)** - Respondent sequence number..
-* **Gender (RIAGENDR)** - Gender of the participant..
-* **Age (RIDAGEYR)** - Age in years of the participant at the time of screening. Individuals 80 and over are topcoded at 80 years of age..
-* **Race (RIDRETH3)** - Recode of reported race and Hispanic origin information, with Non-Hispanic Asian Category.
-* **Country_of_birth (DMDBORN4)** - In what country {were you/was SP} born?.
-* **Citizenship_status (DMDCITZN)** - {Are you/Is SP} a citizen of the United States? [Information about citizenship is being collected by the U.S. Public Health Service to perform health related research. Providing this information is voluntary and is collected under the authority of the Public Health Service Act. There will be no effect on pending immigration or citizenship petitions.].
-* **Family_members (DMDFMSIZ)** - Total number of people in the Family.
-* **Marital_status (DMDHRMAR)** - HH reference person's marital status.
-* **Family_income (INDFMIN2)** - Total family income (reported as a range value in dollars).
+<!-- * **ID (SEQN)** - Respondent sequence number.. -->
+<!-- * **Gender (RIAGENDR)** - Gender of the participant.. -->
+<!-- * **Age (RIDAGEYR)** - Age in years of the participant at the time of screening. Individuals 80 and over are topcoded at 80 years of age.. -->
+<!-- * **Race (RIDRETH3)** - Recode of reported race and Hispanic origin information, with Non-Hispanic Asian Category. -->
+<!-- * **Country_of_birth (DMDBORN4)** - In what country {were you/was SP} born?. -->
+<!-- * **Citizenship_status (DMDCITZN)** - {Are you/Is SP} a citizen of the United States? [Information about citizenship is being collected by the U.S. Public Health Service to perform health related research. Providing this information is voluntary and is collected under the authority of the Public Health Service Act. There will be no effect on pending immigration or citizenship petitions.]. -->
+<!-- * **Family_members (DMDFMSIZ)** - Total number of people in the Family. -->
+<!-- * **Marital_status (DMDHRMAR)** - HH reference person's marital status. -->
+<!-- * **Family_income (INDFMIN2)** - Total family income (reported as a range value in dollars). -->
+
+Now we will label the dataset for visualizations.
 
 ```{r, eval=FALSE, echo=TRUE, warning = F, message=F}
-demo_subset_8_list = c("RIAGENDR", "RIDAGEYR", "RIDRETH3", "DMDBORN4",
-                        "DMDCITZN", "DMDFMSIZ", "DMDHRMAR", "INDFMIN2")
-demo_subset_8  <- demographic%>% 
-  select("SEQN",demo_subset_8_list)
+
+multi.hist(demo_subset_8_imputed[,sapply(demo_subset_8_imputed, is.numeric)])
   
 demo_subset_8<- demo_subset_8 %>% 
   rename("ID"                 =         "SEQN",  
@@ -378,48 +444,6 @@ demo_subset_8<- demo_subset_8 %>%
 sapply(demo_subset_8, function(x) sum(is.na(x)))
 ```
 
-
-```{r, eval=FALSE, echo=TRUE, warning = F, message=F}
-## conversion to factors
-demo_subset_8$Gender <- as.factor(demo_subset_8$Gender)
-demo_subset_8$Race  <- as.factor(demo_subset_8$Race )
-demo_subset_8$Country_of_birth <- as.factor(demo_subset_8$Country_of_birth)
-demo_subset_8$Citizenship_status <- as.factor(demo_subset_8$Citizenship_status)
-demo_subset_8$Marital_status <- as.factor(demo_subset_8$Marital_status)
-#demo_subset_8$Family_income <- as.factor(demo_subset_8$Family_income)
-require(mice)
-init = mice(demo_subset_8, maxit=0)
-meth = init$method
-predM = init$predictorMatrix
-# select the "ID" variable to not be included as predictor during imputation.
-predM[, c("ID")]=0
-#Skip a variable from imputation, this variable will still be used for prediction
-meth[c("ID")]=""
-meth[c("Gender")]=""
-meth[c("Age")]=""
-meth[c("Race")]=""
-meth[c("Country_of_birth")]=""
-meth[c("Family_members")]=""
-#Now let specify the methods for imputing the missing values.
-meth[c("Citizenship_status")]="cart"
-meth[c("Marital_status")]="cart"
-meth[c("Family_income")]="rf" # require randomforest 
-set.seed(145)
-imputed = mice(demo_subset_8, method=meth, predictorMatrix=predM, m=5)
-#Create a dataset after imputation.
-demo_subset_8_imputed<- complete(imputed)
-```
-
-```{r, eval=FALSE, echo=F, warning = F, message=F}
-demo_subset_8_imputed = read.csv("Data/Working/demo_subset_8_imputed.csv", header = TRUE)
-```
-
-
-```{r, eval=FALSE, echo=TRUE, warning = F, message=F}
-#demo_subset_8_imputed$Family_income <- as.factor(demo_subset_8_imputed$Family_income)
-#Check for missings in the imputed dataset.
-sapply(demo_subset_8_imputed, function(x) sum(is.na(x)))
-```
 
 \pagebreak
 
@@ -468,7 +492,7 @@ demo_subset_8_labeled <- demo_subset_8_labeled %>%
                                 "15" = "$100000 and Over",	
                                 "77" =	"Refused",
                                 "99" =	"Unknown"	))
-demo_subset_8_labeled$Family_income <- as.factor(demo_subset_8_labeled$Family_income)
+demo_subset_8_imputed$Family_income <- as.factor(demo_subset_8_imputed$Family_income)
 #write.csv(demo_subset_8_labeled,file = "Data/Working/demo_subset_8_labeled.csv")
 ```
 
