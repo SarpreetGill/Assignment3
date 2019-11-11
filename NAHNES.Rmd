@@ -2866,6 +2866,88 @@ inspect(has_hypertension.association.rules[1:100])
 > 
 ```
 
+### Interactive Scatter Plots for Cancer
+
+CANCER (large itemsets)
+
+<iframe src="cancer_large.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+CANCER (small itemsets)
+
+<iframe src="cancer_small.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+### Interactive Scatter Plots for Diabetes
+
+DIABETES (large itemsets)
+
+<iframe src="diabetes_large.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+DIABETES (small itemsets)
+
+<iframe src="diabetes_small.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+### Interactive Scatter Plots for Hypertension
+
+HYPER TENSION (large itemsets)
+
+<iframe src="hypertension_large.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+HYPER TENSION (small itemsets)
+
+<iframe src="hypertension_small.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+
+### Interactive Graph Visualization for Cancer
+
+CANCER (large itemset)
+
+<iframe src="cancer_graph_large.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+CANCER (small itemset)
+
+<iframe src="cancer_graph_small.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+
+
+### Interactive Graph Visualization for Diabetes
+
+DIABETES (large itemset)
+<iframe src="diabetes_graph_large.html" width="100%" height="600" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+DIABETES (small itemset)
+
+"hypertension_graph_large.html"
+<iframe src="diabetes_graph_small.html" width="100%" height="600" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+### Interactive Graph Visualization for Hypertension
+
+HYPERTENSION (large itemset)
+
+<iframe src="hypertension_graph_large.html" width="100%" height="600" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+HYPERTENSION (small itemset)
+
+<iframe src="hypertension_graph_small.html" width="100%" height="600" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+### Individual Rule Representation 
+
+Using top 20 rules for Cancer
+
+![](Figures/cancer_top20_paracoord.png){width=800px}
+
+Using top 20 rules for diabetes
+
+![](Figures/diabetes_top20_paracoord.png){width=800px}
+
+Using top 20 rules for hypertension
+
+![](Figures/diabetes_top20_paracoord.png){width=800px}
+
+### Association rules for not having diseases
+
+In the precedin section, we looked at associations for having diseases.  For this section, we look at the inverse, could their value in associations where there is no diseases/health conditions?  
+
+## Conclusion for Problem 2
 
 # Problem 3: Supervised 
 
