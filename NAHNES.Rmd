@@ -2805,66 +2805,118 @@ inspect(has_hypertension.association.rules[1:100])
 
 ### Interactive Scatter Plots for Cancer
 
-CANCER (large itemsets)
+```{r eval=TRUE, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE, cache=TRUE, results='hide'}
+library(arules)
+library(arulesViz)
 
-<iframe src="cancer_large.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+individuals_transaction_class <- read.transactions('Data/Working/transactiondata.csv', format = 'basket',sep=',')
+
+has_cancer.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.4, maxlen=15), appearance=list(default="lhs", rhs="HAS CANCER"))
+has_diabetes.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.7, maxlen=15), appearance=list(default="lhs", rhs="HAS DIABETES"))
+has_hypertension.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.8, maxlen=15), appearance=list(default="lhs", rhs="HAS HYPERTENSION"))
+
+has_cancer.association.rules_smallitemset <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.1, maxlen=3), appearance=list(default="lhs", rhs="HAS CANCER"))
+has_diabetes.association.rules_smallitemset <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.4, maxlen=3), appearance=list(default="lhs", rhs="HAS DIABETES"))
+has_hypertension.association.rules_smallitemset <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.4, maxlen=3), appearance=list(default="lhs", rhs="HAS HYPERTENSION"))
+
+no_cancer.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.9,maxlen=10), appearance=list(default="lhs", rhs="NO CANCER"))
+no_diabetes.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.9, maxlen=10), appearance=list(default="lhs", rhs="NO DIABETES"))
+no_hypertension.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.8, maxlen=10), appearance=list(default="lhs", rhs="NO HYPERTENSION"))
+
+
+top20cancerrules <- head(has_cancer.association.rules, n=20, by="confidence")
+top20cancerrules_smallitemset <- head(has_cancer.association.rules_smallitemset, n=20, by="confidence")
+
+top20diabetesrules <- head(has_diabetes.association.rules, n=20, by="confidence")
+top20diabetesrules_smallitemset <- head(has_diabetes.association.rules_smallitemset, n=20, by="confidence")
+
+top20hypertensionrules <- head(has_hypertension.association.rules, n=20, by="confidence")
+top20hypertensionrules_smallitemset <- head(has_hypertension.association.rules_smallitemset, n=20, by="confidence")
+
+```
+
+
+CANCER (large itemsets)
+```{r eval=TRUE, echo=FALSE, error=FALSE, warning=FALSE, message=FALSE,cache=TRUE }
+plotly_arules(has_cancer.association.rules)
+```
+
 
 CANCER (small itemsets)
 
-<iframe src="cancer_small.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+```{r eval=TRUE, echo=FALSE, error=FALSE, warning=FALSE, message=FALSE,cache=TRUE }
+plotly_arules(has_cancer.association.rules_smallitemset)
+```
 
 ### Interactive Scatter Plots for Diabetes
 
 DIABETES (large itemsets)
 
-<iframe src="diabetes_large.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+```{r eval=TRUE, echo=FALSE, error=FALSE, warning=FALSE, message=FALSE,cache=TRUE }
+plotly_arules(has_diabetes.association.rules)
+```
 
 DIABETES (small itemsets)
 
-<iframe src="diabetes_small.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+```{r eval=TRUE, echo=FALSE, error=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
+plotly_arules(has_diabetes.association.rules_smallitemset)
+```
 
 ### Interactive Scatter Plots for Hypertension
 
 HYPER TENSION (large itemsets)
 
-<iframe src="hypertension_large.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+```{r eval=TRUE, echo=FALSE, error=FALSE, warning=FALSE, message=FALSE,cache=TRUE }
+plotly_arules(has_hypertension.association.rules)
+```
 
 HYPER TENSION (small itemsets)
 
-<iframe src="hypertension_small.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
-
+```{r eval=TRUE, echo=FALSE, error=FALSE, warning=FALSE, message=FALSE,cache=TRUE }
+plotly_arules(has_hypertension.association.rules_smallitemset)
+```
 
 ### Interactive Graph Visualization for Cancer
 
 CANCER (large itemset)
 
-<iframe src="cancer_graph_large.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+```{r eval=TRUE, echo=FALSE, error=FALSE, warning=FALSE, message=FALSE,cache=TRUE }
+plot(top20cancerrules, method= "graph", engine = "htmlwidget")
+
+```
 
 CANCER (small itemset)
 
-<iframe src="cancer_graph_small.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
-
-
+```{r eval=TRUE, echo=FALSE, error=FALSE, warning=FALSE, message=FALSE,cache=TRUE }
+plot(top20cancerrules_smallitemset, method= "graph", engine = "htmlwidget")
+```
 
 ### Interactive Graph Visualization for Diabetes
 
 DIABETES (large itemset)
-<iframe src="diabetes_graph_large.html" width="100%" height="600" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+```{r eval=TRUE, echo=FALSE, error=FALSE, warning=FALSE, message=FALSE,cache=TRUE }
+ plot(top20diabetesrules, method= "graph", engine = "htmlwidget")
+```
 
 DIABETES (small itemset)
 
-"hypertension_graph_large.html"
-<iframe src="diabetes_graph_small.html" width="100%" height="600" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+```{r eval=TRUE, echo=FALSE, error=FALSE, warning=FALSE, message=FALSE,cache=TRUE }
+plot(top20diabetesrules_smallitemset, method= "graph", engine = "htmlwidget")
+```
 
 ### Interactive Graph Visualization for Hypertension
 
 HYPERTENSION (large itemset)
 
-<iframe src="hypertension_graph_large.html" width="100%" height="600" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
-
+```{r eval=TRUE, echo=FALSE, error=FALSE, warning=FALSE, message=FALSE,cache=TRUE }
+plot(top20hypertensionrules, method= "graph", engine = "htmlwidget")
+```
 HYPERTENSION (small itemset)
 
-<iframe src="hypertension_graph_small.html" width="100%" height="600" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+```{r eval=TRUE, echo=FALSE, error=FALSE, warning=FALSE, message=FALSE,cache=TRUE }
+ plot(top20hypertensionrules_smallitemset, method= "graph", engine = "htmlwidget")
+```
 
 ### Individual Rule Representation 
 
