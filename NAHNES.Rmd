@@ -1567,34 +1567,6 @@ write.csv(ques_subset_labelled,file = "Data/Working/ques_subset_labelled.csv")
 ```
 \pagebreak
 
-## Combine the clean datasets 
-
-```{r, eval=FALSE, echo=TRUE}
-data1 = read.csv("Data/Working/demo_subset_8_labeled.csv", header = TRUE, na.strings = c("NA","","#NA")) [-1]
-#data2 = read.csv("Data/Working/diet_subset_processed.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
-# Replace diet_subset_processed.csv with ten_attributes_diet_subset  
-data2 = read.csv("Data/Working/ten_attributes_diet_subset_labelled.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
-
-data3 = read.csv("Data/Working/examination_labeled.csv", header = TRUE, na.strings = c("NA","","#NA")) [-1]
-data4 = read.csv("Data/Working/labs_subset_labelled.csv", header = TRUE, na.strings = c("NA","","#NA")) [-1]
-data5 = read.csv("Data/Working/meds_subset_labelled.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
-data5 = read.csv("Data/Working/ques_subset_labelled.csv", header = TRUE, na.strings = c("NA","","#NA"))[-c(1,2)]
-
-# Rename columns to meaningful names(BELOW IS NOT REQUIRED WITH ten_attributes_subset_labelled.csv)
-#data2 = dplyr::rename(
-#  data2,
-#  "ID"                  = "SEQN")
-  
-data_selected <- merge(data1, data2,by="ID")
-data_selected <- merge(data_selected, data3,by="ID")
-data_selected <- merge(data_selected, data4,by="ID")
-data_selected <- merge(data_selected, data5,by="ID")
-
-write.csv(data_selected,file = "Data/Working/data_selected.csv")
-```
-
-
-We need to enter the code to combine all cleaned datasets here.
 
 # Visualization
 
@@ -2913,6 +2885,7 @@ In the precedin section, we looked at associations for having diseases.  For thi
 
 # Problem 3: Supervised 
 
+
 Target attributes need to be added .   
 
 ## Create target dataset
@@ -2958,9 +2931,20 @@ summary(target_disease_dataset)
 
 Given an individual has diabetes, predict individual has cancer or hypertension.  Use the less amount of data possible to keep costs low.  
 
-Time Permitting
-```{r, eval=FALSE, echo=TRUE}
-```
+
+
+## DIABETES 
+
+
+### PCA FOR DIABETES
+
+
+
+
+
+
+
+
 
 ## Feature Selection 
 
