@@ -2886,8 +2886,6 @@ In the precedin section, we looked at associations for having diseases.  For thi
 # Problem 3: Supervised 
 
 
-Target attributes need to be added .   
-
 ## Create target dataset
 
 As part of the business problem, we focusing on 3 targets(diabetes, hypertension, cancer):
@@ -2936,9 +2934,73 @@ Given an individual has diabetes, predict individual has cancer or hypertension.
 ## DIABETES 
 
 
+### Marking data for Diabetes
+
+```{r eval=FALSE, echo=TRUE}
+ques_data_imputed   = read.csv("Data/Clean_Imputes/ques_data_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
+target_columns <- c("SEQN","DIQ010")
+Diabetes_dataset = subset(ques_data_imputed, select=target_columns)
+# Change disease indicators into factors
+Diabetes_dataset$DIQ010 <- as.numeric(Diabetes_dataset$DIQ010)
+#Create new column for target values
+Diabetes_dataset = cbind(Diabetes_dataset, HAS_DIABETES= ifelse(Diabetes_dataset$DIQ010 == 1, "YES", "NO" ) )
+Diabetes_dataset = cbind(Diabetes_dataset, TARGET= ifelse(Diabetes_dataset$DIQ010 == 1,1,0))
+Diabetes_dataset<- Diabetes_dataset[,-2]
+rm(ques_data_imputed)
+#write.csv(Diabetes_dataset,file = "Data/Working/Diabetes_dataset.csv",row.names = FALSE)
+Diabetes_dataset   = read.csv("Data/Working/Diabetes_dataset.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+```
+
+### DEMOGRAPHIC DATA MINING FOR DIABETES
+
+We now will keep the associated features related to Diabetes disease using PCA and Correlation plots.
+
+```{r eval=FALSE, echo=TRUE}
+
+# Correlation for Demographics
+combi_cor=rcorr(as.matrix(Demo_target[,-c(1,2)]))
+corrplot(combi_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt = 45)
+
+
+
+####### Using PCA 
+Test_Data<-scale(Demo_target[,-c(1,2)])
+Demo_target2 <-Demo_target
+pcmp <- princomp(Test_Data,retx=TRUE, cor =TRUE, center=TRUE, scale=TRUE)
+
+Demo_target2 <- as.data.frame(cbind(Demo_target2, pcmp$scores[,1:5]))
+
+```
+
+#### Correlation Plot:
+```{r eval=FALSE, echo=TRUE}
+corrplot(combi_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt = 45)
+
+```
+
+
+![](Figures/Supervised/Demo_Corr.png){width=800px}
+
+#### Using PCA:
+
+
 ### PCA FOR DIABETES
 
 
+```{r eval=FALSE, echo=TRUE}
+pcmp <- princomp(Test_Data,retx=TRUE, cor =TRUE, center=TRUE, scale=TRUE)
+
+Demo_target2 <- as.data.frame(cbind(Demo_target2, pcmp$scores[,1:5]))
+
+plot(pcmp, main = "PCA for Demographics", col.axis="blue",npcs = 20)
+abline(h = 1, col="red", lty=5)
+
+plot(pcmp, type = "l", main = "PCA for Demographics", col.axis="blue",npcs = 20)
+abline(h = 1, col="red", lty=5)
+abline(v = 10, col="blue", lty=5)
+
+```
 
 
 
