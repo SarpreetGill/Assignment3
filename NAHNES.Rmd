@@ -297,10 +297,56 @@ As per our guidelines, we will select attributes/columns of interest based on ou
 
 https://wwwn.cdc.gov/nchs/nhanes/continuousnhanes/default.aspx?BeginYear=2013
 
-We have inspected the above data dictionary and we have selected the following relevant values for further analysis:
+We first remove the variables having near zero variance in the dataset.Later we will remove the variables having more that 25% missing values in the dataset for Demographics.
 
-### Demographic
+```{r, eval=F, echo=TRUE, warning = F, message=F}
+
+
+if (length(nearZeroVar(demographic_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
+                       names = FALSE, foreach = FALSE, allowParallel = TRUE)) > 0){
+  demographic_major <- demographic_major[, -nearZeroVar(demographic_major, freqCut = 90/2, uniqueCut = 10, saveMetrics = FALSE,
+                                                        names = FALSE, foreach = FALSE, allowParallel = TRUE)] 
+  
+}
+
+
+# Check the columns for missing values >25%
+
+sapply(demographic_major, function(x) ((sum(is.na(x))))*.01) %>%
+  stack %>% rev %>% filter(values > 25) %>% setNames(nm=c("variable", "missing"))
+
+
+Null_Num <- apply(demographic_major, 2, function(x) length(which(is.na(x) | x == "NA"))/length(x))
+Null_Colms <- colnames(demographic_major)[Null_Num > 0.25]
+demographic75 <- select(demographic_major, -Null_Colms)
+  
+```
+
+We will create an index to help up to quickly identify the variables and create a code to impute the same . We will use MICE package to compute the same.
+
+```{r, eval=F, echo=TRUE, warning = F, message=F}
+
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### Demographic 
 We have selected the following 8 relevant columns among the 32 that have less than 25% of missing values:
+
 
 * **ID (SEQN)** - Respondent sequence number..
 * **Gender (RIAGENDR)** - Gender of the participant..
