@@ -1980,6 +1980,57 @@ rules_for_individuals <- apriori(individuals_transaction_class, parameter = list
 
 We plot the 20 most frequent values found within the data. 
 
+![](Figures/absolute_value_frequency_plot.png){width=500px}
+
+Per the above, as expected, US citizen, right-handed, born in US are some of the most frequent values.  Also, it is also that the values for not having diseases is also at the top of the list.  
+
+OVer 400,000 rules are produced for entire data, let's take a glance at 5 of them below.
+
+```{r eval=FALSE, echo=TRUE}
+ inspect(rules_for_individuals[1:5])
+    lhs                                                                                                                                                                                                                                         rhs                                               support confidence     lift count
+[1] {}                                                                                                                                                                                                                                       => {Right-handed}                                0.874363155  0.8743632 1.000000  8581
+[2] {}                                                                                                                                                                                                                                       => {Has not requested emergency food assistance} 0.889341757  0.8893418 1.000000  8728
+[3] {}                                                                                                                                                                                                                                       => {US citizen}                                  0.905339311  0.9053393 1.000000  8885
+[4] {Mostly visits doctors office for healthcare , Does not play video games , No smokers present in house , Has not rode in a vehicle within the past 7 days , HAS DIABETES , NO CANCER , NO HYPERTENSION}                                  => {Has not requested emergency food assistance} 0.001018953  1.0000000 1.124427    10
+[5] {Mostly visits doctors office for healthcare , Plays less than an hours of video games over the past 30 days , Smokers present in house , Has not rode in a vehicle within the past 7 days , NO DIABETES , NO CANCER , HAS HYPERTENSION} => {US citizen}                                  0.001018953  1.0000000 1.104558    10
+
+```
+
+In the above output, we can see different association mining rules for the entire dataset.  The rules have LHS and RHS which demonstrate the relation between itemsets(collections of values).  The items on LHS are associated and occur with the single item on the RHS. Now we will proceed to create association rules for having and not having the particular diseases (cancer, diabetes, hypertension).  The RHS will be set to the particular health conditions/disases.  And we will observe what typse of associations are discovered on the LHS. 
+
+
+### Association rules for having diseases
+
+In order to produce a list of association rules, we had to experiement with "conf"(confidence) parameter.  For example, with positive cancer rules, we had to lower the confidence to 0.4 to produce mining rules.  For each health condition(disaease),we have created 2 sets of rules.  The first set of rules allow larger number of items to be produced on the LHS (maxlen=15); whereas, the second set of rules forces the rules to have a small amount of rules (maxlen=3).  
+
+```{r eval=FALSE, echo=TRUE}
+
+# Association for having cancer (large itemset allowed on LHS, maxlen=15)
+has_cancer.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.4, maxlen=15), appearance=list(default="lhs", rhs="HAS CANCER"))
+
+# Association for having cancer (small itemset allowed on LHS, maxlen=3)
+has_cancer.association.rules_smallitemset <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.1, maxlen=3), appearance=list(default="lhs", rhs="HAS CANCER"))
+
+# Association for having diabetes (large itemset allowed on LHS, maxlen=15)
+has_diabetes.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.7, maxlen=15), appearance=list(default="lhs", rhs="HAS DIABETES"))
+
+# Association for having diabetes (small itemset allowed on LHS, maxlen=3)
+has_diabetes.association.rules_smallitemset <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.4, maxlen=3), appearance=list(default="lhs", rhs="HAS DIABETES"))
+
+# Association for having hypertension (large itemset allowed on LHS, maxlen=15)
+has_hypertension.association.rules_smallitemset <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.4, maxlen=3), appearance=list(default="lhs", rhs="HAS HYPERTENSION"))
+
+# Association for having hypertension (small itemset allowed on LHS, maxlen=3)
+has_hypertension.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.8, maxlen=15), appearance=list(default="lhs", rhs="HAS HYPERTENSION"))
+
+```
+
+Now with association rules, we can examine them and observe the LHS items that are found in conjunction with various diseases: 
+
+### Cancer: Association Rules 
+
+First, we look at large item sets.  
 
 # Problem 3: Supervised 
 
