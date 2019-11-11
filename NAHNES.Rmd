@@ -2951,15 +2951,15 @@ HYPERTENSION (small itemset)
 
 ### Individual Rule Representation 
 
-Using top 20 rules for Cancer
+With the association rules for cancer, we’ve plotted the top 20 values that were represented in the itemsets.  
 
 ![](Figures/cancer_top20_paracoord.png){width=800px}
 
-Using top 20 rules for diabetes
+With the association rules for diabetes, we’ve plotted the top 20 values that were represented in the itemsets.  
 
 ![](Figures/diabetes_top20_paracoord.png){width=800px}
 
-Using top 20 rules for hypertension
+With the association rules for hypertension, we’ve plotted the top 20 values that were represented in the itemsets.  
 
 ![](Figures/diabetes_top20_paracoord.png){width=800px}
 
