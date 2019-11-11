@@ -3415,7 +3415,9 @@ bwplot(resamples, metric="ROC")
 ![](Figures/combined/bwplot_model_list.png){width=500px}
 
 
-We see here that KNN have a great variability depending of the processed sample. Almost all the models achieve a great auc with some variability.
+We see here that KNN have a great variability depending of the processed sample. 
+The other models achieve a great auc with a very low variability
+
 
 
 ```{r, eval=FALSE, echo=TRUE}
