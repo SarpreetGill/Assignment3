@@ -7,13 +7,13 @@ lapply(c("plyr",
          "mice",
          "scales",
          "randomForest",
-         "psych",`
+         "psych",
          "factoextra",
          "AMR",
          "RColorBrewer",
          "caret",
          "AMR",
-         "mice",`
+         "mice",
          "randomForest",
          "data.table",
          "car",
@@ -1761,7 +1761,7 @@ Demo_target <- merge(Diabetes_dataset, demographic_imputed,by="SEQN")
 Demo_target   = read.csv("Data/Target Datasets/Demo_target.csv", header = TRUE, na.strings = c("NA","","#NA"))
 
 
-# Correlation for Demo
+# Correlation for Demographics
 combi_cor=rcorr(as.matrix(Demo_target[,-c(1,2)]))
 corrplot(combi_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt = 45)
 
@@ -1769,18 +1769,12 @@ corrplot(combi_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt
 
 ####### Using PCA 
 Test_Data<-scale(Demo_target[,-c(1,2)])
-Demo_target2 <-Demo_target
 pcmp <- princomp(Test_Data,retx=TRUE, cor =TRUE, center=TRUE, scale=TRUE)
 
 Demo_target2 <- as.data.frame(cbind(Demo_target2, pcmp$scores[,1:5]))
 
 plot(pcmp, main = "PCA for Species", col.axis="blue")
 plot(pcmp, type = "l", main = "PCA for Species", col.axis="blue")
-
-ggplot(Demo_target2, aes(Comp.1, Comp.2, Comp.3, col = HAS_DIABETES, fill = HAS_DIABETES)) +
-  stat_ellipse(geom = "polygon", col = "black", alpha = 0.5) +
-  geom_point(shape = 21, col = "black")+
-  ggtitle("Before Feature selection ", subtitle = "Using PCA")
 
 
 library("factoextra")
@@ -1832,7 +1826,6 @@ Diet_target <- merge(Diabetes_dataset, diet_imputed,by="SEQN")
 Diet_target   = read.csv("Data/Target Datasets/Diet_target.csv", header = TRUE, na.strings = c("NA","","#NA"))
 
 Test_Data<-scale(Diet_target[,-c(1,2)])
-Diet_target2 <-Diet_target
 
 # Correlation for Diet
 #combi_cor=rcorr(as.matrix(Diet_target[,-c(1,2)]))
@@ -1849,11 +1842,6 @@ Diet_target2 <- as.data.frame(cbind(Diet_target2, pcmp$scores[,1:2]))
 
 plot(pcmp, main = "PCA for Species", col.axis="blue")
 plot(pcmp, type = "l", main = "PCA for Species", col.axis="blue")
-
-ggplot(Diet_target2, aes(Comp.1, Comp.2, col = HAS_DIABETES, fill = HAS_DIABETES)) +
-  stat_ellipse(geom = "polygon", col = "black", alpha = 0.5) +
-  geom_point(shape = 21, col = "black")+
-  ggtitle("Before Feature selection ", subtitle = "Using PCA")
 
 
 library("factoextra")
@@ -1907,7 +1895,6 @@ Exam_target <- merge(Diabetes_dataset, exam_imputed,by="SEQN")
 Exam_target   = read.csv("Data/Target Datasets/Exam_target.csv", header = TRUE, na.strings = c("NA","","#NA"))
 
 Test_Data<-scale(Exam_target[,-c(1,2)])
-Exam_target2 <-Exam_target
 
 
 # Correlation for Exam
@@ -1924,12 +1911,6 @@ Exam_target2 <- as.data.frame(cbind(Exam_target2, pcmp$scores[,1:2]))
 
 plot(pcmp, main = "PCA for Species", col.axis="blue")
 plot(pcmp, type = "l", main = "PCA for Species", col.axis="blue")
-
-ggplot(Exam_target2, aes(Comp.1, Comp.2, col = HAS_DIABETES, fill = HAS_DIABETES)) +
-  stat_ellipse(geom = "polygon", col = "black", alpha = 0.5) +
-  geom_point(shape = 21, col = "black")+
-  ggtitle("Before Feature selection ", subtitle = "Using PCA")
-
 
 library("factoextra")
 fviz_pca_ind(pcmp, geom.ind = "point", pointshape = 21, 
@@ -1971,12 +1952,6 @@ fviz_pca_ind(pcmp_Exam_final, geom.ind = "point", pointshape = 21,
   ggtitle("2D PCA-plot from 10 feature dataset") +
   theme(plot.title = element_text(hjust = 0.5))
 
-Exam_target_final_pca <-as.data.frame(cbind(Exam_target_final, pcmp_Exam_final$scores[,1:4]))
-
-ggplot(Exam_target_final_pca, aes(Comp.1, Comp.2, col = HAS_DIABETES, fill = HAS_DIABETES)) +
-  stat_ellipse(geom = "polygon", col = "black", alpha = 0.5) +
-  geom_point(shape = 21, col = "black")+
-  ggtitle("Before Feature selection ", subtitle = "Using PCA")
 
 ########################################## TARGET WITH Labs ############
 
@@ -1990,7 +1965,6 @@ Labs_target <- merge(Diabetes_dataset, labsdata_imputed,by="SEQN")
 Labs_target   = read.csv("Data/Target Datasets/Labs_target.csv", header = TRUE, na.strings = c("NA","","#NA"))
 
 Test_Data<-scale(Labs_target[,-c(1,2)])
-Labs_target2 <-Labs_target
 
 
 # Correlation for Labs
@@ -2007,12 +1981,6 @@ Labs_target2 <- as.data.frame(cbind(Labs_target2, pcmp$scores[,1:6]))
 
 plot(pcmp, main = "PCA for Species", col.axis="blue")
 plot(pcmp, type = "l", main = "PCA for Species", col.axis="blue")
-
-ggplot(Labs_target2, aes(Comp.1, Comp.2, col = HAS_DIABETES, fill = HAS_DIABETES)) +
-  stat_ellipse(geom = "polygon", col = "black", alpha = 0.5) +
-  geom_point(shape = 21, col = "black")+
-  ggtitle("Before Feature selection ", subtitle = "Using PCA")
-
 
 library("factoextra")
 fviz_pca_ind(pcmp, geom.ind = "point", pointshape = 21, 
@@ -2066,7 +2034,6 @@ ques_target <- merge(Diabetes_dataset, ques_data_imputed,by="SEQN")
 ques_target   = read.csv("Data/Target Datasets/ques_target.csv", header = TRUE, na.strings = c("NA","","#NA"))
 
 Test_Data<-scale(ques_target[,-c(1,2)])
-ques_target2 <-ques_target
 
 
 # Correlation for ques
@@ -2083,11 +2050,6 @@ ques_target2 <- as.data.frame(cbind(ques_target2, pcmp$scores[,1:2]))
 
 plot(pcmp, main = "PCA for Species", col.axis="blue")
 plot(pcmp, type = "l", main = "PCA for Species", col.axis="blue")
-
-ggplot(ques_target2, aes(Comp.1, Comp.2, col = HAS_DIABETES, fill = HAS_DIABETES)) +
-  stat_ellipse(geom = "polygon", col = "black", alpha = 0.5) +
-  geom_point(shape = 21, col = "black")+
-  ggtitle("Before Feature selection ", subtitle = "Using PCA")
 
 
 library("factoextra")
