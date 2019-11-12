@@ -1982,7 +1982,7 @@ has_hypertension.association.rules <- apriori(individuals_transaction_class, par
 
 
 
-#### Cancer: Association Rules 
+#### Cancer
 
 For cancer association rules, we will examine both large and small items found in conjunction with an individual having cancer.  
 
@@ -2103,7 +2103,7 @@ Next, we inspected rules where individual has cancer and observed which small it
 
 In order to build the association mining lists, we had to reduce confidence levels to under 0.5.  
 
-#### Diabetes: Association Rules
+#### Diabetes
 
 As with cancer association rules, we will examine both large and small items found in conjunction with an individual having diabetes.
 
@@ -2305,7 +2305,7 @@ For small itemsets,  all the rules include having cancer in association with dia
 
 
 
-#### Hypertention: Association Rules
+#### Hypertention
 
 
 First, we inspected the association rules with large itemsets for those individuals with hypertension.  Rules with confidence levels of 1 are also found within this itemset.  Unlike the previous 2 health conditions, race is appearing more prominently within the association rules.      
