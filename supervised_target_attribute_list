@@ -1,0 +1,35 @@
+TARGET
+BPXML1 - MIL: maximum inflation levels (mm Hg)
+BPXSY2 - Systolic: Blood pressure (second reading) mm Hg
+BPXSY3 - Systolic: Blood pressure (third reading) mm Hg
+DIQ010 - 
+DIQ050 - Take Insulin? 
+DMDHHSZE - Number of adults aged 60 years or older in the household
+DMDHRAGE - HH reference person's age in years
+DR1TS040 - SFA 4:0 (Butanoic) (gm)
+DR1TS060 - SFA 6:0 (Hexanoic) (gm)
+DR1TS100 - SFA 10:0 (Decanoic) (gm)
+DR1TS160 - SFA 16:0 (Hexadecanoic) (gm)
+DR1TS180 - SFA 18:0 (Octadecanoic) (gm)
+DR1TSFAT - Saturated Fat
+DRD340  - Please look at this list of shellfish. During the past 30 days did you eat any types of shellfish listed on this card? Include any foods that had shellfish in them such as sandwiches, soups, or salads.
+DRD360 - Please look at this list of fish. During the past 30 days did you eat any types of fish listed on this card? Include any foods that had fish in them such as sandwiches, soups, or salads.
+DRQSDIET - Are you currently on any kind of diet, either to lose weight or for some other health-related reason?
+FSD032A - Now I am going to read you several statements that people have made about their food situation. For these statements, please tell me whether the statement was often true, sometimes true, or never true for {you/your household} in the last 12 months, that is since last {DISPLAY CURRENT MONTH}. The first statement is . . . {I/we} worried whether {my/our} food would run out before {I/we} got money to buy more.
+FSD032B - [The next statement is . . .] The food that {I/we} bought just didn't last, and {I/we} didn't have money to get more.
+FSD032C - [The next statement is . . .] {I/we} couldn't afford to eat balanced meals.
+FSDAD  - Adult food security category for last 12 months
+FSDHH - Household food security category for last 12 months
+LBDHDD - Direct HDL-Cholesterol (mg/dL)
+LBDHDDSI - Direct HDL-Cholesterol (mmol/L)
+LBXGH - Glycohemoglobin (%)
+LBXSGL - Glucose, refrigerated serum (mg/dL)
+OHX07TC - Tooth Count: Upper right lateral incisor (LI)
+OHX23TC - Tooth Count: Lower left lateral incisor (LI)
+OHX24TC - Tooth Count: Lower left central incisor (CI) 
+OHX25TC - Tooth Count: Lower right central incisor (CI)
+OHX26TC -  Tooth Count: Lower right lateral incisor (LI)
+PEASCST1 - Blood Pressure Time in Seconds
+RIDAGEYR - Age
+RXDUSE - In the past 30 days, have you used or taken medication for which a prescription is needed? Do not include prescription vitamins or minerals you may have already told me about.
+
