@@ -2982,16 +2982,23 @@ HYPERTENSION (small itemset)
  plot(top20hypertensionrules_smallitemset, method= "graph", engine = "htmlwidget")
 ```
 
-### Individual Rule Representation 
+### Individual Rule Representation  {.tabset}
+
+
+#### cancer 
 
 With the association rules for cancer, we’ve plotted the top 20 values that were represented in the itemsets.  
 
+
 ![](Figures/cancer_top20_paracoord.png){width=800px}
+
+#### diabetes
 
 With the association rules for diabetes, we’ve plotted the top 20 values that were represented in the itemsets.  
 
 ![](Figures/diabetes_top20_paracoord.png){width=800px}
 
+#### hypertension 
 With the association rules for hypertension, we’ve plotted the top 20 values that were represented in the itemsets.  
 
 ![](Figures/diabetes_top20_paracoord.png){width=800px}
