@@ -58,9 +58,9 @@ The company has a mature R&D function in relation to other pharmaceutical compan
 
 The marketing department is struggling with high costs of television advertisements and is interested in ways to reduce their costs while still hitting their target markets for both the advertisement of drugs and attracting candidates for trails.
 
-## Third Problem: Reduce lab costs and create referral lists
+## Third Problem: Reduce lab/data collection costs 
 
-For candidates already enrolled in Diabetes program, is there a way to tell if they have other diseases such as cancer or hypertension with the minimum amount of questions?  The cost of performing  lab costs could be reduced and if the candidates does have another disease, they could be used as a referral into another drug testing plan for that disease.  
+With the healthcare dataset, the business has noted there are 1000s of attributes within the data.  There are also many missing values throughout the data.  The business would like to enrol more patients with their diabetes drugs, but they are unsure which attributes are the most meaningful in relation to diabetes.  Could there be a smaller subset of data could help predict diabetes, because data collection could be refined to only capture those elements.   
 
 The company would ask us about possible wraping the model as a robust, easy to use App that could be present to managment and corporate to assist with the decision making, based on a few user inputs.
 
