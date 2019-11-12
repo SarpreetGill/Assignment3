@@ -153,11 +153,13 @@ questionnaire = read.csv("Data/Raw/questionnaire.csv", header = TRUE, na.strings
 # Merging files
 data_list = list(demographic,examination,diet,labs,questionnaire,medications)
 data_joined = join_all(data_list)
+
 ```
 
 \pagebreak
 
-## Checking for missing data
+
+## Checking for missing data {.tabset}
 
 It is always essentialto check for missing values and consider how to addreess them in the model.
 
@@ -291,11 +293,13 @@ ggsave(plot = questionnaire_MS_plot, width = 8, height = 4, dpi = 300,
 
 \pagebreak
 
-## Data Imputation
+## Data Imputation {.tabset}
 
 As per our guidelines, we will select attributes/columns of interest based on our business/personal judgements. The full NHANES data dictionary/variable list is available at the following URL:
 
 https://wwwn.cdc.gov/nchs/nhanes/continuousnhanes/default.aspx?BeginYear=2013
+
+### Demographic 
 
 We first remove the variables having near zero variance in the dataset.Later we will remove the variables having more that 25% missing values in the dataset for Demographics.
 
@@ -410,7 +414,7 @@ demographic_imputed   = read.csv("Data/Clean_Imputes/demographic_imputed.csv", h
 
 ```
 
-### Demographic 
+
 We have selected the following 8 relevant columns among the 32 that have less than 25% of missing values:
 
 
@@ -428,8 +432,6 @@ Now we will label the dataset for visualizations.
 
 ```{r, eval=FALSE, echo=TRUE, warning = F, message=F}
 
-multi.hist(demo_subset_8_imputed[,sapply(demo_subset_8_imputed, is.numeric)])
-  
 demo_subset_8<- demo_subset_8 %>% 
   rename("ID"                 =         "SEQN",  
          "Gender"             =     "RIAGENDR",  
@@ -502,107 +504,6 @@ demo_subset_8_labeled  = read.csv("Data/Working/demo_subset_8_labeled.csv", head
 
 \pagebreak
 
-#### Gender
-```{r, eval=FALSE, echo=TRUE, warning = F, message=F}
-##########################  Gender #############
-Gender  <- demo_subset_8_labeled %>%
-  group_by(Gender) %>%
-  summarize(count=n()) %>%
-  arrange(desc(count))
-#Pie plot
-Gender_plot <- ggplot(Gender, aes(x = "", y =  round(100*count/sum(count), 1), 
-                                  fill =  reorder(Gender,count))) +
-  geom_bar(width = 1, stat = "identity", color = "white") +
-  coord_polar("y", start = 0)+
-  geom_text(aes(y = cumsum(100*count/sum(count)) - 0.5*(100*count/sum(count)),
-                label = paste(round(count/sum(count)*100),"%")), color = "black")+
-  ggtitle("Pie plot of Gender")+
-  scale_fill_grey(start = 0.8, end = 0.2,"Gender") + theme_void()
-#ggsave(plot = Gender_plot, width = 3, height = 3, dpi = 300, 
-#       filename = "Figures/Gender_plot.png")
-```
-![](Figures/Gender_plot.png){width=300px}
-
-\pagebreak
-
-#### Country of birth
-```{r, eval=FALSE, echo=TRUE, warning = F, message=F}
-##########################  Country_of_birth #############
-Country_of_birth  <- demo_subset_8_labeled %>%
-  group_by(Country_of_birth) %>%
-  summarize(count=n()) %>%
-  arrange(desc(count))%>%
-  mutate(pct = count / sum(count),
-         pctlabel = paste0(round(pct*100), "%"),
-         lab.ypos = 100*cumsum(pct) - 0.5  *100*pct) 
-#Bar plot
-require(scales)
-Birth_plot <- ggplot(Country_of_birth, aes(x = reorder(Country_of_birth, -pct),y = pct)) + 
-  geom_bar(stat = "identity", fill = "indianred3", color = "black") +
-  geom_text(aes(label = pctlabel), vjust = -0.25) +
-  scale_y_continuous(labels = percent) +
-  labs(x = "Country of birth", y = "percantage", title  = "Bar Chart of Country of birth")  
-#ggsave(plot = Birth_plot, width = 3, height = 3, dpi = 300, 
- #      filename = "Figures/Birth_plot.png")
-```
-![](Figures/Birth_plot.png){width=300px}
-
-\pagebreak
-
-#### Marital status
-```{r, eval=FALSE, echo=TRUE, warning = F, message=F}
-########################  Marital_status  #######################
-Marital_status  <- demo_subset_8_labeled %>%
-  group_by(Marital_status) %>%
-  summarize(count=n()) %>%
-  arrange(desc(count))%>%
-  mutate(pct = count / sum(count),
-         pctlabel = paste0(round(pct*100), "%"),
-         lab.ypos = 100*cumsum(pct) - 0.5  *100*pct) 
-#Bar plot
-require(scales)
-Marital_plot <- ggplot(Marital_status, aes(x = reorder(Marital_status, -pct),y = pct)) + 
-  geom_bar(stat = "identity", fill = "indianred3", color = "black") +
-  geom_text(aes(label = pctlabel), vjust = -0.25) +
-  scale_y_continuous(labels = percent) +
-  labs(x = "Marital statush", y = "percantage", title  = "Bar Chart of Marital status in US ")  +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-#ggsave(plot = Marital_plot, width = 3, height = 3, dpi = 300, 
-#       filename = "Figures/Marital_plot.png")
-```
-![](Figures/Marital_plot.png){width=400px}
-
-\pagebreak
-
-#### Race
-```{r, eval=FALSE, echo=TRUE, warning = F, message=F}
-########################  Race  #######################
-Race  <- demo_subset_8_labeled %>%
-  group_by(Race) %>%
-  summarize(count=n()) %>%
-  arrange(desc(count))%>%
-  mutate(pct = count / sum(count),
-         pctlabel = paste0(round(pct*100), "%"),
-         lab.ypos = 100*cumsum(pct) - 0.5  *100*pct) 
-#Bar plot
-require(scales)
-Race_plot <- ggplot(Race, aes(x = reorder(Race, -pct),y = pct)) + 
-  geom_bar(stat = "identity", fill = "indianred3", color = "black") +
-  geom_text(aes(label = pctlabel), vjust = -0.25) +
-  scale_y_continuous(labels = percent) +
-  labs(x = "Race", y = "percantage", title  = "Bar Chart of Race in US ")  +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-#ggsave(plot = Race_plot, width = 3, height = 3, dpi = 300, 
-#       filename = "Figures/Race_plot.png")
-```
-![](Figures/Race_plot.png){width=400px}
-
-#### Conclusion
-Our samples is pretty representative of the US population: 
-
-* The  US age structure is 20% under 15, 67% between 15 and 64 years old, and 13% over 65 (https://countrymeters.info/en/United_States_of_America_(USA)). 
-* The Gender ratio is 51% for female and 49% for male (http://statisticstimes.com/demographics/countries-by-sex-ratio.php)
-* The Race and ethnicity are:  White 	72.4%, Hispanic and Latino Americans  16.3%, Black or African American 	12.6%, Asian 	4.8%, Native 1.1 %, and the others 9.1 %.
 
 
 ### Diet
@@ -1572,13 +1473,122 @@ write.csv(ques_subset_labelled,file = "Data/Working/ques_subset_labelled.csv")
 
 Perform visualization against the clean datasets and the union of the cleaned datasets
 
-## Visualization for Demographic
+## Visualization for Demographic {.tabset}
+
+
+Our samples is pretty representative of the US population: 
+
+* The  US age structure is 20% under 15, 67% between 15 and 64 years old, and 13% over 65 (https://countrymeters.info/en/United_States_of_America_(USA)). 
+* The Gender ratio is 51% for female and 49% for male (http://statisticstimes.com/demographics/countries-by-sex-ratio.php)
+* The Race and ethnicity are:  White 	72.4%, Hispanic and Latino Americans  16.3%, Black or African American 	12.6%, Asian 	4.8%, Native 1.1 %, and the others 9.1 %
+
 
 Visuals against the cleaned dataset 
+
+
+### Gender
+```{r, eval=FALSE, echo=TRUE, warning = F, message=F}
+####################  Gender ##########
+Gender  <- demo_subset_8_labeled %>%
+  group_by(Gender) %>%
+  summarize(count=n()) %>%
+  arrange(desc(count))
+#Pie plot
+Gender_plot <- ggplot(Gender, aes(x = "", y =  round(100*count/sum(count), 1), 
+                                  fill =  reorder(Gender,count))) +
+  geom_bar(width = 1, stat = "identity", color = "white") +
+  coord_polar("y", start = 0)+
+  geom_text(aes(y = cumsum(100*count/sum(count)) - 0.5*(100*count/sum(count)),
+                label = paste(round(count/sum(count)*100),"%")), color = "black")+
+  ggtitle("Pie plot of Gender")+
+  scale_fill_grey(start = 0.8, end = 0.2,"Gender") + theme_void()
+#ggsave(plot = Gender_plot, width = 3, height = 3, dpi = 300, 
+#       filename = "Figures/Gender_plot.png")
+```
+![](Figures/Gender_plot.png){width=300px}
+
+\pagebreak
+
+### Country of birth
+```{r, eval=FALSE, echo=TRUE, warning = F, message=F}
+####################  Country_of_birth ##########
+Country_of_birth  <- demo_subset_8_labeled %>%
+  group_by(Country_of_birth) %>%
+  summarize(count=n()) %>%
+  arrange(desc(count))%>%
+  mutate(pct = count / sum(count),
+         pctlabel = paste0(round(pct*100), "%"),
+         lab.ypos = 100*cumsum(pct) - 0.5  *100*pct) 
+#Bar plot
+require(scales)
+Birth_plot <- ggplot(Country_of_birth, aes(x = reorder(Country_of_birth, -pct),y = pct)) + 
+  geom_bar(stat = "identity", fill = "indianred3", color = "black") +
+  geom_text(aes(label = pctlabel), vjust = -0.25) +
+  scale_y_continuous(labels = percent) +
+  labs(x = "Country of birth", y = "percantage", title  = "Bar Chart of Country of birth")  
+#ggsave(plot = Birth_plot, width = 3, height = 3, dpi = 300, 
+ #      filename = "Figures/Birth_plot.png")
+```
+![](Figures/Birth_plot.png){width=300px}
+
+\pagebreak
+
+### Marital status
+```{r, eval=FALSE, echo=TRUE, warning = F, message=F}
+##################  Marital_status  ##################
+Marital_status  <- demo_subset_8_labeled %>%
+  group_by(Marital_status) %>%
+  summarize(count=n()) %>%
+  arrange(desc(count))%>%
+  mutate(pct = count / sum(count),
+         pctlabel = paste0(round(pct*100), "%"),
+         lab.ypos = 100*cumsum(pct) - 0.5  *100*pct) 
+#Bar plot
+require(scales)
+Marital_plot <- ggplot(Marital_status, aes(x = reorder(Marital_status, -pct),y = pct)) + 
+  geom_bar(stat = "identity", fill = "indianred3", color = "black") +
+  geom_text(aes(label = pctlabel), vjust = -0.25) +
+  scale_y_continuous(labels = percent) +
+  labs(x = "Marital statush", y = "percantage", title  = "Bar Chart of Marital status in US ")  +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+#ggsave(plot = Marital_plot, width = 3, height = 3, dpi = 300, 
+#       filename = "Figures/Marital_plot.png")
+```
+![](Figures/Marital_plot.png){width=400px}
+
+\pagebreak
+
+### Race
+```{r, eval=FALSE, echo=TRUE, warning = F, message=F}
+##################  Race  ##################
+Race  <- demo_subset_8_labeled %>%
+  group_by(Race) %>%
+  summarize(count=n()) %>%
+  arrange(desc(count))%>%
+  mutate(pct = count / sum(count),
+         pctlabel = paste0(round(pct*100), "%"),
+         lab.ypos = 100*cumsum(pct) - 0.5  *100*pct) 
+#Bar plot
+require(scales)
+Race_plot <- ggplot(Race, aes(x = reorder(Race, -pct),y = pct)) + 
+  geom_bar(stat = "identity", fill = "indianred3", color = "black") +
+  geom_text(aes(label = pctlabel), vjust = -0.25) +
+  scale_y_continuous(labels = percent) +
+  labs(x = "Race", y = "percantage", title  = "Bar Chart of Race in US ")  +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+#ggsave(plot = Race_plot, width = 3, height = 3, dpi = 300, 
+#       filename = "Figures/Race_plot.png")
+```
+![](Figures/Race_plot.png){width=400px}
+
+
 
 ### Demographic: Correlation 
 
 ### Demographic: pick something
+
+
+
 
 ## Visualization for Diet
 
@@ -1604,7 +1614,7 @@ Visuals against the cleaned dataset
 
 # Models against sub-datasets (OPTIONAL)
 
-## Cluster Model for Demographic 
+## Cluster Model for Demographic  {.tabset}
 
 ### PCA 
 
@@ -1770,19 +1780,21 @@ ggplot(demo_subset_8, aes(x =Gender, y = Age)) +
 
 
 
-# Problem 1: Clustering
+# Problem 1: Clustering 
+
+## Applying machine learning models  {.tabset}
 
 In this section, we will combine all the datasets and perform clustering algorithms.  
 
 ```{r, eval=FALSE, echo=TRUE}
 ```
-##  PCA
+###  PCA
 ```{r, eval=FALSE, echo=TRUE}
 ```
-##  K-means 
+###  K-means 
 ```{r, eval=FALSE, echo=TRUE}
 ```
-##  Hierarchical Agglomerative
+###  Hierarchical Agglomerative
 ```{r, eval=FALSE, echo=TRUE}
 ```
 ##  Summary of models
@@ -1937,7 +1949,9 @@ OVer 400,000 rules are produced for entire data, let's take a glance at 5 of the
 In the above output, we can see different association mining rules for the entire dataset.  The rules have LHS and RHS which demonstrate the relation between itemsets(collections of values).  The items on LHS are associated and occur with the single item on the RHS. Now we will proceed to create association rules for having and not having the particular diseases (cancer, diabetes, hypertension).  The RHS will be set to the particular health conditions/disases.  And we will observe what typse of associations are discovered on the LHS. 
 
 
-### Association rules for having diseases
+### Association rules for having diseases {.tabset}
+
+
 
 In order to produce a list of association rules, we had to experiement with "conf"(confidence) parameter.  For example, with positive cancer rules, we had to lower the confidence to 0.4 to produce mining rules.  For each health condition(disaease),we have created 2 sets of rules.  The first set of rules allow larger number of items to be produced on the LHS (maxlen=15); whereas, the second set of rules forces the rules to have a small amount of rules (maxlen=3).  
 
@@ -1965,7 +1979,7 @@ has_hypertension.association.rules <- apriori(individuals_transaction_class, par
 
 Now with association rules, we can examine them and observe the LHS items that are found in conjunction with various diseases: 
 
-### Cancer: Association Rules 
+#### Cancer: Association Rules 
 
 First, we look at large item sets.  
 
@@ -2084,7 +2098,7 @@ Next we look at small itemsets:
 
 In order to build the association mining lists, we had to reduce confidence levels to under 0.5.  
 
-### Diabetes: Association Rules
+#### Diabetes: Association Rules
 
 ```{r eval=FALSE, echo=TRUE}
 > inspect(has_diabetes.association.rules)
@@ -2281,7 +2295,7 @@ Next, we look at small itemsets
 ```
 
 
-### Hypertention: Association Rules
+#### Hypertention: Association Rules
 
 ```{r eval=FALSE, echo=TRUE}
 inspect(has_hypertension.association.rules[1:100])
@@ -2803,7 +2817,11 @@ inspect(has_hypertension.association.rules[1:100])
 > 
 ```
 
-### Interactive Scatter Plots for Cancer
+
+### Interactive Scatter Plots {.tabset}
+
+####  Cancer
+
 
 CANCER (large itemsets)
 
@@ -2813,7 +2831,8 @@ CANCER (small itemsets)
 
 <iframe src="cancer_small.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
 
-### Interactive Scatter Plots for Diabetes
+
+####  Diabetes
 
 DIABETES (large itemsets)
 
@@ -2823,7 +2842,7 @@ DIABETES (small itemsets)
 
 <iframe src="diabetes_small.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
 
-### Interactive Scatter Plots for Hypertension
+####  Hypertension
 
 HYPER TENSION (large itemsets)
 
@@ -2834,7 +2853,10 @@ HYPER TENSION (small itemsets)
 <iframe src="hypertension_small.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
 
 
-### Interactive Graph Visualization for Cancer
+
+### Interactive Graph Visualization  {.tabset}
+
+####  Cancer 
 
 CANCER (large itemset)
 
@@ -2846,7 +2868,7 @@ CANCER (small itemset)
 
 
 
-### Interactive Graph Visualization for Diabetes
+####  Diabetes
 
 DIABETES (large itemset)
 <iframe src="diabetes_graph_large.html" width="100%" height="600" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
@@ -2856,7 +2878,7 @@ DIABETES (small itemset)
 "hypertension_graph_large.html"
 <iframe src="diabetes_graph_small.html" width="100%" height="600" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
 
-### Interactive Graph Visualization for Hypertension
+####  Hypertension
 
 HYPERTENSION (large itemset)
 
@@ -2992,10 +3014,10 @@ corrplot(combi_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt
 
 ![](Figures/Supervised/Demo_Corr.png){width=800px}
 
-#### Using PCA:
 
 
-### PCA FOR DIABETES
+
+#### PCA FOR DIABETES
 
 
 ```{r eval=FALSE, echo=TRUE}
@@ -3014,13 +3036,6 @@ abline(v = 10, col="blue", lty=5)
 
 
 
-
-
-
-
-## PCA
->>>>>>> 5ff561ec5a3301fa9ccbe26b1b8a7b7964787197
-Choose attributes to choose the target.
 
 ```{r, eval=FALSE, echo=TRUE}
 combined_target_final <- read_csv("Data/Target Datasets/combined_target_final.csv")
