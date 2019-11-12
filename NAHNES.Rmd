@@ -2288,7 +2288,7 @@ For small itemsets,  all the rules include having cancer in association with dia
 
 ### Hypertention: Association Rules
 
-First, we inspected the association rules with large itemsets for those individuals with hypertension.  Rules with confidence levels of 1 are also found within this itemset.  Unlike the previous 2 health conditions, race (black) is appearing more prominently within the association rules.      
+First, we inspected the association rules with large itemsets for those individuals with hypertension.  Rules with confidence levels of 1 are also found within this itemset.  Unlike the previous 2 health conditions, race is appearing more prominently within the association rules.      
 
 ```{r eval=FALSE, echo=TRUE}
 inspect(has_hypertension.association.rules[1:100])
