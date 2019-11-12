@@ -3184,7 +3184,7 @@ As we’ve gathered data for having diseases and not having diseases, we’ve at
 
 These association rules show what related items are found in conjunction with having different diseases and health conditions.  Below, we will discuss some of our findings: 
 
-The value associated with drinking milk multiple times a day or week appears several times in diabetes and cancer conditions.  Additionally, the values for drinking milk do not appear in the association rules for not having cancer/diabetes.  It might be valid to position marketing  for drugs on cancer/diabetes in conjunction with milk placement. For example, youtube video often place advertisements in pairs.  Then, we could place a cancer drug advertisement appear after a milk advertisement in a youtube video.      
+The value associated with drinking milk multiple times a day or week appears several times in diabetes and cancer conditions.  Additionally, the values for drinking milk do not appear in the association rules for not having cancer/diabetes.  It might be valid to position marketing  for drugs on cancer/diabetes in conjunction with milk placement. For example, youtube video often place advertisements in pairs.  Then, we could place a cancer drug advertisement appear after a milk advertisement in a youtube video.  Please we are not suggesting that milk usage causes cancer.  We are making a suggestion an association that is within the data.       
 
 For hypertension, many of the associated values for income are under $24,999.  For marketing, placement of billboards in areas where salaries are under $24,999 could be helpful to market drugs towards those with hypertension.
 
