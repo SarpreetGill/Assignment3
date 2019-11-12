@@ -1977,11 +1977,13 @@ has_hypertension.association.rules <- apriori(individuals_transaction_class, par
 
 ```
 
-Now with association rules, we can examine them and observe the LHS items that are found in conjunction with various diseases: 
+
 
 #### Cancer: Association Rules 
 
-First, we look at large item sets.  
+For cancer association rules, we will examine both large and small items found in conjunction with an individual having cancer.  
+
+First, we inspected the  rules where individual has cancer and observed which large itemsets occur in conjunction with cancer.  The confidence level was set 0.4 for this set of rules which might be considered low.  However, a handful of rules were generated for this item.  Of note, those that have cancer are also associated with having hypertension and cancer.  An interesting observation is that drinking milk occurs in multiple rules.   
 
 ```{r eval=FALSE, echo=TRUE}
 > inspect(has_cancer.association.rules)
@@ -2043,7 +2045,7 @@ First, we look at large item sets.
       US citizen}                                                => {HAS CANCER} 0.001222743  0.4137931 45.62883    12
 ```
 
-Next we look at small itemsets: 
+Next, we inspected rules where individual has cancer and observed which small itemsets. The confidence level was set even lower to generate results for small itemsets in conjunction with cancer.   Again, we similar items such having diabetes and hypertension appear in the small itemsets.   
 
 ```{r eval=FALSE, echo=TRUE}
 > inspect(has_cancer.association.rules_smallitemset)
@@ -2099,6 +2101,10 @@ Next we look at small itemsets:
 In order to build the association mining lists, we had to reduce confidence levels to under 0.5.  
 
 #### Diabetes: Association Rules
+
+As with cancer association rules, we will examine both large and small items found in conjunction with an individual having diabetes.
+
+For large itemset with a positive diabetes results, we were able to increase the confidence level to 0.7.   32 rules were generated for this result.  Of note, a household income between “20000-24999”daily/weekly milk consumption and  appears in several rules.  Also interesting, that there are rules where an individual has health insurance coverage.  None of the rules contain the opposite condition of not having health insurance coverage.   
 
 ```{r eval=FALSE, echo=TRUE}
 > inspect(has_diabetes.association.rules)
@@ -2278,7 +2284,7 @@ In order to build the association mining lists, we had to reduce confidence leve
 >
 ```
 
-Next, we look at small itemsets
+For small itemsets,  all the rules include having cancer in association with diabetes.  
 
 ```{r eval=FALSE, echo=TRUE}
 > inspect(has_diabetes.association.rules_smallitemset)
@@ -2294,8 +2300,14 @@ Next, we look at small itemsets
 > 
 ```
 
+<<<<<<< HEAD
 
 #### Hypertention: Association Rules
+=======
+### Hypertention: Association Rules
+>>>>>>> 30f5ace3c0b407ea5f38cbd1aec6a98319801487
+
+First, we inspected the association rules with large itemsets for those individuals with hypertension.  Rules with confidence levels of 1 are also found within this itemset.  Unlike the previous 2 health conditions, race is appearing more prominently within the association rules.      
 
 ```{r eval=FALSE, echo=TRUE}
 inspect(has_hypertension.association.rules[1:100])
@@ -2635,6 +2647,7 @@ inspect(has_hypertension.association.rules[1:100])
 > 
 ```
 
+Second, we inspected the association rules with small itemsets for those individuals with hypertension.  A martial value of “widowed” appears more frequently than other martial values within the rules.
 
 ```{r eval=FALSE, echo=TRUE}
 > inspect(has_hypertension.association.rules_smallitemset)
@@ -2823,90 +2836,356 @@ inspect(has_hypertension.association.rules[1:100])
 ####  Cancer
 
 
-CANCER (large itemsets)
+```{r eval=TRUE, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE, cache=TRUE, results='hide'}
+library(arules)
+library(arulesViz)
 
-<iframe src="cancer_large.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+individuals_transaction_class <- read.transactions('Data/Working/transactiondata.csv', format = 'basket',sep=',')
+
+has_cancer.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.4, maxlen=15), appearance=list(default="lhs", rhs="HAS CANCER"))
+has_diabetes.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.7, maxlen=15), appearance=list(default="lhs", rhs="HAS DIABETES"))
+has_hypertension.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.8, maxlen=15), appearance=list(default="lhs", rhs="HAS HYPERTENSION"))
+
+has_cancer.association.rules_smallitemset <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.1, maxlen=3), appearance=list(default="lhs", rhs="HAS CANCER"))
+has_diabetes.association.rules_smallitemset <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.4, maxlen=3), appearance=list(default="lhs", rhs="HAS DIABETES"))
+has_hypertension.association.rules_smallitemset <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.4, maxlen=3), appearance=list(default="lhs", rhs="HAS HYPERTENSION"))
+
+no_cancer.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.9,maxlen=10), appearance=list(default="lhs", rhs="NO CANCER"))
+no_diabetes.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.9, maxlen=10), appearance=list(default="lhs", rhs="NO DIABETES"))
+no_hypertension.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.8, maxlen=10), appearance=list(default="lhs", rhs="NO HYPERTENSION"))
+
+
+top20cancerrules <- head(has_cancer.association.rules, n=20, by="confidence")
+top20cancerrules_smallitemset <- head(has_cancer.association.rules_smallitemset, n=20, by="confidence")
+
+top20diabetesrules <- head(has_diabetes.association.rules, n=20, by="confidence")
+top20diabetesrules_smallitemset <- head(has_diabetes.association.rules_smallitemset, n=20, by="confidence")
+
+top20hypertensionrules <- head(has_hypertension.association.rules, n=20, by="confidence")
+top20hypertensionrules_smallitemset <- head(has_hypertension.association.rules_smallitemset, n=20, by="confidence")
+
+```
+For rules we examined in the previous section, we’ve taken the top 20 rules and created interactive scatter plots and graphs to visualize data.  
+
+The following is a scatter graph for visualizing the top 20 association rules for cancer with large itemsets.  Please note, the points on the graph are interactive, please cursor over points to see association rule.    
+
+CANCER (large itemsets)
+```{r eval=TRUE, echo=FALSE, error=FALSE, warning=FALSE, message=FALSE,cache=TRUE }
+plotly_arules(has_cancer.association.rules)
+```
+The following is a scatter graph for visualizing the top 20 association rules for cancer with small itemsets.
 
 CANCER (small itemsets)
 
-<iframe src="cancer_small.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+```{r eval=TRUE, echo=FALSE, error=FALSE, warning=FALSE, message=FALSE,cache=TRUE }
+plotly_arules(has_cancer.association.rules_smallitemset)
+```
 
 
 ####  Diabetes
 
+The following is a scatter plot for visualizing the top 20 association rules for diabetes with large itemsets.
+
 DIABETES (large itemsets)
 
-<iframe src="diabetes_large.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+```{r eval=TRUE, echo=FALSE, error=FALSE, warning=FALSE, message=FALSE,cache=TRUE }
+plotly_arules(has_diabetes.association.rules)
+```
+
+The following is a scatter plot for visualizing the top 20 association rules for diabetes with small itemsets.  
 
 DIABETES (small itemsets)
 
-<iframe src="diabetes_small.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+```{r eval=TRUE, echo=FALSE, error=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
+plotly_arules(has_diabetes.association.rules_smallitemset)
+```
 
 ####  Hypertension
 
+The following is a scatter plot for visualizing the top 20 association rules for hypertension with large itemsets.  
+
 HYPER TENSION (large itemsets)
 
-<iframe src="hypertension_large.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+```{r eval=TRUE, echo=FALSE, error=FALSE, warning=FALSE, message=FALSE,cache=TRUE }
+plotly_arules(has_hypertension.association.rules)
+```
+
+The following is a scatter plot for visualizing the top 20 association rules for hypertension with small itemsets.  
 
 HYPER TENSION (small itemsets)
 
-<iframe src="hypertension_small.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
-
+```{r eval=TRUE, echo=FALSE, error=FALSE, warning=FALSE, message=FALSE,cache=TRUE }
+plotly_arules(has_hypertension.association.rules_smallitemset)
+```
 
 
 ### Interactive Graph Visualization  {.tabset}
 
 ####  Cancer 
 
+The following graphs are interactive.  Hover the cursor over the rule, to see the related values. Hover the cursor over a value, to see the related rules.  
+
+The following is a graph for visualizing the top 20 association rules for cancer with large itemsets.
+
 CANCER (large itemset)
 
-<iframe src="cancer_graph_large.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+```{r eval=TRUE, echo=FALSE, error=FALSE, warning=FALSE, message=FALSE,cache=TRUE }
+plot(top20cancerrules, method= "graph", engine = "htmlwidget")
+
+```
+The following is a graph for visualizing the top 20 association rules for cancer with small itemsets.  
 
 CANCER (small itemset)
 
-<iframe src="cancer_graph_small.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
-
-
+```{r eval=TRUE, echo=FALSE, error=FALSE, warning=FALSE, message=FALSE,cache=TRUE }
+plot(top20cancerrules_smallitemset, method= "graph", engine = "htmlwidget")
+```
 
 ####  Diabetes
 
+The following is a graph for visualizing the top 20 association rules for diabetes with large itemsets.  
+
 DIABETES (large itemset)
-<iframe src="diabetes_graph_large.html" width="100%" height="600" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+```{r eval=TRUE, echo=FALSE, error=FALSE, warning=FALSE, message=FALSE,cache=TRUE }
+ plot(top20diabetesrules, method= "graph", engine = "htmlwidget")
+```
+The following is a graph for visualizing the top 20 association rules for diabetes with small itemsets.  
 
 DIABETES (small itemset)
 
-"hypertension_graph_large.html"
-<iframe src="diabetes_graph_small.html" width="100%" height="600" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+```{r eval=TRUE, echo=FALSE, error=FALSE, warning=FALSE, message=FALSE,cache=TRUE }
+plot(top20diabetesrules_smallitemset, method= "graph", engine = "htmlwidget")
+```
 
 ####  Hypertension
 
+The following is a graph for visualizing the top 20 association rules for hypertension with large itemsets.
+
 HYPERTENSION (large itemset)
 
-<iframe src="hypertension_graph_large.html" width="100%" height="600" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+```{r eval=TRUE, echo=FALSE, error=FALSE, warning=FALSE, message=FALSE,cache=TRUE }
+plot(top20hypertensionrules, method= "graph", engine = "htmlwidget")
+```
+
+The following is a graph for visualizing the top 20 association rules for hypertension with small itemsets.  
 
 HYPERTENSION (small itemset)
 
-<iframe src="hypertension_graph_small.html" width="100%" height="600" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+```{r eval=TRUE, echo=FALSE, error=FALSE, warning=FALSE, message=FALSE,cache=TRUE }
+ plot(top20hypertensionrules_smallitemset, method= "graph", engine = "htmlwidget")
+```
 
 ### Individual Rule Representation 
 
-Using top 20 rules for Cancer
+With the association rules for cancer, we’ve plotted the top 20 values that were represented in the itemsets.  
 
 ![](Figures/cancer_top20_paracoord.png){width=800px}
 
-Using top 20 rules for diabetes
+With the association rules for diabetes, we’ve plotted the top 20 values that were represented in the itemsets.  
 
 ![](Figures/diabetes_top20_paracoord.png){width=800px}
 
-Using top 20 rules for hypertension
+With the association rules for hypertension, we’ve plotted the top 20 values that were represented in the itemsets.  
 
 ![](Figures/diabetes_top20_paracoord.png){width=800px}
 
 ### Association rules for not having diseases
 
-In the precedin section, we looked at associations for having diseases.  For this section, we look at the inverse, could their value in associations where there is no diseases/health conditions?  
+In the preceding section, we looked at associations between having diseases/health conditions and other values.  To complement our findings, we decided to also create association rules for not having the diseases.  This might yield beneficial findings and support any findings from the previous association rules involving positive values for diseases.  
 
-## Conclusion for Problem 2
+The following rules were used: 
+```{r eval=FALSE, echo=TRUE}
+no_cancer.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.9,minlen=5,maxlen=10), appearance=list(default="lhs", rhs="NO CANCER"))
+no_diabetes.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.9, minlen=5,maxlen=10), appearance=list(default="lhs", rhs="NO DIABETES"))
+no_hypertension.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.8, minlen=5,maxlen=10), appearance=list(default="lhs", rhs="NO HYPERTENSION"))
+```
+
+The rules for not having Cancer 
+
+Below, we’ve listed the top 20 association rules for not having cancer.  Of interest,  it appears “no health insurance”  and “visiting multiple places for healthcare” appears in many rules that lead to not having cancer. 
+
+```{r eval=FALSE, echo=TRUE}
+inspect(no_cancer.association.rules[1:20])
+     lhs                                                           rhs             support confidence     lift count
+[1]  {Has not rode in a vehicle within the past 7 days,                                                             
+      NO DIABETES,                                                                                                  
+      Smokers present in house,                                                                                     
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001018953  1.0000000 3.955663    10
+[2]  {Has not rode in a vehicle within the past 7 days,                                                             
+      Right-handed,                                                                                                 
+      Smokers present in house,                                                                                     
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001018953  1.0000000 3.955663    10
+[3]  {Has not requested emergency food assistance,                                                                  
+      Has not rode in a vehicle within the past 7 days,                                                             
+      Smokers present in house,                                                                                     
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001018953  1.0000000 3.955663    10
+[4]  {Has not rode in a vehicle within the past 7 days,                                                             
+      No health insurance coverage,                                                                                 
+      NO HYPERTENSION,                                                                                              
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001222743  1.0000000 3.955663    12
+[5]  {Has not rode in a vehicle within the past 7 days,                                                             
+      NO DIABETES,                                                                                                  
+      No health insurance coverage,                                                                                 
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001324638  1.0000000 3.955663    13
+[6]  {Has not rode in a vehicle within the past 7 days,                                                             
+      No health insurance coverage,                                                                                 
+      Right-handed,                                                                                                 
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001324638  1.0000000 3.955663    13
+[7]  {Has not requested emergency food assistance,                                                                  
+      Has not rode in a vehicle within the past 7 days,                                                             
+      No health insurance coverage,                                                                                 
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001222743  1.0000000 3.955663    12
+[8]  {Born outside of US,                                                                                           
+      Has not rode in a vehicle within the past 7 days,                                                             
+      NO HYPERTENSION,                                                                                              
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001222743  1.0000000 3.955663    12
+[9]  {Born outside of US,                                                                                           
+      Has not rode in a vehicle within the past 7 days,                                                             
+      NO DIABETES,                                                                                                  
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001222743  1.0000000 3.955663    12
+[10] {Born outside of US,                                                                                           
+      Has not rode in a vehicle within the past 7 days,                                                             
+      Right-handed,                                                                                                 
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001222743  1.0000000 3.955663    12
+[11] {Born outside of US,                                                                                           
+      Has not requested emergency food assistance,                                                                  
+      Has not rode in a vehicle within the past 7 days,                                                             
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001120848  1.0000000 3.955663    11
+[12] {Has not rode in a vehicle within the past 7 days,                                                             
+      Male,                                                                                                         
+      NO HYPERTENSION,                                                                                              
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001018953  0.9090909 3.596057    10
+[13] {Has not requested emergency food assistance,                                                                  
+      Has not rode in a vehicle within the past 7 days,                                                             
+      NO HYPERTENSION,                                                                                              
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001528429  0.9375000 3.708434    15
+[14] {Has not rode in a vehicle within the past 7 days,                                                             
+      Male,                                                                                                         
+      NO DIABETES,                                                                                                  
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001120848  0.9166667 3.626024    11
+[15] {Has not requested emergency food assistance,                                                                  
+      Has not rode in a vehicle within the past 7 days,                                                             
+      NO DIABETES,                                                                                                  
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001630324  0.9411765 3.722977    16
+[16] {Has not rode in a vehicle within the past 7 days,                                                             
+      Male,                                                                                                         
+      Right-handed,                                                                                                 
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001120848  0.9166667 3.626024    11
+[17] {Has not requested emergency food assistance,                                                                  
+      Has not rode in a vehicle within the past 7 days,                                                             
+      Male,                                                                                                         
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001120848  1.0000000 3.955663    11
+[18] {Has not requested emergency food assistance,                                                                  
+      Has not rode in a vehicle within the past 7 days,                                                             
+      Right-handed,                                                                                                 
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001630324  0.9411765 3.722977    16
+[19] {No health insurance coverage,                                                                                 
+      NO HYPERTENSION,                                                                                              
+      Smokers present in house,                                                                                     
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001222743  1.0000000 3.955663    12
+[20] {NO DIABETES,                                                                                                  
+      No health insurance coverage,                                                                                 
+      Smokers present in house,                                                                                     
+      Visits multiple places for healthcare(not once location)} => {NO CANCER} 0.001324638  1.0000000 3.955663    13
+> 
+```
+
+
+The rules for not having Diabetes
+
+Below, we’ve listed the top 20 association rules for not having diabetes.  There are multiple rules with the value where the individual receives health from various places (as opposed to one location).  
+
+```{r eval=FALSE, echo=TRUE}
+inspect(no_diabetes.association.rules[1:20])
+     lhs                                                                rhs               support confidence     lift count
+[1]  {Visits multiple places for healthcare(not once location)}      => {NO DIABETES} 0.005094763  0.9615385 3.979982    50
+[2]  {Smokers present in houses}                                     => {NO DIABETES} 0.006317506  0.9841270 4.073480    62
+[3]  {Plays 5 or more hours of video games over the past 30 days}    => {NO DIABETES} 0.015793764  0.9509202 3.936032   155
+[4]  {Plays 3 hours of video games over the past 30 days}            => {NO DIABETES} 0.016812717  0.9649123 3.993947   165
+[5]  {Mostly visits an emergency room for healthcare}                => {NO DIABETES} 0.027919299  0.9319728 3.857605   274
+[6]  {Plays 2 hours of video games over the past 30 days}            => {NO DIABETES} 0.031791319  0.9483283 3.925303   312
+[7]  {Plays 1 hour of video games over the past 30 days}             => {NO DIABETES} 0.038006929  0.9588689 3.968933   373
+[8]  {Plays less than an hours of video games over the past 30 days} => {NO DIABETES} 0.054106379  0.9550360 3.953067   531
+[9]  {Smokers present in house}                                      => {NO DIABETES} 0.060831465  0.9255814 3.831150   597
+[10] {No smokers present in house}                                   => {NO DIABETES} 0.174444671  0.9194415 3.805735  1712
+[11] {Mostly visits a clinic or health center for healthcare}        => {NO DIABETES} 0.193397188  0.9267578 3.836019  1898
+[12] {NO HYPERTENSION}                                               => {NO DIABETES} 0.203382922  0.9661181 3.998938  1996
+[13] {Has rode in a vehicle within the past 7 days}                  => {NO DIABETES} 0.205217037  0.9276831 3.839849  2014
+[14] {NO CANCER}                                                     => {NO DIABETES} 0.235887508  0.9330915 3.862235  2315
+[15] {Has not rode in a vehicle within the past 7 days,                                                                    
+      Visits multiple places for healthcare(not once location)}      => {NO DIABETES} 0.001936010  1.0000000 4.139182    19
+[16] {Smokers present in house,                                                                                            
+      Visits multiple places for healthcare(not once location)}      => {NO DIABETES} 0.001834115  1.0000000 4.139182    18
+[17] {Other,                                                                                                               
+      Visits multiple places for healthcare(not once location)}      => {NO DIABETES} 0.002037905  1.0000000 4.139182    20
+[18] {Does not play video games,                                                                                           
+      Visits multiple places for healthcare(not once location)}      => {NO DIABETES} 0.002343591  0.9583333 3.966716    23
+[19] {Household income between $25000 - $34999,                                                                            
+      Visits multiple places for healthcare(not once location)}      => {NO DIABETES} 0.001120848  0.9166667 3.794250    11
+[20] {Rarely-less than once a week,                                                                                        
+      Visits multiple places for healthcare(not once location)}      => {NO DIABETES} 0.001222743  1.0000000 4.139182    12
+> 
+```
+
+The rules for not having Hypertension 
+
+Below, we’ve listed the top 20 association rules for not having hypertension.  Of interest, values smokers and non-smokers both appear in the results.  Many of the video game related values also appear in the rules below.   
+
+```{r eval=FALSE, echo=TRUE}
+inspect(no_hypertension.association.rules[1:20])
+     lhs                                                                rhs                   support confidence     lift count
+[1]  {Visits multiple places for healthcare(not once location)}      => {NO HYPERTENSION} 0.004789077  0.9038462 4.293488    47
+[2]  {Smokers present in houses}                                     => {NO HYPERTENSION} 0.005400448  0.8412698 3.996235    53
+[3]  {Healthcare is received from non-standard facility}             => {NO HYPERTENSION} 0.006419401  0.8289474 3.937701    63
+[4]  {Plays 5 or more hours of video games over the past 30 days}    => {NO HYPERTENSION} 0.013450173  0.8098160 3.846822   132
+[5]  {Plays 3 hours of video games over the past 30 days}            => {NO HYPERTENSION} 0.014774811  0.8479532 4.027983   145
+[6]  {Mostly visits an emergency room for healthcare}                => {NO HYPERTENSION} 0.024454860  0.8163265 3.877749   240
+[7]  {Plays 2 hours of video games over the past 30 days}            => {NO HYPERTENSION} 0.028632566  0.8541033 4.057198   281
+[8]  {Plays 1 hour of video games over the past 30 days}             => {NO HYPERTENSION} 0.032300795  0.8149100 3.871020   317
+[9]  {Plays less than an hours of video games over the past 30 days} => {NO HYPERTENSION} 0.046668025  0.8237410 3.912969   458
+[10] {No smokers present in house}                                   => {NO HYPERTENSION} 0.154880783  0.8163265 3.877749  1520
+[11] {Mostly visits a clinic or health center for healthcare}        => {NO HYPERTENSION} 0.168840432  0.8090820 3.843335  1657
+[12] {Has rode in a vehicle within the past 7 days}                  => {NO HYPERTENSION} 0.178928062  0.8088439 3.842204  1756
+[13] {NO DIABETES}                                                   => {NO HYPERTENSION} 0.203382922  0.8418389 3.998938  1996
+[14] {NO CANCER}                                                     => {NO HYPERTENSION} 0.206847361  0.8182185 3.886736  2030
+[15] {Has not rode in a vehicle within the past 7 days,                                                                        
+      Visits multiple places for healthcare(not once location)}      => {NO HYPERTENSION} 0.001834115  0.9473684 4.500229    18
+[16] {Smokers present in house,                                                                                                
+      Visits multiple places for healthcare(not once location)}      => {NO HYPERTENSION} 0.001630324  0.8888889 4.222437    16
+[17] {Other,                                                                                                                   
+      Visits multiple places for healthcare(not once location)}      => {NO HYPERTENSION} 0.002037905  1.0000000 4.750242    20
+[18] {Does not play video games,                                                                                               
+      Visits multiple places for healthcare(not once location)}      => {NO HYPERTENSION} 0.002241696  0.9166667 4.354389    22
+[19] {Household income between $25000 - $34999,                                                                                
+      Visits multiple places for healthcare(not once location)}      => {NO HYPERTENSION} 0.001018953  0.8333333 3.958535    10
+[20] {Rarely-less than once a week,                                                                                            
+      Visits multiple places for healthcare(not once location)}      => {NO HYPERTENSION} 0.001120848  0.9166667 4.354389    11
+> 
+```
+
+
+## Conclusion 
+
+As we’ve gathered data for having diseases and not having diseases, we’ve attempted to gather insights from the findings that could provide business value to the marketing department as per the defined initial business problem.  Please note the association rules do not establish causation.  These association rules are only to highlight values that are associated or appear together.  And our conclusion is subjective based on our interpretation of the data.     
+
+These association rules show what related items are found in conjunction with having different diseases and health conditions.  Below, we will discuss some of our findings: 
+
+The value associated with drinking milk multiple times a day or week appears several times in diabetes and cancer conditions.  Additionally, the values for drinking milk do not appear in the association rules for not having cancer/diabetes.  It might be valid to position marketing  for drugs on cancer/diabetes in conjunction with milk placement. For example, youtube video often place advertisements in pairs.  Then, we could place a cancer drug advertisement appear after a milk advertisement in a youtube video.      
+
+For hypertension, many of the associated values for income are under $24,999.  For marketing, placement of billboards in areas where salaries are under $24,999 could be helpful to market drugs towards those with hypertension.
+
+Although, our business is focused on marketing drugs to patients for cancer, diabetes, and hypertension.  We can look for out of the box solutions. If the business was looking to develop drugs (or supplements) related to the prevention of hypertension, we could use data to identify associations with audiences that do not already have a disease.   
+
+In summary, these are a few of the suggestions that could be derived from the data.  We think these suggestions could have value and provide the “so what” for our conclusions.  
+
+### Limitations of the conclusions   
+
+The association models used in the preceding sections contained 18 variables.  We will provide our results to the business.  However,  the associations rules could be improved by adding more categorical variables or numerical variables (which have been binned).  The activity of recoding and binning values from the raw data increases the overhead of adding more attributes.  However, in the event, the business is intrigued by the findings, more data can be incorporated in the association ruleset.  
+
+Within the data for not having diseases, frequently, the condition not having medical insurance appears multiple times.  Is this an indication, people without medical insurance are truly not associated with the diseases? Recall the data for the field is based on a questionnaire that presuppositions, the individual has seen a doctor.  If the individual has not seen a doctor for diagnose due to health insurance coverage, then they may not have been able to accurately ascertain whether they have a particular disease.    
+
+
 
 # Problem 3: Supervised 
 
