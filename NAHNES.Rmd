@@ -1469,24 +1469,20 @@ write.csv(ques_subset_labelled,file = "Data/Working/ques_subset_labelled.csv")
 \pagebreak
 
 
-# Visualization
+# Data Visualization
 
 Perform visualization against the clean datasets and the union of the cleaned datasets
 
-## Visualization for Demographic {.tabset}
+##  Demographics Data 
 
+### Visualization  of key features {.tabset}
 
-Our samples is pretty representative of the US population: 
-
-* The  US age structure is 20% under 15, 67% between 15 and 64 years old, and 13% over 65 (https://countrymeters.info/en/United_States_of_America_(USA)). 
-* The Gender ratio is 51% for female and 49% for male (http://statisticstimes.com/demographics/countries-by-sex-ratio.php)
-* The Race and ethnicity are:  White 	72.4%, Hispanic and Latino Americans  16.3%, Black or African American 	12.6%, Asian 	4.8%, Native 1.1 %, and the others 9.1 %
 
 
 Visuals against the cleaned dataset 
 
 
-### Gender
+#### Gender
 ```{r, eval=FALSE, echo=TRUE, warning = F, message=F}
 ####################  Gender ##########
 Gender  <- demo_subset_8_labeled %>%
@@ -1509,7 +1505,7 @@ Gender_plot <- ggplot(Gender, aes(x = "", y =  round(100*count/sum(count), 1),
 
 \pagebreak
 
-### Country of birth
+#### Country of birth
 ```{r, eval=FALSE, echo=TRUE, warning = F, message=F}
 ####################  Country_of_birth ##########
 Country_of_birth  <- demo_subset_8_labeled %>%
@@ -1533,7 +1529,7 @@ Birth_plot <- ggplot(Country_of_birth, aes(x = reorder(Country_of_birth, -pct),y
 
 \pagebreak
 
-### Marital status
+#### Marital status
 ```{r, eval=FALSE, echo=TRUE, warning = F, message=F}
 ##################  Marital_status  ##################
 Marital_status  <- demo_subset_8_labeled %>%
@@ -1558,7 +1554,7 @@ Marital_plot <- ggplot(Marital_status, aes(x = reorder(Marital_status, -pct),y =
 
 \pagebreak
 
-### Race
+#### Race
 ```{r, eval=FALSE, echo=TRUE, warning = F, message=F}
 ##################  Race  ##################
 Race  <- demo_subset_8_labeled %>%
@@ -1583,10 +1579,17 @@ Race_plot <- ggplot(Race, aes(x = reorder(Race, -pct),y = pct)) +
 
 
 
-### Demographic: Correlation 
+#### Demographic: Correlation 
 
-### Demographic: pick something
+#### Demographic: pick something
 
+### Conclusion
+
+Our samples is pretty representative of the US population: 
+
+* The  US age structure is 20% under 15, 67% between 15 and 64 years old, and 13% over 65 (https://countrymeters.info/en/United_States_of_America_(USA)). 
+* The Gender ratio is 51% for female and 49% for male (http://statisticstimes.com/demographics/countries-by-sex-ratio.php)
+* The Race and ethnicity are:  White 	72.4%, Hispanic and Latino Americans  16.3%, Black or African American 	12.6%, Asian 	4.8%, Native 1.1 %, and the others 9.1 %
 
 
 
@@ -2300,12 +2303,10 @@ For small itemsets,  all the rules include having cancer in association with dia
 > 
 ```
 
-<<<<<<< HEAD
+
 
 #### Hypertention: Association Rules
-=======
-### Hypertention: Association Rules
->>>>>>> 30f5ace3c0b407ea5f38cbd1aec6a98319801487
+
 
 First, we inspected the association rules with large itemsets for those individuals with hypertension.  Rules with confidence levels of 1 are also found within this itemset.  Unlike the previous 2 health conditions, race is appearing more prominently within the association rules.      
 
@@ -2833,6 +2834,8 @@ Second, we inspected the association rules with small itemsets for those individ
 
 ### Interactive Scatter Plots {.tabset}
 
+For rules we examined in the previous section, we’ve taken the top 20 rules and created interactive scatter plots and graphs to visualize data.  
+
 ####  Cancer
 
 
@@ -2865,7 +2868,7 @@ top20hypertensionrules <- head(has_hypertension.association.rules, n=20, by="con
 top20hypertensionrules_smallitemset <- head(has_hypertension.association.rules_smallitemset, n=20, by="confidence")
 
 ```
-For rules we examined in the previous section, we’ve taken the top 20 rules and created interactive scatter plots and graphs to visualize data.  
+
 
 The following is a scatter graph for visualizing the top 20 association rules for cancer with large itemsets.  Please note, the points on the graph are interactive, please cursor over points to see association rule.    
 
@@ -2921,9 +2924,12 @@ plotly_arules(has_hypertension.association.rules_smallitemset)
 
 ### Interactive Graph Visualization  {.tabset}
 
+The following graphs are interactive.  Hover the cursor over the rule, to see the related values. Hover the cursor over a value, to see the related rules.  
+
+
 ####  Cancer 
 
-The following graphs are interactive.  Hover the cursor over the rule, to see the related values. Hover the cursor over a value, to see the related rules.  
+
 
 The following is a graph for visualizing the top 20 association rules for cancer with large itemsets.
 
