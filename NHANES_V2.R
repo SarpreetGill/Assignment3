@@ -2545,7 +2545,7 @@ library(ggbiplot)
 #+++++++++++++++++++++++++ full+++++++++++++++++++++++++++
 
 str(combined_target_final)
-combined_target_final.pca <- prcomp(combined_target_final[,c(4:38)], center = TRUE,scale = TRUE)
+combined_target_final.pca <- prcomp(combined_target_final[-c(1,2,7,8,39,40,41,42)], center = TRUE,scale = TRUE)
 summary(combined_target_final.pca)
 
 ggbiplot(combined_target_final.pca)
@@ -2667,21 +2667,70 @@ require(pROC)
 require(MASS)
 require(caTools)
 
+
+
+
+
+
+# Correlation for Demographics
+
+#combined_numeric_diabetes <- lapply(combined_numeric_diabetes, function(x){as.numeric(x)})
+
+require(corrplot)
+#combi_diabetes_cor=rcorr(as.matrix(combined_target_final[-c(1,3,7,8,39,40,41,42)]=="Yes",1,0))
+combi_diabetes_cor=rcorr(as.matrix(combined_target_final[-c(1,2,7,8,39,40,41,42)]))
+
+corrplot(combi_diabetes_cor$r, 
+         type = "upper", order = "hclust", tl.col = "black",
+         tl.srt = 45,tl.cex =0.9,
+         cl.cex = 1.2)
+
+
+# ++++++++++++++++++++++++++++
+# flattenCorrMatrix
+# ++++++++++++++++++++++++++++
+# cormat : matrix of the correlation coefficients
+# pmat : matrix of the correlation p-values
+flattenCorrMatrix <- function(cormat, pmat) {
+  ut <- upper.tri(cormat)
+  data.frame(
+    row = rownames(cormat)[row(cormat)[ut]],
+    column = rownames(cormat)[col(cormat)[ut]],
+    cor  =(cormat)[ut],
+    p = pmat[ut]
+  )
+}
+
+CorrMatrix = as.data.frame(flattenCorrMatrix(combi_diabetes_cor$r, combi_diabetes_cor$P))
+
+#withdraw feasture correlated to the TARGET and select cor > 0.1 
+
+TARGET_CorrMatrix <- CorrMatrix %>%
+  filter(row=="TARGET")%>%
+  arrange(desc(abs(cor)))%>%
+  filter(abs(cor)>0.1)
+
+TARGET_CorrMatrix
+
+# let remove 
+#7 =DIQ010  : "told by a doctor that you have diabetes or sugar diabetes?"  
+#8 = DIQ050  : "{Is SP/Are you} now taking insulin"
+
 set.seed(101)
 data_index <- createDataPartition(combined_target_final$TARGET, p=0.75, list = FALSE)
-train_Combined <- combined_target_final[data_index,-c(1,2,39,40,41,42) ]
-test_Combined <- combined_target_final[-data_index, -c(1,2,39,40,41,42)]
+train_Combined <- combined_target_final[data_index,-c(1,2,7,8,39,40,41,42) ]
+test_Combined <- combined_target_final[-data_index, -c(1,2,7,8,39,40,41,42)]
 
 
-#train_Combined$TARGET =  as.factor(train_Combined$TARGET)
-#test_Combined$TARGET =  as.factor(test_Combined$TARGET)
+train_Combined$TARGET =  as.factor(train_Combined$TARGET)
+test_Combined$TARGET =  as.factor(test_Combined$TARGET)
 #try to predict class probabilities in R - caret
 
 levels(train_Combined$TARGET) <- make.names(levels(factor(train_Combined$TARGET)))
 levels(test_Combined$TARGET) <- make.names(levels(factor(test_Combined$TARGET)))
 
 
-str(train_Combined)
+
 
 
 #Applying machine learning models
@@ -2708,7 +2757,6 @@ model_lr <- train(TARGET~.,train_Combined,
                      preProcess = c("center", "scale"),
                   trControl=fitControl) 
 
-model_lr
 
 pred_lr <- predict(model_lr, test_Combined)
 cm_lr <- confusionMatrix(pred_lr, test_Combined$TARGET, positive = "X1")
@@ -2720,30 +2768,65 @@ head(pred_prob_lr)
 
 
 
-logit3 <- glm(TARGET~.,train_Combined,
-              family=binomial(link='logit'), maxit = 100)
 
-summary(logit3)
-
-predict <- predict(logit3, type = 'response')
-
-#confusion matrix
-table(test_Combined$TARGET, predict > 0.5)
-
-predicted.classes <- ifelse(cm_lr > 0.5,"X1","X0")
-
-# Model Accuracy
-mean(predicted.classes == test_Combined$TARGET)
-
-require(ROCR)
-pred <- prediction(pred_lr, test_Combined$TARGET)
-roc_lr <- performance(pred, measure = "tpr", x.measure = "fpr")
-
-plot(roc_lr, main = "ROC Curve")
 
 # save the model to disk
 saveRDS(model_lr, "./model_lr.rds")
 
+
+#++++++++++++++++++++++ Logistic Regression  with PCA ++++++++++++++++
+
+model_pca_lr <- train(TARGET~.,
+                      train_Combined,
+                      method = "glmnet",
+                      metric="ROC",
+                      #family = "binomial", 
+                      #tuneGrid = expand.grid(alpha = c(0,  .1,  .2, .4, .6, .8, 1),lambda = seq(.01, .2, length = 20)),
+                      preProcess = c('center', 'scale', 'pca'),
+                      trControl=fitControl)
+
+
+
+pred_pca_lr <- predict(model_pca_lr, test_Combined)
+cm_pca_lr <- confusionMatrix(pred_pca_lr, test_Combined$TARGET, positive = "X1")
+cm_pca_lr
+
+
+# save the model to disk
+saveRDS(model_pca_lr, "./model_pca_lr.rds")
+
+
+
+#++++++++++++++++ Logistic Regression  with Correlated Variables ++++++++++++++++
+
+model_corr_lr <- train(TARGET~ LBXGH  +
+                         LBXSGL  +
+                         RIDAGEYR  +
+                         RXDUSE  +
+                         LBDHDDSI  ,
+                         #LBDHDD  +
+                         #DMDHRAGE  +
+                         #DMDHHSZE  +
+                         #DLQ050  + 
+                         #BPXSY2  + 
+                         #BPXSY3  + 
+                         #OHX26TC  + 
+                         #OHX07TC  + 
+                         #OHX25TC  , 
+                         #OHX23TC  , 
+                         data = train_Combined,
+                       method = "glmnet",
+                       metric="ROC",
+                       preProcess = c("center", "scale"),
+                       trControl=fitControl) 
+
+
+pred_corr_lr <- predict(model_corr_lr, test_Combined)
+cm_corr_lr <- confusionMatrix(pred_corr_lr, test_Combined$TARGET, positive = "X1")
+cm_corr_lr
+
+
+saveRDS(model_corr_lr, "./model_corr_lr.rds")
 
 #++++++++++++++++++++++ random forest ++++++++++++++++
 
@@ -2788,6 +2871,39 @@ cm_pca_rf
 
 # save the model to disk
 saveRDS(model_pca_rf, "./model_pca_rf.rds")
+
+
+#++++++++++++++++ Logistic Regression  with Correlated Variables ++++++++++++++++
+
+model_corr_rf <- train(TARGET~ LBXGH  +
+                         LBXSGL  +
+                         RIDAGEYR  +
+                         RXDUSE  +
+                         LBDHDDSI  ,
+                       #LBDHDD  +
+                       #DMDHRAGE  +
+                       #DMDHHSZE  +
+                       #DLQ050  + 
+                       #BPXSY2  + 
+                       #BPXSY3  + 
+                       #OHX26TC  + 
+                       #OHX07TC  + 
+                       #OHX25TC  , 
+                       #OHX23TC  , 
+                       data = train_Combined,
+                       method="ranger",
+                       metric="ROC",
+                       preProcess = c("center", "scale"),
+                       trControl=fitControl) 
+
+
+pred_corr_rf <- predict(model_corr_rf, test_Combined)
+cm_corr_rf <- confusionMatrix(pred_corr_rf, test_Combined$TARGET, positive = "X1")
+cm_corr_rf
+
+
+saveRDS(model_corr_rf, "./model_corr_rf.rds")
+
 #++++++++++++++++++++++    KNN        ++++++++++++++++++
 
 model_knn <- train(TARGET~.,
@@ -2835,7 +2951,8 @@ saveRDS(model_svm, "./model_svm.rds")
 
 #Let's compare the models and check their correlation:
 
-model_list <- list(LR= model_lr, RF=model_rf, PCA_RF=model_pca_rf,  KNN = model_knn, SVM=model_svm)
+model_list <- list(LR= model_lr, PCA_LR= model_pca_lr, CORR_LR= model_corr_lr,RF=model_rf, 
+                   PCA_RF=model_pca_rf, CORR_RF=model_corr_rf,KNN = model_knn, SVM=model_svm)
 resamples <- resamples(model_list)
 
 model_cor <- modelCor(resamples)
@@ -2854,7 +2971,7 @@ bwplot(resamples, metric="ROC")
 #a threshold of 0.5 which could not be the best with an unbalanced dataset like this.
 
 
-cm_list <- list(LR= cm_lr, RF=cm_rf, PCA_RF=cm_pca_rf,  KNN = cm_knn, SVM=cm_svm)
+cm_list <- list(LR= cm_lr, PCA_LR= cm_pca_lr, CORR_LR= cm_corr_lr,  RF=cm_rf, PCA_RF=cm_pca_rf, CORR_RF=cm_corr_rf, KNN = cm_knn, SVM=cm_svm)
 
 
 cm_list_results <- sapply(cm_list, function(x) x$byClass)

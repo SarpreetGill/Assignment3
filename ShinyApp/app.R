@@ -12,7 +12,7 @@ library(data.table)
 #library(ggplot2)
 library(ggfortify)
 
-#setwd('D:/ProjetosGIT/Assignment-2/ShinyApp')
+#setwd('D:/ProjetosGIT/Assignment3/ShinyApp')
 #prepare_data_frame <- function(data_source) {
 mydata <-
   read.csv(
@@ -23,37 +23,13 @@ mydata <-
 # return(mydata)
 #}
 
-#species_list = colnames(mydata[6:31])
+#model_list = colnames(mydata[6:31])
 
-species_list = c(
-  "An.gambiae_complex" , 
-  "An.gambiae.ss",
-  "SS.M.Form..An.colluzzi.or.Mopti.forms.", 
-  "SS.S.Form..savanah.or.Bamako.forms.",
-  "An.arabiensis",
-  "An..melas" , 
-  "An..merus" , 
-  "An.bwambae" ,                           
-  "An.funestus..s.l",
-  "An.funestus.s.s...specified.",  
-  "An.rivulorum" ,  
-  "An.leesoni",                            
-  "An.parensis",   
-  "An.vaneedeni",   
-  "An.nili.s.l" ,   
-  "An.moucheti.s.l",   
-  "An.pharoensis",                         
-  "An.hancocki" , 
-  "An.mascarensis",  
-  "An.marshalli",  
-  "An.squamous" ,  
-  "An.wellcomei" ,                         
-  "An.rufipes" ,   
-  "An.coustani.s.l" , 
-  "An.ziemanni" ,  
-  "An.paludis" )    
+model_list = c(
+  "Random Forest" , 
+  "Logistic Regression" )    
 
-species_list = sort(species_list)
+model_list = sort(model_list)
 country_list = mydata[, 2]
 
 country_list = sort(unique(country_list))
@@ -64,14 +40,13 @@ mydata_selected = mydata[1:8]
 #    "Country" = "Country",
 #)
 
-#Malaria model
-
-malariaModel <- function() {
+#model_rf
+model_rf <- function() {
   
   # Kmeans
-  kclust = readRDS("kmeans.rds")
+  model_rf = readRDS("model_rf.rds")
   
-  return(kclust)
+  return(model_rf)
 }
 
 
@@ -88,16 +63,15 @@ predict.kmeans = function (lat, long, model) {
 
 # Define UI for application that draws a histogram
 ui <- navbarPage(
-  "Malaria-Mosquito",
+  "NHANES dataset",
   id = "nav",
   tabPanel(
-    "Interactive map",
+    "Supervised models",
     div(
       class = "outer",
       
       tags$head(# Include our custom CSS
-        includeCSS("styles.css"),
-        includeScript("gomap.js")),
+        includeCSS("styles.css")),
       
       # If not using custom CSS, set height of leafletOutput to a number instead of percent
       leafletOutput("map", width = "100%", height = "100%"),
@@ -115,9 +89,9 @@ ui <- navbarPage(
         width = 330,
         height = "auto",
         
-        h2("Mosquito Explorer"),
+        h2("Supervided Methods"),
         
-        selectInput("species", "Anopheles Species", species_list),
+        selectInput("species", "Anopheles Species", model_list),
         #selectInput("countries", "Countries", country_list) ,
         #conditionalPanel("input.species == 'gambiae_c' || countries == 'superzip'",
         # Only prompt for threshold when coloring or sizing by superzip
@@ -153,7 +127,7 @@ ui <- navbarPage(
   ),
   
   
-  tabPanel("Data explorer",
+  tabPanel("Unsupervised models",
            fluidRow(
              column(3,
                     selectInput("country", "Country",country_list, multiple=TRUE)
@@ -175,32 +149,11 @@ ui <- navbarPage(
   
   
   
-  tabPanel("Help!",
+  tabPanel("Technical Manual",
            fluidRow(column(
-             2,
-             titlePanel("This is a short help page"),
-             hr(),
-             "
-             
-             The interactive map allows zoom-in, out, and explore the mosquito data for the continent.
-             ",
-             hr(),
-             "
-             Additionally the ShinyApp allows explore the data on the 'Data explorer' tab.
-             
-             ",
-             hr(),
-             "
-             Click on the map to see the predicted cluster number calculated by the k-Means model.
-             
-             
-             "
-           ),
-           column(
-             2,"" 
-           )),
-           hr()
-           ),
+             12,
+             includeHTML("NAHNES.html")
+           ))  ),
   conditionalPanel("false", icon("crosshair"))
 )
 
@@ -210,12 +163,12 @@ server <- function(input, output,session) {
   ##### Malaria Dataset clean ######
   malaria_dataset_clean = read.csv("./data/working_malaria_data.csv", header = TRUE, na.strings = c("NA","","#NA"),fileEncoding ="latin1")[-1]
   
-
+  
   malaria_species= melt(select(mydata, c(2,6,7,10:35)), id=c('Country','Lat','Long')) %>%
     filter(value=='Yes') %>% filter(!is.na(Lat)) %>%
     rename(Species = variable) %>% 
     select(-value)
- 
+  
   plot_species = ifelse(malaria_dataset_clean[,c(10:35)]=="Yes",1,0) %>%
     colSums %>% sort(decreasing=TRUE) %>% stack %>% rev %>% setNames(nm=c('Species', 'MEV')) %>%
     mutate(Species=Species %>% substr(1,13))
@@ -227,7 +180,7 @@ server <- function(input, output,session) {
   
   kmeans.select_data.rds = readRDS("kmeans.select_data.rds")
   kmeans.select_data.rds <- kmeans.select_data.rds %>%
-                                select(Lat, Long, k_cluster)
+    select(Lat, Long, k_cluster)
   
   malaria_species <- merge(malaria_species, kmeans.select_data.rds, by=c("Lat","Long")) # NA's match
   
@@ -258,15 +211,15 @@ server <- function(input, output,session) {
       setView(lng = 12.35,
               lat = 7.36,
               zoom = 3) #%>%
-      #addPolygons(
-      #  stroke = FALSE,
-      #  smoothFactor = 0.3,
-      #  fillOpacity = 0.5,
-      #  fillColor = ~ pal(log10(as.numeric(ID))),
-      #  label = ~ paste0(COUNTRY, ": ", formatC(ID, big.mark = ","))
-      #) %>%
-      #addLegend(pal = pal, values = ~log10(as.numeric(ID)), opacity = 1.0,
-      #          labFormat = labelFormat(transform = function(x) round(10^x)))
+    #addPolygons(
+    #  stroke = FALSE,
+    #  smoothFactor = 0.3,
+    #  fillOpacity = 0.5,
+    #  fillColor = ~ pal(log10(as.numeric(ID))),
+    #  label = ~ paste0(COUNTRY, ": ", formatC(ID, big.mark = ","))
+    #) %>%
+    #addLegend(pal = pal, values = ~log10(as.numeric(ID)), opacity = 1.0,
+    #          labFormat = labelFormat(transform = function(x) round(10^x)))
   })
   
   
@@ -282,8 +235,6 @@ server <- function(input, output,session) {
     
     #closest cluster
     clusterNumer = listOrder[1]
-    
-  
     
     htmltext <- paste(
       sep = '',
@@ -339,7 +290,7 @@ server <- function(input, output,session) {
         fillOpacity = 0.5,
         opacity = 1
       )  #%>%
-      #addPopups(lng = clng, lat = clat, content)
+    #addPopups(lng = clng, lat = clat, content)
     
   })
   
@@ -363,23 +314,23 @@ server <- function(input, output,session) {
       addLegend(pal = pal, title = "Cluster Number", values = ~as.integer(k_cluster), opacity = 1.0)
     
   }) 
-
+  
   
   output$vectors_per_species <- renderPlot({
     # If no zipcodes are in view, don't plot
     #if (nrow(zipsInBounds()) == 0)
     # return(NULL)
-
+    
     #Most widespread species
     ggplot(plot_species, aes(x = reorder(Species, -MEV), y=MEV, fill=Species)) +
       geom_bar(stat="identity", width =1, colour = 'black', show.legend = FALSE) +
       labs(title="Malarian Entry Vectors Per Species",
            x="Species") +
       theme(axis.text.x = element_text(vjust=0.6, angle=90))
-  
+    
   })
-
-
+  
+  
   output$timeseries <- renderPlot({
     # If no species are in view, don't plot
     if (is.null(input$species))
@@ -388,14 +339,14 @@ server <- function(input, output,session) {
     # Time series plot###############
     time_series = ts(ifelse(malaria_dataset_clean[,c(10:35)]=="Yes",1,0),
                      start=c(1898), end=c(2016), frequency=1)
-  #  #autoplot(plot_data[,1:26], facets =TRUE) # All
+    #  #autoplot(plot_data[,1:26], facets =TRUE) # All
     autoplot(time_series[,c(input$species)],  xlab = "Time",
              main =paste("Evolution of ", input$species) )  + 
       scale_y_continuous(breaks=c(0.00,1.00),labels=c("No", "Yes")) +
       theme(plot.title = element_text(hjust = 0.5)) 
     
   })
-
+  
   ## Data Explorer ###########################################
   observe({
     region <- if (is.null(input$country)) character(0) else {
