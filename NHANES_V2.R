@@ -2871,6 +2871,39 @@ cm_pca_rf
 
 # save the model to disk
 saveRDS(model_pca_rf, "./model_pca_rf.rds")
+
+
+#++++++++++++++++ Logistic Regression  with Correlated Variables ++++++++++++++++
+
+model_corr_rf <- train(TARGET~ LBXGH  +
+                         LBXSGL  +
+                         RIDAGEYR  +
+                         RXDUSE  +
+                         LBDHDDSI  ,
+                       #LBDHDD  +
+                       #DMDHRAGE  +
+                       #DMDHHSZE  +
+                       #DLQ050  + 
+                       #BPXSY2  + 
+                       #BPXSY3  + 
+                       #OHX26TC  + 
+                       #OHX07TC  + 
+                       #OHX25TC  , 
+                       #OHX23TC  , 
+                       data = train_Combined,
+                       method="ranger",
+                       metric="ROC",
+                       preProcess = c("center", "scale"),
+                       trControl=fitControl) 
+
+
+pred_corr_rf <- predict(model_corr_rf, test_Combined)
+cm_corr_rf <- confusionMatrix(pred_corr_rf, test_Combined$TARGET, positive = "X1")
+cm_corr_rf
+
+
+saveRDS(model_corr_rf, "./model_corr_rf.rds")
+
 #++++++++++++++++++++++    KNN        ++++++++++++++++++
 
 model_knn <- train(TARGET~.,
@@ -2918,7 +2951,8 @@ saveRDS(model_svm, "./model_svm.rds")
 
 #Let's compare the models and check their correlation:
 
-model_list <- list(LR= model_lr, PCA_LR= model_pca_lr, CORR_LR= model_corr_lr,RF=model_rf, PCA_RF=model_pca_rf,  KNN = model_knn, SVM=model_svm)
+model_list <- list(LR= model_lr, PCA_LR= model_pca_lr, CORR_LR= model_corr_lr,RF=model_rf, 
+                   PCA_RF=model_pca_rf, CORR_RF=model_corr_rf,KNN = model_knn, SVM=model_svm)
 resamples <- resamples(model_list)
 
 model_cor <- modelCor(resamples)
@@ -2937,7 +2971,7 @@ bwplot(resamples, metric="ROC")
 #a threshold of 0.5 which could not be the best with an unbalanced dataset like this.
 
 
-cm_list <- list(LR= cm_lr, PCA_LR= cm_pca_lr, CORR_LR= cm_corr_lr,  RF=cm_rf, PCA_RF=cm_pca_rf,  KNN = cm_knn, SVM=cm_svm)
+cm_list <- list(LR= cm_lr, PCA_LR= cm_pca_lr, CORR_LR= cm_corr_lr,  RF=cm_rf, PCA_RF=cm_pca_rf, CORR_RF=cm_corr_rf, KNN = cm_knn, SVM=cm_svm)
 
 
 cm_list_results <- sapply(cm_list, function(x) x$byClass)

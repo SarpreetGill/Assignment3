@@ -3614,7 +3614,6 @@ model_corr_lr <- train(TARGET~ LBXGH  +
                        metric="ROC",
                        preProcess = c("center", "scale"),
                        trControl=fitControl) 
- 
 
 
 ```
@@ -3753,6 +3752,84 @@ Prediction    X0    X1
 ```
 
 
+
+
+#### Random Forest with correlated features
+
+Let's try Random Forest  with the top 5 positive correlated features:
+
+
+1   "LBXGH": "Glycohemoglobin (%)"
+
+2   "LBXSGL": "Glucose, refrigerated serum (mg/dL)"
+
+3   "RIDAGEYR":    "Age in years of the participant " 
+
+4   "RXDUSE" :  "In the past 30 days, have you taken medication for which a prescription is needed? " 
+Random forest with pca
+
+
+
+```{r model_corr_rf, eval=FALSE, echo=TRUE,message=FALSE, warning=FALSE, cache=FALSE}
+
+model_corr_rf <- train(TARGET~ LBXGH  +
+                         LBXSGL  +
+                         RIDAGEYR  +
+                         RXDUSE  +
+                         LBDHDDSI  ,
+                       #LBDHDD  +
+                       #DMDHRAGE  +
+                       #DMDHHSZE  +
+                       #DLQ050  + 
+                       #BPXSY2  + 
+                       #BPXSY3  + 
+                       #OHX26TC  + 
+                       #OHX07TC  + 
+                       #OHX25TC  , 
+                       #OHX23TC  , 
+                       data = train_Combined,
+                       method="ranger",
+                       metric="ROC",
+                       preProcess = c("center", "scale"),
+                       trControl=fitControl) 
+
+```
+
+
+```{r, eval=FALSE, echo=TRUE}
+
+pred_corr_rf <- predict(model_corr_rf, test_Combined)
+cm_corr_rf <- confusionMatrix(pred_corr_rf, test_Combined$TARGET, positive = "X1")
+cm_corr_rf
+Confusion Matrix and Statistics
+
+          Reference
+Prediction    X0    X1
+        X0 13736    20
+        X1    12  8038
+                                         
+               Accuracy : 0.9985         
+                 95% CI : (0.9979, 0.999)
+    No Information Rate : 0.6305         
+    P-Value [Acc > NIR] : <2e-16         
+                                         
+                  Kappa : 0.9968         
+                                         
+ Mcnemar's Test P-Value : 0.2159         
+                                         
+            Sensitivity : 0.9975         
+            Specificity : 0.9991         
+         Pos Pred Value : 0.9985         
+         Neg Pred Value : 0.9985         
+             Prevalence : 0.3695         
+         Detection Rate : 0.3686         
+   Detection Prevalence : 0.3692         
+      Balanced Accuracy : 0.9983         
+                                         
+       'Positive' Class : X1     
+
+```
+
 #### KNN
 
 Let's try KNN model
@@ -3867,8 +3944,10 @@ Prediction    X0    X1
 Let's compare the models and check their correlation:
 
 ```{r, eval=FALSE, echo=TRUE}
-model_list <- list(LR= model_rf, PCA_LR= model_pca_lr, CORR_LR= model_corr_lr, RF=model_rf, PCA_RF=model_pca_rf,  KNN = model_knn, SVM=model_svm)
+model_list <- list(LR= model_lr, PCA_LR= model_pca_lr, CORR_LR= model_corr_lr,RF=model_rf, 
+                   PCA_RF=model_pca_rf, CORR_RF=model_corr_rf,KNN = model_knn, SVM=model_svm)
 resamples <- resamples(model_list)
+
 
 ```
 
@@ -3888,23 +3967,24 @@ corrplot(model_cor)
 ##### Data
 ```{r, eval=FALSE, echo=TRUE}
 model_cor
-
-                LR     PCA_LR    CORR_LR         RF      PCA_RF         KNN
-LR       1.0000000 -0.2797105  0.2728638  0.1528731 -0.46610641  0.63099993
-PCA_LR  -0.2797105  1.0000000  0.8339244 -0.9275219  0.89006376  0.44646929
-CORR_LR  0.2728638  0.8339244  1.0000000 -0.8590370  0.56778253  0.84332932
-RF       0.1528731 -0.9275219 -0.8590370  1.0000000 -0.80942818 -0.47866414
-PCA_RF  -0.4661064  0.8900638  0.5677825 -0.8094282  1.00000000  0.05167214
-KNN      0.6309999  0.4464693  0.8433293 -0.4786641  0.05167214  1.00000000
-SVM      0.3891005 -0.6609020 -0.4504645  0.8274750 -0.75982536  0.02863682
-                SVM
-LR       0.38910048
-PCA_LR  -0.66090198
-CORR_LR -0.45046447
-RF       0.82747497
-PCA_RF  -0.75982536
-KNN      0.02863682
-SVM      1.00000000
+                LR     PCA_LR    CORR_LR         RF      PCA_RF    CORR_RF
+LR       1.0000000 -0.2797105  0.2728638  0.1528731 -0.46610641  0.4907913
+PCA_LR  -0.2797105  1.0000000  0.8339244 -0.9275219  0.89006376  0.1853586
+CORR_LR  0.2728638  0.8339244  1.0000000 -0.8590370  0.56778253  0.5814183
+RF       0.1528731 -0.9275219 -0.8590370  1.0000000 -0.80942818 -0.4135697
+PCA_RF  -0.4661064  0.8900638  0.5677825 -0.8094282  1.00000000 -0.1984461
+CORR_RF  0.4907913  0.1853586  0.5814183 -0.4135697 -0.19844606  1.0000000
+KNN      0.6309999  0.4464693  0.8433293 -0.4786641  0.05167214  0.7598467
+SVM      0.3891005 -0.6609020 -0.4504645  0.8274750 -0.75982536 -0.1669214
+                KNN         SVM
+LR       0.63099993  0.38910048
+PCA_LR   0.44646929 -0.66090198
+CORR_LR  0.84332932 -0.45046447
+RF      -0.47866414  0.82747497
+PCA_RF   0.05167214 -0.75982536
+CORR_RF  0.75984669 -0.16692139
+KNN      1.00000000  0.02863682
+SVM      0.02863682  1.00000000
 ```
 
 
@@ -3918,12 +3998,12 @@ bwplot(resamples, metric="ROC")
 ![](Figures/combined/bwplot_model_list.png){width=800px}
 
 Most of the models have a low variability with respect of the processed sample.
-RF and PCA_RF achieve a great auc with a very low variability.
+Random Forest (RF, PCA_RF, and CORR_RF) achieve a great auc with a very low variability.
 
 
 
 ```{r, eval=FALSE, echo=TRUE}
-cm_list <- list(LR= model_rf, PCA_LR=model_pca_lr, CORR_LR= model_corr_lr,RF=model_rf, PCA_RF=model_pca_rf,  KNN = model_knn, SVM=model_svm)
+cm_list <- list(LR= model_rf, PCA_LR=model_pca_lr, CORR_LR= model_corr_lr,RF=model_rf, PCA_RF=model_pca_rf, CORR_RF=model_corr_rf, KNN = model_knn, SVM=model_svm)
 
 ```
 
@@ -3934,37 +4014,36 @@ a threshold of 0.5 which could not be the best with an unbalanced dataset like t
 cm_list <- list(LR= cm_lr, PCA_LR= cm_pca_lr, CORR_LR= cm_corr_lr,RF=cm_rf, PCA_RF=cm_pca_rf,  KNN = cm_knn, SVM=cm_svm)
 cm_list_results <- sapply(cm_list, function(x) x$byClass)
 cm_list_results
-
-                            LR    PCA_LR   CORR_LR        RF    PCA_RF       KNN
-Sensitivity          0.7112187 0.7150658 0.7096054 0.9975180 0.9972698 0.9928022
-Specificity          0.9389729 0.9418825 0.9420279 0.9993454 0.9996363 0.9945447
-Pos Pred Value       0.8722983 0.8782198 0.8776669 0.9988816 0.9993782 0.9907121
-Neg Pred Value       0.8472696 0.8493932 0.8469688 0.9985464 0.9984017 0.9957760
-Precision            0.8722983 0.8782198 0.8776669 0.9988816 0.9993782 0.9907121
-Recall               0.7112187 0.7150658 0.7096054 0.9975180 0.9972698 0.9928022
-F1                   0.7835658 0.7882892 0.7847389 0.9981993 0.9983229 0.9917560
+                            LR    PCA_LR   CORR_LR        RF    PCA_RF   CORR_RF
+Sensitivity          0.7112187 0.7150658 0.7096054 0.9975180 0.9972698 0.9975180
+Specificity          0.9389729 0.9418825 0.9420279 0.9993454 0.9996363 0.9991271
+Pos Pred Value       0.8722983 0.8782198 0.8776669 0.9988816 0.9993782 0.9985093
+Neg Pred Value       0.8472696 0.8493932 0.8469688 0.9985464 0.9984017 0.9985461
+Precision            0.8722983 0.8782198 0.8776669 0.9988816 0.9993782 0.9985093
+Recall               0.7112187 0.7150658 0.7096054 0.9975180 0.9972698 0.9975180
+F1                   0.7835658 0.7882892 0.7847389 0.9981993 0.9983229 0.9980134
 Prevalence           0.3695313 0.3695313 0.3695313 0.3695313 0.3695313 0.3695313
-Detection Rate       0.2628176 0.2642392 0.2622214 0.3686141 0.3685224 0.3668715
-Detection Prevalence 0.3012932 0.3008805 0.2987710 0.3690269 0.3687517 0.3703109
-Balanced Accuracy    0.8250958 0.8284741 0.8258166 0.9984317 0.9984531 0.9936734
-                           SVM
-Sensitivity          0.9370812
-Specificity          0.9797789
-Pos Pred Value       0.9644910
-Neg Pred Value       0.9637261
-Precision            0.9644910
-Recall               0.9370812
-F1                   0.9505885
-Prevalence           0.3695313
-Detection Rate       0.3462808
-Detection Prevalence 0.3590296
-Balanced Accuracy    0.9584300
+Detection Rate       0.2628176 0.2642392 0.2622214 0.3686141 0.3685224 0.3686141
+Detection Prevalence 0.3012932 0.3008805 0.2987710 0.3690269 0.3687517 0.3691645
+Balanced Accuracy    0.8250958 0.8284741 0.8258166 0.9984317 0.9984531 0.9983226
+                           KNN       SVM
+Sensitivity          0.9928022 0.9370812
+Specificity          0.9945447 0.9797789
+Pos Pred Value       0.9907121 0.9644910
+Neg Pred Value       0.9957760 0.9637261
+Precision            0.9907121 0.9644910
+Recall               0.9928022 0.9370812
+F1                   0.9917560 0.9505885
+Prevalence           0.3695313 0.3695313
+Detection Rate       0.3668715 0.3462808
+Detection Prevalence 0.3703109 0.3590296
+Balanced Accuracy    0.9936734 0.9584300
 ```
 
 
 
 
-The best results for Sensitivity (detection of diabetes) is the Random forest, and The  with PCA has a great F1 score. Moreover Random forest with PCA is as sensitive as Random forest.
+The best results for Sensitivity (detection of diabetes) is the Random forest with the top five correlated features, and The  with PCA has a great F1 score.
 
 
 ```{r, eval=FALSE, echo=TRUE}
@@ -3983,15 +4062,15 @@ output_report <- data.frame(metric=names(cm_results_max),
 rownames(output_report) <- NULL
 output_report
                  metric best_model     value
-1           Sensitivity         RF 0.9975180
+1           Sensitivity    CORR_RF 0.9975180
 2           Specificity     PCA_RF 0.9996363
 3        Pos Pred Value     PCA_RF 0.9993782
 4        Neg Pred Value         RF 0.9985464
 5             Precision     PCA_RF 0.9993782
 6                Recall         RF 0.9975180
 7                    F1     PCA_RF 0.9983229
-8            Prevalence         LR 0.3695313
-9        Detection Rate         RF 0.3686141
+8            Prevalence        SVM 0.3695313
+9        Detection Rate    CORR_RF 0.3686141
 10 Detection Prevalence        KNN 0.3703109
 11    Balanced Accuracy     PCA_RF 0.9984531
 
@@ -3999,7 +4078,7 @@ output_report
 
 ### Conclusions
 
-We have found Random forest with PCA  model preprocessed data with good results over the test set. This model has a **sensibility of 0.997** with a **F1 score of 0.998**.
+We have found Random forest the top five correlated features  model preprocessed data with good results over the test set. This model has a **sensibility of 0.997** with a **F1 score of 0.998**.
 
 
 
