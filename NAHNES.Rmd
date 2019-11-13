@@ -4014,9 +4014,16 @@ We have found Random forest with PCA  model preprocessed data with good results 
 
 # Shiny App
 
+The ShinyApp was built to assist to predict a patients condition based on the selected attribues.
+
 ## Models for Shiny
 
+The models implemeneted on the ShinyApp are:
+- 
+- 
+
 ## Link for ShinyApp
+The ShinyApp can be accessed from:
 
 # Conclusion 
 
