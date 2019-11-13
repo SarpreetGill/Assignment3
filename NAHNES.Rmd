@@ -3299,14 +3299,73 @@ Demo_target2 <- as.data.frame(cbind(Demo_target2, pcmp$scores[,1:5]))
 
 #### Correlation Plot:
 ```{r eval=FALSE, echo=TRUE}
-corrplot(combi_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt = 45)
+require(corrplot)
+
+# let remove 
+#7 =DIQ010  : "told by a doctor that you have diabetes or sugar diabetes?"  
+#8 = DIQ050  : "{Is SP/Are you} now taking insulin"
+
+combi_diabetes_cor=rcorr(as.matrix(combined_target_final[-c(1,2,7,8,39,40,41,42)]))
+
+corrplot(combi_diabetes_cor$r, 
+         type = "upper", order = "hclust", tl.col = "black",
+         tl.srt = 45,tl.cex =0.4,
+         cl.cex = 0.7)
 
 ```
 
 
-![](Figures/Supervised/Demo_Corr.png){width=800px}
+![](Figures/Supervised/Demo_Corr.png){width=500px}
 
 
+
+
+select features correlated to the TARGET ( HAS_DIABETES) with "abs(coefficiant) > 0.1" 
+
+```{r eval=FALSE, echo=TRUE}
+# ++++++++++++++++++++++++++++
+# flattenCorrMatrix
+# ++++++++++++++++++++++++++++
+# cormat : matrix of the correlation coefficients
+# pmat : matrix of the correlation p-values
+flattenCorrMatrix <- function(cormat, pmat) {
+  ut <- upper.tri(cormat)
+  data.frame(
+    row = rownames(cormat)[row(cormat)[ut]],
+    column = rownames(cormat)[col(cormat)[ut]],
+    cor  =(cormat)[ut],
+    p = pmat[ut]
+  )
+}
+
+CorrMatrix = as.data.frame(flattenCorrMatrix(combi_diabetes_cor$r, combi_diabetes_cor$P))
+
+#withdraw feasture correlated to the TARGET and select cor > 0.1 
+
+TARGET_CorrMatrix <- CorrMatrix %>%
+  filter(row=="TARGET")%>%
+  arrange(desc(abs(cor)))%>%
+  filter(abs(cor)>0.1)
+
+head(TARGET_CorrMatrix)
+
+      row   column        cor p
+1  TARGET    LBXGH  0.6089779 0
+2  TARGET   LBXSGL  0.5035482 0
+3  TARGET RIDAGEYR  0.2402681 0
+4  TARGET   RXDUSE -0.2004047 0
+5  TARGET LBDHDDSI -0.1918771 0
+6  TARGET   LBDHDD -0.1899955 0
+7  TARGET DMDHRAGE  0.1700048 0
+8  TARGET DMDHHSZE  0.1578885 0
+9  TARGET   DLQ050 -0.1493532 0
+10 TARGET   BPXSY2  0.1413383 0
+11 TARGET   BPXSY3  0.1389114 0
+12 TARGET  OHX26TC  0.1328777 0
+13 TARGET  OHX07TC  0.1167468 0
+14 TARGET  OHX25TC  0.1032902 0
+15 TARGET  OHX23TC  0.1000596 0
+```
 
 
 #### PCA FOR DIABETES
@@ -3334,7 +3393,7 @@ combined_target_final <- read_csv("Data/Target Datasets/combined_target_final.cs
 
 library(devtools)
 library(ggbiplot)
-combined_target_final.pca <- prcomp(combined_target_final[,c(4:38)], center = TRUE,scale = TRUE)
+combined_target_final.pca <- prcomp(combined_target_final[-c(1,2,7,8,39,40,41,42)], center = TRUE,scale = TRUE)
 summary(combined_target_final.pca)
 
 screeplot(combined_target_final.pca, type = "l", npcs = 20, main = "Screeplot of the first 20 PCs")
@@ -3397,14 +3456,16 @@ set.seed(101)
 
 
 data_index <- createDataPartition(combined_target_final$TARGET, p=0.75, list = FALSE)
-train_Combined <- combined_target_final[data_index,-c(1,2,39,40,41,42) ]
-test_Combined <- combined_target_final[-data_index, -c(1,2,39,40,41,42)]
+train_Combined <- combined_target_final[data_index,-c(1,2,7,8,39,40,41,42) ]
+test_Combined <- combined_target_final[-data_index, -c(1,2,7,8,39,40,41,42)]
+
+train_Combined$TARGET =  as.factor(train_Combined$TARGET)
+test_Combined$TARGET =  as.factor(test_Combined$TARGET)
 
  #try to predict class probabilities in R - caret
 levels(train_Combined$TARGET) <- make.names(levels(factor(train_Combined$TARGET)))
 levels(test_Combined$TARGET) <- make.names(levels(factor(test_Combined$TARGET)))
-#train_Combined$TARGET =  as.factor(train_Combined$TARGET)
-#test_Combined$TARGET =  as.factor(test_Combined$TARGET)
+
 
 ```
 
@@ -3436,37 +3497,156 @@ Confusion Matrix and Statistics
 
           Reference
 Prediction    X0    X1
-        X0 13800     0
-        X1     0  8006
-                                     
-               Accuracy : 1          
-                 95% CI : (0.9998, 1)
-    No Information Rate : 0.6329     
-    P-Value [Acc > NIR] : < 2.2e-16  
-                                     
-                  Kappa : 1          
-                                     
- Mcnemar's Test P-Value : NA         
-                                     
-            Sensitivity : 1.0000     
-            Specificity : 1.0000     
-         Pos Pred Value : 1.0000     
-         Neg Pred Value : 1.0000     
-             Prevalence : 0.3671     
-         Detection Rate : 0.3671     
-   Detection Prevalence : 0.3671     
-      Balanced Accuracy : 1.0000     
-                                     
-       'Positive' Class : X1  
+        X0 12909  2327
+        X1   839  5731
+                                          
+               Accuracy : 0.8548          
+                 95% CI : (0.8501, 0.8595)
+    No Information Rate : 0.6305          
+    P-Value [Acc > NIR] : < 2.2e-16       
+                                          
+                  Kappa : 0.676           
+                                          
+ Mcnemar's Test P-Value : < 2.2e-16       
+                                          
+            Sensitivity : 0.7112          
+            Specificity : 0.9390          
+         Pos Pred Value : 0.8723          
+         Neg Pred Value : 0.8473          
+             Prevalence : 0.3695          
+         Detection Rate : 0.2628          
+   Detection Prevalence : 0.3013          
+      Balanced Accuracy : 0.8251          
+                                          
+       'Positive' Class : X1 
+```
+
+
+#### Logistic Regression with  PCA
+
+Logistic Regression  with  pca:
+
+
+```{r model_pca_lr, eval=FALSE, echo=TRUE, message=FALSE, warning=FALSE, cache=FALSE}
+
+model_pca_lr <- train(TARGET~.,
+                      train_Combined,
+                      method = "glmnet",
+                      metric="ROC",
+                      #family = "binomial", 
+                      #tuneGrid = expand.grid(alpha = c(0,  .1,  .2, .4, .6, .8, 1),lambda = seq(.01, .2, length = 20)),
+                      preProcess = c('center', 'scale', 'pca'),
+                      trControl=fitControl)
+
+
 ```
 
 
 
 ```{r, eval=FALSE, echo=TRUE}
+pred_pca_lr <- predict(model_pca_lr, test_Combined)
+cm_pca_lr <- confusionMatrix(pred_pca_rf, test_Combined$TARGET, positive = "X1")
+cm_pca_lr
+Confusion Matrix and Statistics
+
+          Reference
+Prediction    X0    X1
+        X0 12949  2296
+        X1   799  5762
+                                          
+               Accuracy : 0.8581          
+                 95% CI : (0.8534, 0.8627)
+    No Information Rate : 0.6305          
+    P-Value [Acc > NIR] : < 2.2e-16       
+                                          
+                  Kappa : 0.6832          
+                                          
+ Mcnemar's Test P-Value : < 2.2e-16       
+                                          
+            Sensitivity : 0.7151          
+            Specificity : 0.9419          
+         Pos Pred Value : 0.8782          
+         Neg Pred Value : 0.8494          
+             Prevalence : 0.3695          
+         Detection Rate : 0.2642          
+   Detection Prevalence : 0.3009          
+      Balanced Accuracy : 0.8285          
+                                          
+       'Positive' Class : X1 
+```
+
+
+#### Logistic Regression with correlated features
+
+Let's try Logistic Regression  with the Top  positive correlated features:
+      row   column        cor 
+1  TARGET    LBXGH  0.6089779 "LBXGH","Glycohemoglobin (%)"
+2  TARGET   LBXSGL  0.5035482 "LBXSGL","Glucose, refrigerated serum (mg/dL)"
+3  TARGET RIDAGEYR  0.2402681 "Age in years of the participant " 
+4  TARGET   RXDUSE -0.2004047 "In the past 30 days, have you taken medication for which a prescription is needed? " 
+5  TARGET LBDHDDSI -0.1918771 "Direct HDL-Cholesterol (mmol/L)"
+
+
+```{r model_corr_lr, eval=FALSE, echo=TRUE, message=FALSE, warning=FALSE, cache=FALSE}
+
+model_corr_lr <- train(TARGET~ LBXGH  +
+                         LBXSGL  +
+                         RIDAGEYR  +
+                         RXDUSE  +
+                         LBDHDDSI  ,
+                         #LBDHDD  +
+                         #DMDHRAGE  +
+                         #DMDHHSZE  +
+                         #DLQ050  + 
+                         #BPXSY2  + 
+                         #BPXSY3  + 
+                         #OHX26TC  + 
+                         #OHX07TC  + 
+                         #OHX25TC  , 
+                         #OHX23TC  , 
+                         data = train_Combined,
+                       method = "glmnet",
+                       metric="ROC",
+                       preProcess = c("center", "scale"),
+                       trControl=fitControl) 
+ 
 
 
 ```
 
+```{r,eval=FALSE, echo=TRUE}
+pred_corr_lr <- predict(model_corr_lr, test_Combined)
+cm_corr_lr <- confusionMatrix(pred_corr_lr, test_Combined$TARGET, positive = "X1")
+cm_corr_lr
+
+Confusion Matrix and Statistics
+
+          Reference
+Prediction    X0    X1
+        X0 12951  2340
+        X1   797  5718
+                                          
+               Accuracy : 0.8561          
+                 95% CI : (0.8514, 0.8608)
+    No Information Rate : 0.6305          
+    P-Value [Acc > NIR] : < 2.2e-16       
+                                          
+                  Kappa : 0.6785          
+                                          
+ Mcnemar's Test P-Value : < 2.2e-16       
+                                          
+            Sensitivity : 0.7096          
+            Specificity : 0.9420          
+         Pos Pred Value : 0.8777          
+         Neg Pred Value : 0.8470          
+             Prevalence : 0.3695          
+         Detection Rate : 0.2622          
+   Detection Prevalence : 0.2988          
+      Balanced Accuracy : 0.8258          
+                                          
+       'Positive' Class : X1   
+
+```
 
 #### Random Forest
 
@@ -3494,28 +3674,29 @@ Confusion Matrix and Statistics
 
           Reference
 Prediction    X0    X1
-        X0 13800     2
-        X1     0  8004
-                                     
-               Accuracy : 0.9999     
-                 95% CI : (0.9997, 1)
-    No Information Rate : 0.6329     
-    P-Value [Acc > NIR] : <2e-16     
-                                     
-                  Kappa : 0.9998     
-                                     
- Mcnemar's Test P-Value : 0.4795     
-                                     
-            Sensitivity : 0.9998     
-            Specificity : 1.0000     
-         Pos Pred Value : 1.0000     
-         Neg Pred Value : 0.9999     
-             Prevalence : 0.3671     
-         Detection Rate : 0.3671     
-   Detection Prevalence : 0.3671     
-      Balanced Accuracy : 0.9999     
-                                     
-       'Positive' Class : X1        
+        X0 13739    20
+        X1     9  8038
+                                          
+               Accuracy : 0.9987          
+                 95% CI : (0.9981, 0.9991)
+    No Information Rate : 0.6305          
+    P-Value [Acc > NIR] : < 2e-16         
+                                          
+                  Kappa : 0.9971          
+                                          
+ Mcnemar's Test P-Value : 0.06332         
+                                          
+            Sensitivity : 0.9975          
+            Specificity : 0.9993          
+         Pos Pred Value : 0.9989          
+         Neg Pred Value : 0.9985          
+             Prevalence : 0.3695          
+         Detection Rate : 0.3686          
+   Detection Prevalence : 0.3690          
+      Balanced Accuracy : 0.9984          
+                                          
+       'Positive' Class : X1              
+                                       
 ```
 
 #### Random Forest with PCA
@@ -3537,33 +3718,32 @@ model_pca_rf <- train(TARGET~.,
 pred_pca_rf <- predict(model_pca_rf, test_Combined)
 cm_pca_rf <- confusionMatrix(pred_pca_rf, test_Combined$TARGET, positive = "X1")
 cm_pca_rf
-
 Confusion Matrix and Statistics
 
           Reference
 Prediction    X0    X1
-        X0 13799     1
-        X1     1  8005
-                                     
-               Accuracy : 0.9999     
-                 95% CI : (0.9997, 1)
-    No Information Rate : 0.6329     
-    P-Value [Acc > NIR] : <2e-16     
-                                     
-                  Kappa : 0.9998     
-                                     
- Mcnemar's Test P-Value : 1          
-                                     
-            Sensitivity : 0.9999     
-            Specificity : 0.9999     
-         Pos Pred Value : 0.9999     
-         Neg Pred Value : 0.9999     
-             Prevalence : 0.3671     
-         Detection Rate : 0.3671     
-   Detection Prevalence : 0.3671     
-      Balanced Accuracy : 0.9999     
-                                     
-       'Positive' Class : X1         
+        X0 13743    22
+        X1     5  8036
+                                          
+               Accuracy : 0.9988          
+                 95% CI : (0.9982, 0.9992)
+    No Information Rate : 0.6305          
+    P-Value [Acc > NIR] : < 2.2e-16       
+                                          
+                  Kappa : 0.9973          
+                                          
+ Mcnemar's Test P-Value : 0.002076        
+                                          
+            Sensitivity : 0.9973          
+            Specificity : 0.9996          
+         Pos Pred Value : 0.9994          
+         Neg Pred Value : 0.9984          
+             Prevalence : 0.3695          
+         Detection Rate : 0.3685          
+   Detection Prevalence : 0.3688          
+      Balanced Accuracy : 0.9985          
+                                          
+       'Positive' Class : X1          
                                 
 ```
 
@@ -3591,26 +3771,26 @@ Confusion Matrix and Statistics
 
           Reference
 Prediction    X0    X1
-        X0 13754    77
-        X1    46  7929
+        X0 13673    58
+        X1    75  8000
                                           
-               Accuracy : 0.9944          
-                 95% CI : (0.9933, 0.9953)
-    No Information Rate : 0.6329          
-    P-Value [Acc > NIR] : < 2e-16         
+               Accuracy : 0.9939          
+                 95% CI : (0.9928, 0.9949)
+    No Information Rate : 0.6305          
+    P-Value [Acc > NIR] : <2e-16          
                                           
-                  Kappa : 0.9879          
+                  Kappa : 0.9869          
                                           
- Mcnemar's Test P-Value : 0.00683         
+ Mcnemar's Test P-Value : 0.1653          
                                           
-            Sensitivity : 0.9904          
-            Specificity : 0.9967          
-         Pos Pred Value : 0.9942          
-         Neg Pred Value : 0.9944          
-             Prevalence : 0.3671          
-         Detection Rate : 0.3636          
-   Detection Prevalence : 0.3657          
-      Balanced Accuracy : 0.9935          
+            Sensitivity : 0.9928          
+            Specificity : 0.9945          
+         Pos Pred Value : 0.9907          
+         Neg Pred Value : 0.9958          
+             Prevalence : 0.3695          
+         Detection Rate : 0.3669          
+   Detection Prevalence : 0.3703          
+      Balanced Accuracy : 0.9937          
                                           
        'Positive' Class : X1     
 ```
@@ -3645,28 +3825,29 @@ Confusion Matrix and Statistics
 
           Reference
 Prediction    X0    X1
-        X0 13800     1
-        X1     0  8005
-                                     
-               Accuracy : 1          
-                 95% CI : (0.9997, 1)
-    No Information Rate : 0.6329     
-    P-Value [Acc > NIR] : <2e-16     
-                                     
-                  Kappa : 0.9999     
-                                     
- Mcnemar's Test P-Value : 1          
-                                     
-            Sensitivity : 0.9999     
-            Specificity : 1.0000     
-         Pos Pred Value : 1.0000     
-         Neg Pred Value : 0.9999     
-             Prevalence : 0.3671     
-         Detection Rate : 0.3671     
-   Detection Prevalence : 0.3671     
-      Balanced Accuracy : 0.9999     
-                                     
-       'Positive' Class : X1 
+        X0 13470   507
+        X1   278  7551
+                                          
+               Accuracy : 0.964           
+                 95% CI : (0.9614, 0.9664)
+    No Information Rate : 0.6305          
+    P-Value [Acc > NIR] : < 2.2e-16       
+                                          
+                  Kappa : 0.9223          
+                                          
+ Mcnemar's Test P-Value : 4.03e-16        
+                                          
+            Sensitivity : 0.9371          
+            Specificity : 0.9798          
+         Pos Pred Value : 0.9645          
+         Neg Pred Value : 0.9637          
+             Prevalence : 0.3695          
+         Detection Rate : 0.3463          
+   Detection Prevalence : 0.3590          
+      Balanced Accuracy : 0.9584          
+                                          
+       'Positive' Class : X1              
+                             
 ``` 
 
 
@@ -3681,7 +3862,7 @@ Prediction    X0    X1
 Let's compare the models and check their correlation:
 
 ```{r, eval=FALSE, echo=TRUE}
-model_list <- list(LR= model_rf, RF=model_rf, PCA_RF=model_pca_rf,  KNN = model_knn, SVM=model_svm)
+model_list <- list(LR= model_rf, PCA_LR= model_pca_lr, CORR_LR= model_corr_lr, RF=model_rf, PCA_RF=model_pca_rf,  KNN = model_knn, SVM=model_svm)
 resamples <- resamples(model_list)
 
 ```
@@ -3703,12 +3884,22 @@ corrplot(model_cor)
 ```{r, eval=FALSE, echo=TRUE}
 model_cor
 
-       LR RF     PCA_RF        KNN        SVM
-LR      1 NA         NA         NA         NA
-RF     NA  1         NA         NA         NA
-PCA_RF NA NA  1.0000000  0.4587672 -0.4482732
-KNN    NA NA  0.4587672  1.0000000 -0.5315354
-SVM    NA NA -0.4482732 -0.5315354  1.0000000
+                LR     PCA_LR    CORR_LR         RF      PCA_RF         KNN
+LR       1.0000000 -0.2797105  0.2728638  0.1528731 -0.46610641  0.63099993
+PCA_LR  -0.2797105  1.0000000  0.8339244 -0.9275219  0.89006376  0.44646929
+CORR_LR  0.2728638  0.8339244  1.0000000 -0.8590370  0.56778253  0.84332932
+RF       0.1528731 -0.9275219 -0.8590370  1.0000000 -0.80942818 -0.47866414
+PCA_RF  -0.4661064  0.8900638  0.5677825 -0.8094282  1.00000000  0.05167214
+KNN      0.6309999  0.4464693  0.8433293 -0.4786641  0.05167214  1.00000000
+SVM      0.3891005 -0.6609020 -0.4504645  0.8274750 -0.75982536  0.02863682
+                SVM
+LR       0.38910048
+PCA_LR  -0.66090198
+CORR_LR -0.45046447
+RF       0.82747497
+PCA_RF  -0.75982536
+KNN      0.02863682
+SVM      1.00000000
 ```
 
 
@@ -3721,14 +3912,13 @@ bwplot(resamples, metric="ROC")
 
 ![](Figures/combined/bwplot_model_list.png){width=500px}
 
-
-We see here that KNN have a great variability depending of the processed sample. 
-The other models achieve a great auc with a very low variability
+Most of the models have a low variability with respect of the processed sample.
+RF and PCA_RF achieve a great auc with a very low variability.
 
 
 
 ```{r, eval=FALSE, echo=TRUE}
-cm_list <- list(LR= model_rf, RF=model_rf, PCA_RF=model_pca_rf,  KNN = model_knn, SVM=model_svm)
+cm_list <- list(LR= model_rf, PCA_LR=model_pca_lr, CORR_LR= model_corr_lr,RF=model_rf, PCA_RF=model_pca_rf,  KNN = model_knn, SVM=model_svm)
 
 ```
 
@@ -3736,30 +3926,40 @@ Let's remember how these models result with the testing dataset. Prediction clas
 a threshold of 0.5 which could not be the best with an unbalanced dataset like this.
 
 ```{r, eval=FALSE, echo=TRUE}
-cm_list <- list(LR= cm_lr, RF=cm_rf, PCA_RF=cm_pca_rf,  KNN = cm_knn, SVM=cm_svm)
+cm_list <- list(LR= cm_lr, PCA_LR= cm_pca_lr, CORR_LR= cm_corr_lr,RF=cm_rf, PCA_RF=cm_pca_rf,  KNN = cm_knn, SVM=cm_svm)
 cm_list_results <- sapply(cm_list, function(x) x$byClass)
 cm_list_results
 
-                           LR        RF    PCA_RF       KNN       SVM
-Sensitivity          1.0000000 0.9997502 0.9998751 0.9903822 0.9998751
-Specificity          1.0000000 1.0000000 0.9999275 0.9966667 1.0000000
-Pos Pred Value       1.0000000 1.0000000 0.9998751 0.9942320 1.0000000
-Neg Pred Value       1.0000000 0.9998551 0.9999275 0.9944328 0.9999275
-Precision            1.0000000 1.0000000 0.9998751 0.9942320 1.0000000
-Recall               1.0000000 0.9997502 0.9998751 0.9903822 0.9998751
-F1                   1.0000000 0.9998751 0.9998751 0.9923034 0.9999375
-Prevalence           0.3671467 0.3671467 0.3671467 0.3671467 0.3671467
-Detection Rate       0.3671467 0.3670549 0.3671008 0.3636155 0.3671008
-Detection Prevalence 0.3671467 0.3670549 0.3671467 0.3657250 0.3671008
-Balanced Accuracy    1.0000000 0.9998751 0.9999013 0.9935244 0.9999375
+                            LR    PCA_LR   CORR_LR        RF    PCA_RF       KNN
+Sensitivity          0.7112187 0.7150658 0.7096054 0.9975180 0.9972698 0.9928022
+Specificity          0.9389729 0.9418825 0.9420279 0.9993454 0.9996363 0.9945447
+Pos Pred Value       0.8722983 0.8782198 0.8776669 0.9988816 0.9993782 0.9907121
+Neg Pred Value       0.8472696 0.8493932 0.8469688 0.9985464 0.9984017 0.9957760
+Precision            0.8722983 0.8782198 0.8776669 0.9988816 0.9993782 0.9907121
+Recall               0.7112187 0.7150658 0.7096054 0.9975180 0.9972698 0.9928022
+F1                   0.7835658 0.7882892 0.7847389 0.9981993 0.9983229 0.9917560
+Prevalence           0.3695313 0.3695313 0.3695313 0.3695313 0.3695313 0.3695313
+Detection Rate       0.2628176 0.2642392 0.2622214 0.3686141 0.3685224 0.3668715
+Detection Prevalence 0.3012932 0.3008805 0.2987710 0.3690269 0.3687517 0.3703109
+Balanced Accuracy    0.8250958 0.8284741 0.8258166 0.9984317 0.9984531 0.9936734
+                           SVM
+Sensitivity          0.9370812
+Specificity          0.9797789
+Pos Pred Value       0.9644910
+Neg Pred Value       0.9637261
+Precision            0.9644910
+Recall               0.9370812
+F1                   0.9505885
+Prevalence           0.3695313
+Detection Rate       0.3462808
+Detection Prevalence 0.3590296
+Balanced Accuracy    0.9584300
 ```
 
 
-The best results for sensitivity (detection of breast cases) is LDA_NNET
 
-The best results for sensitivity (detection of diabetes) is Logistic regression    which also has a great F1 score.
 
-Random forest with PCA is as sensitive as Random forest 
+The best results for Sensitivity (detection of diabetes) is the Random forest, and The  with PCA has a great F1 score. Moreover Random forest with PCA is as sensitive as Random forest.
 
 
 ```{r, eval=FALSE, echo=TRUE}
@@ -3777,28 +3977,24 @@ output_report <- data.frame(metric=names(cm_results_max),
                                          cm_results_max))
 rownames(output_report) <- NULL
 output_report
-
                  metric best_model     value
-1           Sensitivity         LR 1.0000000
-2           Specificity         RF 1.0000000
-3        Pos Pred Value         RF 1.0000000
-4        Neg Pred Value         LR 1.0000000
-5             Precision         LR 1.0000000
-6                Recall         LR 1.0000000
-7                    F1         LR 1.0000000
-8            Prevalence        SVM 0.3671467
-9        Detection Rate         LR 0.3671467
-10 Detection Prevalence         LR 0.3671467
-11    Balanced Accuracy         LR 1.0000000
+1           Sensitivity         RF 0.9975180
+2           Specificity     PCA_RF 0.9996363
+3        Pos Pred Value     PCA_RF 0.9993782
+4        Neg Pred Value         RF 0.9985464
+5             Precision     PCA_RF 0.9993782
+6                Recall         RF 0.9975180
+7                    F1     PCA_RF 0.9983229
+8            Prevalence         LR 0.3695313
+9        Detection Rate         RF 0.3686141
+10 Detection Prevalence        KNN 0.3703109
+11    Balanced Accuracy     PCA_RF 0.9984531
 
 ```
 
 ### Conclusions
 
-We have found Logistic regression  model preprocessed data with good results over the test set. This model has a **sensibility of 1.00** with a **F1 score of 1.00**.
-
-The other models also have a **sensibility greather than  0.990**.
-
+We have found Random forest with PCA  model preprocessed data with good results over the test set. This model has a **sensibility of 0.997** with a **F1 score of 0.998**.
 
 
 
