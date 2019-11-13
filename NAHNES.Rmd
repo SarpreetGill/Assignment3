@@ -4019,11 +4019,12 @@ The ShinyApp was built to assist to predict a patients condition based on the se
 ## Models for Shiny
 
 The models implemeneted on the ShinyApp are:
-- 
+- Random Forest and Logistic Regression
 - 
 
 ## Link for ShinyApp
 The ShinyApp can be accessed from:
+https://ml1000-group6.shinyapps.io/NAHNES/
 
 # Conclusion 
 
