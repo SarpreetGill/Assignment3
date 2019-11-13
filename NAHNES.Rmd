@@ -3254,8 +3254,6 @@ Given an individual has diabetes, predict individual has cancer or hypertension.
 
 ## DIABETES 
 
-
-<<<<<<< HEAD
 ### PCA
 =======
 ### Marking data for Diabetes
@@ -3280,22 +3278,6 @@ Diabetes_dataset   = read.csv("Data/Working/Diabetes_dataset.csv", header = TRUE
 
 We now will keep the associated features related to Diabetes disease using PCA and Correlation plots.
 
-```{r eval=FALSE, echo=TRUE}
-
-# Correlation for Demographics
-combi_cor=rcorr(as.matrix(Demo_target[,-c(1,2)]))
-corrplot(combi_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt = 45)
-
-
-
-####### Using PCA 
-Test_Data<-scale(Demo_target[,-c(1,2)])
-Demo_target2 <-Demo_target
-pcmp <- princomp(Test_Data,retx=TRUE, cor =TRUE, center=TRUE, scale=TRUE)
-
-Demo_target2 <- as.data.frame(cbind(Demo_target2, pcmp$scores[,1:5]))
-
-```
 
 #### Correlation Plot:
 ```{r eval=FALSE, echo=TRUE}
@@ -3309,7 +3291,318 @@ corrplot(combi_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt
 
 
 
-#### PCA FOR DIABETES
+#### PCA 
+
+
+```{r eval=FALSE, echo=TRUE}
+pcmp <- princomp(Test_Data,retx=TRUE, cor =TRUE, center=TRUE, scale=TRUE)
+
+plot(pcmp, main = "PCA for Demographics", col.axis="blue",npcs = 33)
+abline(h = 1, col="red", lty=5)
+```
+
+
+![](Figures/Supervised/Demo_PCA.png){width=800px}
+```{r eval=FALSE, echo=TRUE}
+
+plot(pcmp, type = "l", main = "PCA for Demographics", col.axis="blue",npcs = 33)
+abline(h = 1, col="red", lty=5)
+abline(v = 11, col="blue", lty=5)
+
+```
+
+
+![](Figures/Supervised/Demo_PCA2.png){width=800px}
+
+
+```{r eval=FALSE, echo=TRUE}
+library("factoextra")
+fviz_pca_ind(pcmp, geom.ind = "point", pointshape = 21, 
+             pointsize = 2, 
+             fill.ind = Demo_target$HAS_DIABETES, 
+             col.ind = "black", 
+             palette = "jco", 
+             addEllipses = TRUE,
+             label = "var",
+             col.var = "black",
+             repel = TRUE,
+             legend.title = "HAS_DIABETES") +
+  ggtitle("2D PCA-plot from 30 feature dataset") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+
+
+![](Figures/Supervised/Demo_30.png){width=800px}
+
+
+
+
+```{r eval=FALSE, echo=TRUE}
+Demo_select_colns <- c("SEQN","HAS_DIABETES","TARGET","WTINT2YR","WTMEC2YR","DMDHHSZE","DMDHRAGE","RIDAGEYR","SIAPROXY","DMDHHSZA","DMDHRMAR","DMDHREDU","DMDHRGND","RIDEXMON")
+
+Demo_target_final <- subset(Demo_target2, select = Demo_select_colns)
+
+Demo_target_final   = read.csv("Data/Target Datasets/Demo_target_final.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+
+```
+
+
+
+![](Figures/Supervised/Demo_8.png){width=800px}
+
+
+
+
+
+
+
+### DIET DATA MINING FOR DIABETES
+
+We now will keep the associated features related to Diabetes disease using PCA and Correlation plots.
+
+
+#### Correlation Plot:
+```{r eval=FALSE, echo=TRUE}
+corrplot(combi_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt = 55)
+
+```
+
+
+![](Figures/Supervised/Diet_Corr.png){width=800px}
+
+
+
+
+#### PCA 
+
+
+```{r eval=FALSE, echo=TRUE}
+pcmp <- princomp(Test_Data,retx=TRUE, cor =TRUE, center=TRUE, scale=TRUE)
+
+plot(pcmp, main = "PCA for Diet", col.axis="blue",npcs = 90)
+abline(h = 1, col="red", lty=5)
+
+```
+
+
+![](Figures/Supervised/Diet_PCA.png){width=800px}
+```{r eval=FALSE, echo=TRUE}
+
+
+plot(pcmp, type = "l", main = "PCA for Diet", col.axis="blue",npcs = 90)
+abline(h = 1, col="red", lty=5)
+abline(v = 24, col="blue", lty=5)
+
+```
+
+
+![](Figures/Supervised/Diet_PCA2.png){width=800px}
+
+
+```{r eval=FALSE, echo=TRUE}
+library("factoextra")
+fviz_pca_ind(pcmp, geom.ind = "point", pointshape = 21, 
+             pointsize = 2, 
+             fill.ind = Diet_target$HAS_DIABETES, 
+             col.ind = "black", 
+             palette = "jco", 
+             addEllipses = TRUE,
+             label = "var",
+             col.var = "black",
+             repel = TRUE,
+             legend.title = "HAS_DIABETES") +
+  ggtitle("2D PCA-plot from 87 feature dataset") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+
+![](Figures/Supervised/Diet_87.png){width=800px}
+
+
+
+
+```{r eval=FALSE, echo=TRUE}
+Diet_select_colns <- c("SEQN","HAS_DIABETES","TARGET","DR1TSFAT","DR1TS040","DR1TS060","DR1TS100","DR1TS140","DR1TS160","DR1TS180","DR1DRSTZ","DRDINT","DR1STY","DRQSDIET","DRD340","DRD360")
+
+
+```
+
+
+![](Figures/Supervised/Diet_13.png){width=800px}
+
+
+
+
+
+### EXAMS DATA MINING FOR DIABETES
+
+We now will keep the associated features related to Diabetes disease using PCA and Correlation plots.
+
+
+#### Correlation Plot:
+```{r eval=FALSE, echo=TRUE}
+corrplot(combi_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt = 55)
+
+```
+
+
+![](Figures/Supervised/Exam_Corr.png){width=800px}
+
+
+
+
+#### PCA 
+
+
+```{r eval=FALSE, echo=TRUE}
+pcmp <- princomp(Test_Data,retx=TRUE, cor =TRUE, center=TRUE, scale=TRUE)
+
+plot(pcmp, main = "PCA for Examination", col.axis="blue", npcs=100)
+abline(h = 1, col="red", lty=5)
+```
+
+
+![](Figures/Supervised/Exam_PCA.png){width=800px}
+```{r eval=FALSE, echo=TRUE}
+
+
+plot(pcmp, type = "l", main = "PCA for Examination", col.axis="blue", npcs=100)
+abline(h = 1.4, col="red", lty=5)
+abline(v = 14, col="blue", lty=5)
+
+```
+
+
+![](Figures/Supervised/Exam_PCA2.png){width=800px}
+
+
+```{r eval=FALSE, echo=TRUE}
+fviz_pca_ind(pcmp, geom.ind = "point", pointshape = 21, 
+             pointsize = 2, 
+             fill.ind = Exam_target$HAS_DIABETES, 
+             col.ind = "black", 
+             palette = "jco", 
+             addEllipses = TRUE,
+             label = "var",
+             col.var = "black",
+             repel = TRUE,
+             legend.title = "HAS_DIABETES") +
+  ggtitle("2D PCA-plot from 97 feature dataset") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+
+![](Figures/Supervised/Exam_97.png){width=800px}
+
+
+
+
+```{r eval=FALSE, echo=TRUE}
+Exam_select_colns <- c("SEQN","HAS_DIABETES","TARGET","BMXBMI","BMXWAIST","BPXDI2","BPXML1","BPXSY2","BPXSY3","OHX02TC","OHX03TC","OHX04TC","OHX05TC","OHX06TC","OHX07TC","OHX08TC","OHX09TC","OHX10TC","OHX11TC","OHX12TC","OHX13TC","OHX14TC","OHX15TC","OHX18TC","OHX19TC","OHX20TC","OHX23TC","OHX24TC","OHX25TC","OHX26TC","OHX29TC","OHX30TC","OHX31TC","PEASCST1")
+
+
+```
+
+
+![](Figures/Supervised/Exam_31.png){width=800px}
+
+
+
+
+
+
+### LABS DATA MINING FOR DIABETES
+
+We now will keep the associated features related to Diabetes disease using PCA and Correlation plots.
+
+
+#### Correlation Plot:
+```{r eval=FALSE, echo=TRUE}
+corrplot(combi_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt = 55)
+
+```
+
+
+![](Figures/Supervised/Labs_Corr.png){width=800px}
+
+
+
+
+#### PCA 
+
+
+```{r eval=FALSE, echo=TRUE}
+pcmp <- princomp(Test_Data,retx=TRUE, cor =TRUE, center=TRUE, scale=TRUE)
+
+plot(pcmp, main = "PCA for Labs", col.axis="blue",npcs=80)
+abline(h = 1, col="red", lty=5)
+```
+
+
+![](Figures/Supervised/Labs_PCA.png){width=800px}
+```{r eval=FALSE, echo=TRUE}
+
+plot(pcmp, type = "l", main = "PCA for Labs", col.axis="blue",npcs=80)
+abline(h = 1, col="red", lty=5)
+abline(v = 26, col="blue", lty=5)
+
+```
+
+
+![](Figures/Supervised/Labs_PCA2.png){width=800px}
+
+
+```{r eval=FALSE, echo=TRUE}
+fviz_pca_ind(pcmp, geom.ind = "point", pointshape = 21, 
+             pointsize = 2, 
+             fill.ind = Labs_target$HAS_DIABETES, 
+             col.ind = "black", 
+             palette = "jco", 
+             addEllipses = TRUE,
+             label = "var",
+             col.var = "black",
+             repel = TRUE,
+             legend.title = "HAS_DIABETES") +
+  ggtitle("2D PCA-plot from 77 feature dataset") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+
+![](Figures/Supervised/Labs_77.png){width=800px}
+
+
+
+
+```{r eval=FALSE, echo=TRUE}
+Labs_select_colns <- c("SEQN","HAS_DIABETES","TARGET","LBXGH","LBXSGL","LBXHGB","LBXSOSSI","LBXSNASI","URXCRS","LBXHCT","URXUCR.x","LBDSGBSI","LBXMC","LBDHDDSI","LBXSGB","LBDHDD","URXVOL1","URDFLOW1","LBDLYMNO","LBXLYPCT","LBXSCLSI","LBXNEPCT")
+
+
+```
+
+
+![](Figures/Supervised/Labs_19.png){width=800px}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ```{r eval=FALSE, echo=TRUE}
