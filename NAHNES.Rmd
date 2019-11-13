@@ -49,20 +49,21 @@ The company is interested in developing new drugs for the following health condi
 
 The company, aware of our Machine Learning skills, approached us for help on the following problems:
 
-
-##  First Problem: Development of Drugs
-
-The company has a mature R&D function in relation to other pharmaceutical companies.  However, the researchers are looking for any type of edge or extra tidbit of information that might be beneficial to the researchers to develop their drugs for diabetes, hypertension, and cancer.   Also, the clinical trials are increasingly expensive for the development of new drugs for the treatment of diseases.  Is there anything in the data that could help us lower the costs? 
-
-## Second Problem: Marketing
-
-The marketing department is struggling with high costs of television advertisements and is interested in ways to reduce their costs while still hitting their target markets for both the advertisement of drugs and attracting candidates for trails.
-
-## Third Problem: Reduce lab/data collection costs 
+##  First Problem: Reduce lab/data collection costs 
 
 With the healthcare dataset, the business has noted there are 1000s of attributes within the data.  There are also many missing values throughout the data.  The business would like to enrol more patients with their diabetes drugs, but they are unsure which attributes are the most meaningful in relation to diabetes.  Could there be a smaller subset of data could help predict diabetes, because data collection could be refined to only capture those elements.   
 
 The company would ask us about possible wraping the model as a robust, easy to use App that could be present to managment and corporate to assist with the decision making, based on a few user inputs.
+
+## Second Problem: Development of Drugs
+
+The company has a mature R&D function in relation to other pharmaceutical companies.  However, the researchers are looking for any type of edge or extra tidbit of information that might be beneficial to the researchers to develop their drugs for diabetes, hypertension, and cancer.   Also, the clinical trials are increasingly expensive for the development of new drugs for the treatment of diseases.  Is there anything in the data that could help us lower the costs? 
+
+## Third Problem: Marketing
+
+The marketing department is struggling with high costs of television advertisements and is interested in ways to reduce their costs while still hitting their target markets for both the advertisement of drugs and attracting candidates for trails.
+
+
 
 \pagebreak
 
@@ -1506,7 +1507,7 @@ Gender_plot <- ggplot(Gender, aes(x = "", y =  round(100*count/sum(count), 1),
 \pagebreak
 
 #### Country of birth
-```{r, eval=FALSE, echo=TRUE, warning = F, message=F}
+```{r eval=FALSE, echo=TRUE, message=FALSE, warning=FALSE}
 ####################  Country_of_birth ##########
 Country_of_birth  <- demo_subset_8_labeled %>%
   group_by(Country_of_birth) %>%
@@ -1592,6 +1593,26 @@ Our samples is pretty representative of the US population:
 * The Race and ethnicity are:  White 	72.4%, Hispanic and Latino Americans  16.3%, Black or African American 	12.6%, Asian 	4.8%, Native 1.1 %, and the others 9.1 %
 
 
+#### Diabetes and Age
+
+```{r eval=TRUE, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE, cache=TRUE}
+library(tidyverse)
+library(plotly)
+
+demo_labeledV = read_csv("Data/Target Datasets/demo_labeledV.csv")
+
+p <- ggplot(data=demo_labeledV, aes(x=Age, fill=(HAS_DIABETES=="YES"))) +
+  geom_vline(xintercept=c(45,81)) +
+  geom_histogram(aes(y = ..density..), binwidth=1) +
+  geom_density(fill="red", alpha = 0.2)+
+  labs(x = "AGE", y = "DENSITY", title  = "Bar Chart of Age/Diabetes")+
+  scale_fill_manual("Diabetes?", values = c("FALSE" = "green", "TRUE" = "red",labels = c("NO", "YES")))
+ggplotly(p)
+
+```
+
+
+
 
 ## Visualization for Diet
 
@@ -1615,54 +1636,133 @@ Visuals against the cleaned dataset
 
 ## Visualization for union of datsets 
 
-# Models against sub-datasets (OPTIONAL)
-
-## Cluster Model for Demographic  {.tabset}
-
-### PCA 
 
 
-```{r, eval=FALSE, echo=TRUE}
+# Problem 1: Supervised 
 
-demo_subset_8   = read.csv("Data/Working/demo_subset_8_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
-target_disease_dataset   = read.csv("Data/Working/target_disease_dataset.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
-demographic_imputed   = read.csv("Data/Clean_Imputes/demographic_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
 
-library(devtools)
-#install_github("vqv/ggbiplot")
-library(ggbiplot)
+Target attributes need to be added .   
 
-demo_subset_8.pca <- prcomp(demo_subset_8[,c(2:9)], center = TRUE,scale = TRUE)
-summary(demo_subset_8.pca)
-str(demo_subset_8.pca)
 
-#ggbiplot(demo_subset_8.pca)
 
-screeplot(demo_subset_8.pca, type = "l", npcs = 8, main = "Screeplot of the 8 PCs")
-abline(h = 1, col="red", lty=5)
-legend("topright", legend=c("Eigenvalue = 1"),
-       col=c("red"), lty=5, cex=0.6)
+## Create target dataset
 
-cumpro <- cumsum(demo_subset_8.pca$sdev^2 / sum(demo_subset_8.pca$sdev^2))
-plot(cumpro[0:8], xlab = "PC #", ylab = "Amount of explained variance", main = "Cumulative variance plot")
-abline(v = 4, col="blue", lty=5)
-abline(h = 0.5934, col="blue", lty=5)
-legend("topleft", legend=c("Cut-off @ PC4"),
-       
+As part of the business problem, we focusing on 3 targets(diabetes, hypertension, cancer):
+
+```{r eval=FALSE, echo=TRUE}
+#DIQ010 - Doctor told you have diabetes
+#https://wwwn.cdc.gov/Nchs/Nhanes/2013-2014/DIQ_H.htm
+#The next questions are about specific medical conditions. {Other than during pregnancy, {have you/has SP}/{Have you/Has SP}} ever been told by a doctor or health professional that {you have/{he/she/SP} has} diabetes or sugar diabetes?
+
+# BPQ020 - Ever told you had high blood pressure
+# https://wwwn.cdc.gov/Nchs/Nhanes/2013-2014/BPQ_H.htm
+# {Have you/Has SP} ever been told by a doctor or other health professional that {you/s/he} had hypertension, also called high blood pressure?
+
+# MCQ220 - Ever told you had cancer or malignancy
+# https://wwwn.cdc.gov/Nchs/Nhanes/2013-2014/MCQ_H.htm#MCQ220
+# {Have you/Has SP} ever been told by a doctor or other health professional that {you/s/he} had cancer or a malignancy (ma-lig-nan-see) of any kind?
+
+# Create the target dataset for the Supervised problem.
+temp_questionnaire = read.csv("Data/Raw/questionnaire.csv", header = TRUE, na.strings = c("NA","","#NA"))
+target_columns <- c("SEQN","DIQ010","BPQ020","MCQ220")
+target_disease_dataset = subset(temp_questionnaire, select=target_columns)
+
+# Change disease indicators into factors
+target_disease_dataset$MCQ220 <- as.factor(target_disease_dataset$MCQ220)
+target_disease_dataset$DIQ010 <- as.factor(target_disease_dataset$DIQ010)
+target_disease_dataset$BPQ020 <- as.factor(target_disease_dataset$BPQ020)
+
+#Create new column for target values
+target_disease_dataset = cbind(target_disease_dataset, HAS_DIABETES= ifelse(target_disease_dataset$DIQ010 == 1, "YES", "NO" ) )
+target_disease_dataset= cbind(target_disease_dataset, HAS_HYPERTENSION= ifelse(target_disease_dataset$BPQ020 == 1, "YES", "NO" ) )
+target_disease_dataset = cbind(target_disease_dataset, HAS_CANCER= ifelse(target_disease_dataset$MCQ220 == 1, "YES", "NO" ) )
+summary(target_disease_dataset)
+
+# With new target values, set "NA" to "NO"
+target_disease_dataset$HAS_DIABETES[is.na(target_disease_dataset$HAS_DIABETES)] <- "NO"
+target_disease_dataset$HAS_HYPERTENSION[is.na(target_disease_dataset$HAS_HYPERTENSION)] <- "NO"
+target_disease_dataset$HAS_CANCER[is.na(target_disease_dataset$HAS_CANCER)] <- "NO"
+summary(target_disease_dataset)
+
 ```
 
-![](Figures/demo/demo8_PCA_1.png){width=350px}
-![](Figures/demo/demo8_PCA_2.png){width=350px}
+Given an individual has diabetes, predict individual has cancer or hypertension.  Use the less amount of data possible to keep costs low.  
 
-From the above graphs, we notice is that the first 4 components has an Eigenvalue >1 
-and explains almost 60% of variance! We can not effectively reduce dimensionality from 8  to 4 becuase we will lose about 40% of variance!
 
-```{r, eval=FALSE, echo=TRUE}
 
+## DIABETES 
+
+ 
+Marking data for Diabetes
+
+```{r eval=FALSE, echo=TRUE}
+ques_data_imputed   = read.csv("Data/Clean_Imputes/ques_data_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
+target_columns <- c("SEQN","DIQ010")
+Diabetes_dataset = subset(ques_data_imputed, select=target_columns)
+# Change disease indicators into factors
+Diabetes_dataset$DIQ010 <- as.numeric(Diabetes_dataset$DIQ010)
+#Create new column for target values
+Diabetes_dataset = cbind(Diabetes_dataset, HAS_DIABETES= ifelse(Diabetes_dataset$DIQ010 == 1, "YES", "NO" ) )
+Diabetes_dataset = cbind(Diabetes_dataset, TARGET= ifelse(Diabetes_dataset$DIQ010 == 1,1,0))
+Diabetes_dataset<- Diabetes_dataset[,-2]
+rm(ques_data_imputed)
+#write.csv(Diabetes_dataset,file = "Data/Working/Diabetes_dataset.csv",row.names = FALSE)
+Diabetes_dataset   = read.csv("Data/Working/Diabetes_dataset.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+```
+
+
+### DATA MINING {.tabset}
+
+
+#### DEMOGRAPHIC DATA MINING FOR DIABETES
+
+
+We now will keep the associated features related to Diabetes disease using PCA and Correlation plots.
+
+
+Correlation Plot:
+```{r eval=FALSE, echo=TRUE}
+corrplot(combi_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt = 45)
+
+```
+
+
+![](Figures/Supervised/Demo_Corr.png){width=800px}
+
+
+
+PCA 
+
+
+```{r eval=FALSE, echo=TRUE}
+pcmp <- princomp(Test_Data,retx=TRUE, cor =TRUE, center=TRUE, scale=TRUE)
+
+plot(pcmp, main = "PCA for Demographics", col.axis="blue",npcs = 33)
+abline(h = 1, col="red", lty=5)
+```
+
+
+![](Figures/Supervised/Demo_PCA.png){width=800px}
+```{r eval=FALSE, echo=TRUE}
+
+plot(pcmp, type = "l", main = "PCA for Demographics", col.axis="blue",npcs = 33)
+abline(h = 1, col="red", lty=5)
+abline(v = 11, col="blue", lty=5)
+
+```
+
+
+
+![](Figures/Supervised/Demo_PCA2.png){width=800px}
+
+We notice is that the first 10 components has an Eigenvalue >1 and explains almost 80% of variance. So if wereduce dimensionality from 35 to 10 we will lose 20% of variance!
+
+```{r eval=FALSE, echo=TRUE}
 library("factoextra")
-fviz_pca_ind(demo_subset_8.pca, geom.ind = "point", pointshape = 21, 
+fviz_pca_ind(pcmp, geom.ind = "point", pointshape = 21, 
              pointsize = 2, 
-             fill.ind = target_disease_dataset$HAS_DIABETES, 
+             fill.ind = Demo_target$HAS_DIABETES, 
              col.ind = "black", 
              palette = "jco", 
              addEllipses = TRUE,
@@ -1670,108 +1770,1227 @@ fviz_pca_ind(demo_subset_8.pca, geom.ind = "point", pointshape = 21,
              col.var = "black",
              repel = TRUE,
              legend.title = "HAS_DIABETES") +
-  ggtitle("2D PCA-plot from 8 feature dataset") +
+  ggtitle("2D PCA-plot from 30 feature dataset") +
   theme(plot.title = element_text(hjust = 0.5))
 
+```
 
-fviz_pca_ind(demo_subset_8.pca, geom.ind = "point", pointshape = 21, 
+
+
+![](Figures/Supervised/Demo_30.png){width=800px}
+
+
+The two first components explains only 30% of the variance. We need 18 principal components to explain more than 95% of the variance and 27 to explain more than 0.99
+Based on the analysis for Correlation and PCA, we decide to keep the below seleced variables.
+
+```{r eval=FALSE, echo=TRUE}
+Demo_select_colns <- c("SEQN","HAS_DIABETES","TARGET","WTINT2YR","WTMEC2YR","DMDHHSZE","DMDHRAGE","RIDAGEYR","SIAPROXY","DMDHHSZA","DMDHRMAR","DMDHREDU","DMDHRGND","RIDEXMON")
+
+Demo_target_final <- subset(Demo_target2, select = Demo_select_colns)
+
+Demo_target_final   = read.csv("Data/Target Datasets/Demo_target_final.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+
+```
+
+
+![](Figures/Supervised/Demo_8.png){width=800px}
+
+
+
+
+
+
+
+#### DIET DATA MINING FOR DIABETES
+
+We now will keep the associated features related to Diabetes disease using PCA and Correlation plots.
+
+
+ Correlation Plot:
+```{r eval=FALSE, echo=TRUE}
+corrplot(combi_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt = 55)
+require(corrplot)
+
+# let remove 
+#7 =DIQ010  : "told by a doctor that you have diabetes or sugar diabetes?"  
+#8 = DIQ050  : "{Is SP/Are you} now taking insulin"
+
+combi_diabetes_cor=rcorr(as.matrix(combined_target_final[-c(1,2,7,8,39,40,41,42)]))
+
+corrplot(combi_diabetes_cor$r, 
+         type = "upper", order = "hclust", tl.col = "black",
+         tl.srt = 45,tl.cex =0.4,
+         cl.cex = 0.7)
+
+```
+
+
+![](Figures/Supervised/Diet_Corr.png){width=800px}
+
+
+
+
+ PCA 
+
+
+```{r eval=FALSE, echo=TRUE}
+pcmp <- princomp(Test_Data,retx=TRUE, cor =TRUE, center=TRUE, scale=TRUE)
+
+plot(pcmp, main = "PCA for Diet", col.axis="blue",npcs = 90)
+abline(h = 1, col="red", lty=5)
+
+```
+
+
+![](Figures/Supervised/Diet_PCA.png){width=800px}
+```{r eval=FALSE, echo=TRUE}
+
+
+plot(pcmp, type = "l", main = "PCA for Diet", col.axis="blue",npcs = 90)
+abline(h = 1, col="red", lty=5)
+abline(v = 24, col="blue", lty=5)
+
+```
+
+
+![](Figures/Supervised/Diet_PCA2.png){width=800px}
+
+We notice is that the first 24 components has an Eigenvalue >1 and explains almost 90% of variance. So if wereduce dimensionality from 87 to 24 we will lose 10% of variance!
+
+```{r eval=FALSE, echo=TRUE}
+library("factoextra")
+fviz_pca_ind(pcmp, geom.ind = "point", pointshape = 21, 
              pointsize = 2, 
-             fill.ind = target_disease_dataset$HAS_HYPERTENSION, 
+             fill.ind = Diet_target$HAS_DIABETES, 
              col.ind = "black", 
              palette = "jco", 
              addEllipses = TRUE,
              label = "var",
              col.var = "black",
              repel = TRUE,
-             legend.title = "HAS_HYPERTENSION") +
-  ggtitle("2D PCA-plot from 8 feature dataset") +
+             legend.title = "HAS_DIABETES") +
+  ggtitle("2D PCA-plot from 87 feature dataset") +
   theme(plot.title = element_text(hjust = 0.5))
+```
 
-fviz_pca_ind(demo_subset_8.pca, geom.ind = "point", pointshape = 21, 
+
+
+![](Figures/Supervised/Diet_87.png){width=800px}
+
+The two first components explains only 35% of the variance. We need 27 principal components to explain more than 95% of the variance and 35 to explain more than 0.99
+Based on the analysis for Correlation and PCA, we decide to keep the below 13 selected variables.
+
+
+
+```{r eval=FALSE, echo=TRUE}
+Diet_select_colns <- c("SEQN","HAS_DIABETES","TARGET","DR1TSFAT","DR1TS040","DR1TS060","DR1TS100","DR1TS140","DR1TS160","DR1TS180","DR1DRSTZ","DRDINT","DR1STY","DRQSDIET","DRD340","DRD360")
+
+
+```
+
+
+![](Figures/Supervised/Diet_13.png){width=800px}
+
+
+
+
+
+#### EXAMS DATA MINING FOR DIABETES
+
+We now will keep the associated features related to Diabetes disease using PCA and Correlation plots.
+
+
+ Correlation Plot:
+```{r eval=FALSE, echo=TRUE}
+corrplot(combi_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt = 55)
+
+```
+
+
+![](Figures/Supervised/Exam_Corr.png){width=800px}
+
+
+
+
+ PCA 
+
+
+```{r eval=FALSE, echo=TRUE}
+pcmp <- princomp(Test_Data,retx=TRUE, cor =TRUE, center=TRUE, scale=TRUE)
+
+plot(pcmp, main = "PCA for Examination", col.axis="blue", npcs=100)
+abline(h = 1, col="red", lty=5)
+```
+
+
+![](Figures/Supervised/Exam_PCA.png){width=800px}
+```{r eval=FALSE, echo=TRUE}
+
+
+plot(pcmp, type = "l", main = "PCA for Examination", col.axis="blue", npcs=100)
+abline(h = 1, col="red", lty=5)
+abline(v = 14, col="blue", lty=5)
+
+```
+
+
+![](Figures/Supervised/Exam_PCA2.png){width=800px}
+
+We notice is that the first 14 components has an Eigenvalue >1 and explains almost 75% of variance. So if we reduce dimensionality from 97 to 14 we will lose 25% of variance!
+
+```{r eval=FALSE, echo=TRUE}
+fviz_pca_ind(pcmp, geom.ind = "point", pointshape = 21, 
              pointsize = 2, 
-             fill.ind = target_disease_dataset$HAS_CANCER, 
+             fill.ind = Exam_target$HAS_DIABETES, 
              col.ind = "black", 
              palette = "jco", 
              addEllipses = TRUE,
              label = "var",
              col.var = "black",
              repel = TRUE,
-             legend.title = "HAS_CANCER") +
-  ggtitle("2D PCA-plot from 8 feature dataset") +
+             legend.title = "HAS_DIABETES") +
+  ggtitle("2D PCA-plot from 97 feature dataset") +
   theme(plot.title = element_text(hjust = 0.5))
+```
 
+
+
+![](Figures/Supervised/Exam_97.png){width=800px}
+
+
+The two first components explains only 40% of the variance. We need 35 principal components to explain more than 95% of the variance and 42 to explain more than 0.99
+Based on the analysis for Correlation and PCA, we decide to keep the below selected 31 variables.
+
+
+```{r eval=FALSE, echo=TRUE}
+Exam_select_colns <- c("SEQN","HAS_DIABETES","TARGET","BMXBMI","BMXWAIST","BPXDI2","BPXML1","BPXSY2","BPXSY3","OHX02TC","OHX03TC","OHX04TC","OHX05TC","OHX06TC","OHX07TC","OHX08TC","OHX09TC","OHX10TC","OHX11TC","OHX12TC","OHX13TC","OHX14TC","OHX15TC","OHX18TC","OHX19TC","OHX20TC","OHX23TC","OHX24TC","OHX25TC","OHX26TC","OHX29TC","OHX30TC","OHX31TC","PEASCST1")
 
 
 ```
 
-![](Figures/demo/demo8_PCA_diabetes.png){width=260px}
-![](Figures/demo/demo8_PCA_hypertension.png){width=260px}
-![](Figures/demo/demo8_PCA_cancer.png){width=260px}
 
-With just use the first two components, no diseases present separation between sick and healthy people 
-. This  clearly  indicate that the we can not do classification base only on the demographics data. 
+![](Figures/Supervised/Exam_31.png){width=800px}
 
 
-```{r, eval=FALSE, echo=TRUE}
+
+
+
+
+#### LABS DATA MINING FOR DIABETES
+
+We now will keep the associated features related to Diabetes disease using PCA and Correlation plots.
+
+
+ Correlation Plot:
+```{r eval=FALSE, echo=TRUE}
+corrplot(combi_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt = 55)
+
+```
+
+
+![](Figures/Supervised/Labs_Corr.png){width=800px}
+
+
+PCA 
+
+
+```{r eval=FALSE, echo=TRUE}
+pcmp <- princomp(Test_Data,retx=TRUE, cor =TRUE, center=TRUE, scale=TRUE)
+
+plot(pcmp, main = "PCA for Labs", col.axis="blue",npcs=80)
+abline(h = 1, col="red", lty=5)
+```
+
+
+![](Figures/Supervised/Labs_PCA.png){width=800px}
+```{r eval=FALSE, echo=TRUE}
+
+plot(pcmp, type = "l", main = "PCA for Labs", col.axis="blue",npcs=80)
+abline(h = 1, col="red", lty=5)
+abline(v = 26, col="blue", lty=5)
+
+```
+
+
+![](Figures/Supervised/Labs_PCA2.png){width=800px}
+
+We notice is that the first 24 components has an Eigenvalue >1 and explains almost 70% of variance. So if we reduce dimensionality from 77 to 24 we will lose 20% of variance!
+
+```{r eval=FALSE, echo=TRUE}
+fviz_pca_ind(pcmp, geom.ind = "point", pointshape = 21, 
+             pointsize = 2, 
+             fill.ind = Labs_target$HAS_DIABETES, 
+             col.ind = "black", 
+             palette = "jco", 
+             addEllipses = TRUE,
+             label = "var",
+             col.var = "black",
+             repel = TRUE,
+             legend.title = "HAS_DIABETES") +
+  ggtitle("2D PCA-plot from 77 feature dataset") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+
+![](Figures/Supervised/Labs_77.png){width=800px}
+
+The two first components explains only 20% of the variance. We need 22 principal components to explain more than 80% of the variance and 37 to explain more than 0.99
+Based on the analysis for Correlation and PCA, we decide to keep the below selected 19 variables.
+
+
+
+```{r eval=FALSE, echo=TRUE}
+Labs_select_colns <- c("SEQN","HAS_DIABETES","TARGET","LBXGH","LBXSGL","LBXHGB","LBXSOSSI","LBXSNASI","URXCRS","LBXHCT","URXUCR.x","LBDSGBSI","LBXMC","LBDHDDSI","LBXSGB","LBDHDD","URXVOL1","URDFLOW1","LBDLYMNO","LBXLYPCT","LBXSCLSI","LBXNEPCT")
 
 
 ```
 
 
-### k-means Clustering 
+![](Figures/Supervised/Labs_19.png){width=800px}
 
 
-```{r, eval=FALSE, echo=TRUE}
 
-#Elbow plot method.
-library(purrr)
-set.seed(226)
-# function to calculate total intra-cluster sum of square
-demo8_iss <- function(k) {
-  kmeans(demo_subset_8[,2:9],k,iter.max=100,nstart=100,algorithm="Lloyd" )$tot.withinss
+
+#### MEDICATIONS DATA MINING FOR DIABETES
+
+We will run the MFA to find relation among features for data reduction.
+
+![](Figures/Supervised/Meds_MFA.png){width=800px}
+
+
+
+
+![](Figures/Supervised/Meds_MFA3.png){width=800px}
+
+![](Figures/Supervised/Meds_MFA6.png){width=800px}
+
+
+
+![](Figures/Supervised/Meds_MFA7.png){width=800px}
+
+We notice is that the  component RXDUSE explains almost 75% of variance on 5 other components. So if we reduce dimensionality from 9 to 1 we will lose 25% of variance!
+We ananlyised each feauture in each dimension and found that the only feature having greater vairiance is RXDUSE.
+
+
+#### QUESTIONNAIRE DATA MINING FOR DIABETES
+
+We now will keep the associated features related to Diabetes disease using PCA and Correlation plots.
+
+
+ Correlation Plot:
+```{r eval=FALSE, echo=TRUE}
+corrplot(combi_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt = 55)
+
+```
+
+
+![](Figures/Supervised/Ques_Corr.png){width=800px}
+
+
+ PCA 
+
+
+```{r eval=FALSE, echo=TRUE}
+pcmp <- princomp(Test_Data,retx=TRUE, cor =TRUE, center=TRUE, scale=TRUE)
+
+plot(pcmp, main = "PCA for Questionnaire", col.axis="blue",npcs=80)
+abline(h = 1, col="red", lty=5)
+```
+
+
+![](Figures/Supervised/Ques_PCA.png){width=800px}
+```{r eval=FALSE, echo=TRUE}
+plot(pcmp, type = "l", main = "PCA for Questionnaire", col.axis="blue",npcs=80)
+abline(h = 1, col="red", lty=5)
+abline(v = 22, col="blue", lty=5)
+
+```
+
+
+![](Figures/Supervised/Ques_PCA2.png){width=800px}
+
+We notice is that the first 22 components has an Eigenvalue >1 and explains almost 70% of variance. So if we reduce dimensionality from 75 to 10 we will lose 30% of variance!
+
+```{r eval=FALSE, echo=TRUE}
+fviz_pca_ind(pcmp, geom.ind = "point", pointshape = 21, 
+             pointsize = 2, 
+             fill.ind = ques_target$HAS_DIABETES, 
+             col.ind = "black", 
+             palette = "jco", 
+             addEllipses = TRUE,
+             label = "var",
+             col.var = "black",
+             repel = TRUE,
+             legend.title = "HAS_DIABETES") +
+  ggtitle("2D PCA-plot from 75 feature dataset") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+
+![](Figures/Supervised/Ques_75.png){width=800px}
+
+The two first components explains only 35% of the variance. We need 35 principal components to explain more than 95% of the variance and 38 to explain more than 0.99
+Based on the analysis for Correlation and PCA, we decide to keep the below selected 15 variables.
+
+
+
+```{r eval=FALSE, echo=TRUE}
+ques_select_colns <- c("SEQN","HAS_DIABETES","TARGET","PAAQUEX","SMAQUEX.x","DBD910","FSDAD","DBD895","FSDHH","DIQ010","DBD905","FSD032B","FSD032C","FSD032A","DLQ050","DIQ050","HSAQUEX","DLQ060")
+
+```
+
+
+![](Figures/Supervised/Ques_15.png){width=800px}
+
+#### Combined Data Mining
+
+```{r}
+
+```
+
+
+We now will keep the associated features related to Diabetes disease using PCA and Correlation plots.
+
+
+ Correlation Plot:
+```{r eval=FALSE, echo=TRUE}
+corrplot(combi_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt = 55)
+
+```
+
+
+![](Figures/Supervised/Ques_Corr.png){width=800px}
+
+
+
+
+ PCA 
+
+
+```{r eval=FALSE, echo=TRUE}
+pcmp <- princomp(Test_Data,retx=TRUE, cor =TRUE, center=TRUE, scale=TRUE)
+
+plot(pcmp, main = "PCA for Questionnaire", col.axis="blue",npcs=80)
+abline(h = 1, col="red", lty=5)
+```
+
+
+![](Figures/Supervised/Ques_PCA.png){width=800px}
+```{r eval=FALSE, echo=TRUE}
+plot(pcmp, type = "l", main = "PCA for Questionnaire", col.axis="blue",npcs=80)
+abline(h = 1, col="red", lty=5)
+abline(v = 22, col="blue", lty=5)
+
+```
+
+
+![](Figures/Supervised/Ques_PCA2.png){width=800px}
+
+
+```{r eval=FALSE, echo=TRUE}
+fviz_pca_ind(pcmp, geom.ind = "point", pointshape = 21, 
+             pointsize = 2, 
+             fill.ind = ques_target$HAS_DIABETES, 
+             col.ind = "black", 
+             palette = "jco", 
+             addEllipses = TRUE,
+             label = "var",
+             col.var = "black",
+             repel = TRUE,
+             legend.title = "HAS_DIABETES") +
+  ggtitle("2D PCA-plot from 75 feature dataset") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+
+![](Figures/Supervised/Ques_75.png){width=800px}
+
+
+
+
+```{r eval=FALSE, echo=TRUE}
+ques_select_colns <- c("SEQN","HAS_DIABETES","TARGET","PAAQUEX","SMAQUEX.x","DBD910","FSDAD","DBD895","FSDHH","DIQ010","DBD905","FSD032B","FSD032C","FSD032A","DLQ050","DIQ050","HSAQUEX","DLQ060")
+
+```
+
+
+![](Figures/Supervised/Ques_15.png){width=800px}
+
+
+
+
+
+
+
+
+
+
+select features correlated to the TARGET ( HAS_DIABETES) with "abs(coefficiant) > 0.1" 
+
+```{r eval=FALSE, echo=TRUE}
+# ++++++++++++++++++++++++++++
+# flattenCorrMatrix
+# ++++++++++++++++++++++++++++
+# cormat : matrix of the correlation coefficients
+# pmat : matrix of the correlation p-values
+flattenCorrMatrix <- function(cormat, pmat) {
+  ut <- upper.tri(cormat)
+  data.frame(
+    row = rownames(cormat)[row(cormat)[ut]],
+    column = rownames(cormat)[col(cormat)[ut]],
+    cor  =(cormat)[ut],
+    p = pmat[ut]
+  )
 }
-k.values <- 1:10
-demo8_iss_values <- map_dbl(k.values, demo8_iss)
-plot(k.values, demo8_iss_values,
-     type="b", pch = 19, frame = FALSE,
-     xlab="Number of clusters K",
-     ylab="Total intra-clusters sum of squares")
+
+CorrMatrix = as.data.frame(flattenCorrMatrix(combi_diabetes_cor$r, combi_diabetes_cor$P))
+
+#withdraw feasture correlated to the TARGET and select cor > 0.1 
+
+TARGET_CorrMatrix <- CorrMatrix %>%
+  filter(row=="TARGET")%>%
+  arrange(desc(abs(cor)))%>%
+  filter(abs(cor)>0.1)
+
+head(TARGET_CorrMatrix)
+
+      row   column        cor p
+1  TARGET    LBXGH  0.6089779 0
+2  TARGET   LBXSGL  0.5035482 0
+3  TARGET RIDAGEYR  0.2402681 0
+4  TARGET   RXDUSE -0.2004047 0
+5  TARGET LBDHDDSI -0.1918771 0
+6  TARGET   LBDHDD -0.1899955 0
+7  TARGET DMDHRAGE  0.1700048 0
+8  TARGET DMDHHSZE  0.1578885 0
+9  TARGET   DLQ050 -0.1493532 0
+10 TARGET   BPXSY2  0.1413383 0
+11 TARGET   BPXSY3  0.1389114 0
+12 TARGET  OHX26TC  0.1328777 0
+13 TARGET  OHX07TC  0.1167468 0
+14 TARGET  OHX25TC  0.1032902 0
+15 TARGET  OHX23TC  0.1000596 0
 ```
 
-![](Figures/demo/demo8_ISS.png){width=500px}
 
-From the above graph, we conclude that 6 is the appropriate number of clusters 
-since it seems to be appearing at the bend in the elbow plot.
+#### PCA FOR DIABETES
 
-Now, let us take k = 6 as our optimal cluster
+
+```{r eval=FALSE, echo=TRUE}
+pcmp <- princomp(Test_Data,retx=TRUE, cor =TRUE, center=TRUE, scale=TRUE)
+
+Demo_target2 <- as.data.frame(cbind(Demo_target2, pcmp$scores[,1:5]))
+
+plot(pcmp, main = "PCA for Demographics", col.axis="blue",npcs = 20)
+abline(h = 1, col="red", lty=5)
+
+plot(pcmp, type = "l", main = "PCA for Demographics", col.axis="blue",npcs = 20)
+abline(h = 1, col="red", lty=5)
+abline(v = 10, col="blue", lty=5)
+
+```
+
+
+
+
+```{r, eval=FALSE, echo=TRUE}
+combined_target_final <- read_csv("Data/Target Datasets/combined_target_final.csv")
+
+library(devtools)
+library(ggbiplot)
+combined_target_final.pca <- prcomp(combined_target_final[-c(1,2,7,8,39,40,41,42)], center = TRUE,scale = TRUE)
+summary(combined_target_final.pca)
+
+screeplot(combined_target_final.pca, type = "l", npcs = 20, main = "Screeplot of the first 20 PCs")
+abline(h = 1, col="red", lty=5)
+legend("topright", legend=c("Eigenvalue = 1"),
+       col=c("red"), lty=5, cex=0.6)
+
+
+cumpro <- cumsum(combined_target_final.pca$sdev^2 / sum(combined_target_final.pca$sdev^2))
+plot(cumpro[0:20], xlab = "PC #", ylab = "Amount of explained variance", main = "Cumulative variance plot")
+abline(v = 9, col="blue", lty=5)
+abline(h = 0.79850, col="blue", lty=5)
+legend("topleft", legend=c("Cut-off @ PC9"),
+       col=c("blue"), lty=5, cex=0.6)
+
+
+```
+
+
+![](Figures/combined/combined_PCA1.png){width=350px}
+![](Figures/combined/combined_PCA2.png){width=350px}
+
+
+We notice is that the first 9 components has an Eigenvalue >1 
+and explains almost 80% of variance. 
+So if  wereduce dimensionality from 35  to 8  we will lose 
+  20% of variance!
+
+![](Figures/combined/combined_PCA3.png){width=350px}
+![](Figures/combined/combined_PCA_diabetes.png){width=350px}
+
+The two first components explains only 30%  of the variance. 
+We need 18 principal components to explain more than 95% of the variance 
+and 27 to explain more than 0.99
+
+
+### Applying machine learning models  {.tabset}
+
+
+
+```{r, eval=FALSE, echo=TRUE}
+fitControl <- trainControl(method="cv",
+                           number = 5,
+                           preProcOptions = list(thresh = 0.99), # threshold for pca preprocess
+                           classProbs = TRUE,
+                           summaryFunction = twoClassSummary)
+```
+
+
+We are going to create a training and test set of these data:
+
+```{r, eval=FALSE, echo=TRUE}
+combined_target_final <- read_csv("Data/Target Datasets/combined_target_final.csv")
+
+require(caret)
+require(dplyr)
+require(caretEnsemble)
+require(pROC)
+set.seed(101)
+
+
+data_index <- createDataPartition(combined_target_final$TARGET, p=0.75, list = FALSE)
+train_Combined <- combined_target_final[data_index,-c(1,2,7,8,39,40,41,42) ]
+test_Combined <- combined_target_final[-data_index, -c(1,2,7,8,39,40,41,42)]
+
+train_Combined$TARGET =  as.factor(train_Combined$TARGET)
+test_Combined$TARGET =  as.factor(test_Combined$TARGET)
+
+ #try to predict class probabilities in R - caret
+levels(train_Combined$TARGET) <- make.names(levels(factor(train_Combined$TARGET)))
+levels(test_Combined$TARGET) <- make.names(levels(factor(test_Combined$TARGET)))
+
+
+```
+
+
+#### Logistic Regression
+
+Let's try Logistic Regression:
+
+```{r model_lr, eval=FALSE, echo=TRUE, message=FALSE, warning=FALSE, cache=FALSE}
+
+model_lr <- train(TARGET~.,train_Combined,
+                  method = "glmnet",
+                     metric="ROC",
+                  #tuneGrid = expand.grid(alpha = c(0,  .1,  .2, .4, .6, .8, 1),lambda = seq(.01, .2, length = 20)),
+                     preProcess = c("center", "scale"),
+                  trControl=fitControl) 
+
+
+```
+
 
 ```{r, eval=FALSE, echo=TRUE}
 
-demo8_k6<-kmeans(demo_subset_8[,2:9],6,iter.max=100,nstart=50,algorithm="Lloyd")
-demo8_k6
+pred_lr <- predict(model_lr, test_Combined)
+cm_lr <- confusionMatrix(pred_lr, test_Combined$TARGET, positive = "X1")
+cm_lr
 
-# Visualizing the Clustering Results using the First Two Principle Components
+Confusion Matrix and Statistics
 
-pcclust=prcomp(demo_subset_8[,2:9],scale=TRUE) #principal component analysis
-summary(pcclust)
-pcclust$rotation[,1:2]
+          Reference
+Prediction    X0    X1
+        X0 12909  2327
+        X1   839  5731
+                                          
+               Accuracy : 0.8548          
+                 95% CI : (0.8501, 0.8595)
+    No Information Rate : 0.6305          
+    P-Value [Acc > NIR] : < 2.2e-16       
+                                          
+                  Kappa : 0.676           
+                                          
+ Mcnemar's Test P-Value : < 2.2e-16       
+                                          
+            Sensitivity : 0.7112          
+            Specificity : 0.9390          
+         Pos Pred Value : 0.8723          
+         Neg Pred Value : 0.8473          
+             Prevalence : 0.3695          
+         Detection Rate : 0.2628          
+   Detection Prevalence : 0.3013          
+      Balanced Accuracy : 0.8251          
+                                          
+       'Positive' Class : X1 
+```
 
-set.seed(100)
-ggplot(demo_subset_8, aes(x =Gender, y = Age)) +
-  geom_point(stat = "identity", aes(color = as.factor(demo8_k6$cluster))) +
-  scale_color_discrete(name=" ",
-                       breaks=c("1", "2", "3", "4", "5","6"),
-                       labels=c("Cluster 1", "Cluster 2", "Cluster 3", "Cluster 4", "Cluster 5","Cluster 6")) +
-  ggtitle("Demographics Data ", subtitle = "Using K-means Clustering")
+
+#### Logistic Regression with  PCA
+
+Logistic Regression  with  pca:
+
+
+```{r model_pca_lr, eval=FALSE, echo=TRUE, message=FALSE, warning=FALSE, cache=FALSE}
+
+model_pca_lr <- train(TARGET~.,
+                      train_Combined,
+                      method = "glmnet",
+                      metric="ROC",
+                      #family = "binomial", 
+                      #tuneGrid = expand.grid(alpha = c(0,  .1,  .2, .4, .6, .8, 1),lambda = seq(.01, .2, length = 20)),
+                      preProcess = c('center', 'scale', 'pca'),
+                      trControl=fitControl)
 
 
 ```
 
 
-![](Figures/demo/demo8_K6_Age-Gender.png){width=500px}
+
+```{r, eval=FALSE, echo=TRUE}
+pred_pca_lr <- predict(model_pca_lr, test_Combined)
+cm_pca_lr <- confusionMatrix(pred_pca_rf, test_Combined$TARGET, positive = "X1")
+cm_pca_lr
+Confusion Matrix and Statistics
+
+          Reference
+Prediction    X0    X1
+        X0 12949  2296
+        X1   799  5762
+                                          
+               Accuracy : 0.8581          
+                 95% CI : (0.8534, 0.8627)
+    No Information Rate : 0.6305          
+    P-Value [Acc > NIR] : < 2.2e-16       
+                                          
+                  Kappa : 0.6832          
+                                          
+ Mcnemar's Test P-Value : < 2.2e-16       
+                                          
+            Sensitivity : 0.7151          
+            Specificity : 0.9419          
+         Pos Pred Value : 0.8782          
+         Neg Pred Value : 0.8494          
+             Prevalence : 0.3695          
+         Detection Rate : 0.2642          
+   Detection Prevalence : 0.3009          
+      Balanced Accuracy : 0.8285          
+                                          
+       'Positive' Class : X1 
+```
 
 
- From the above visualization, we observe that in the clusters distribution both Male and female  have almost the same range of age 
+#### Logistic Regression with correlated features
+
+
+Let's try Logistic Regression  with the top five  features correlated to the TARGET ( HAS_DIABETES):
+
+1   "LBXGH": "Glycohemoglobin (%)"
+
+2   "LBXSGL": "Glucose, refrigerated serum (mg/dL)"
+
+3   "RIDAGEYR":    "Age in years of the participant " 
+
+4   "RXDUSE" :  "In the past 30 days, have you taken medication for which a prescription is needed? " 
+
+5  "LBDHDDSI": "Direct HDL-Cholesterol (mmol/L)"
+
+
+```{r model_corr_lr, eval=FALSE, echo=TRUE, message=FALSE, warning=FALSE, cache=FALSE}
+
+model_corr_lr <- train(TARGET~ LBXGH  +
+                         LBXSGL  +
+                         RIDAGEYR  +
+                         RXDUSE  +
+                         LBDHDDSI  ,
+                         #LBDHDD  +
+                         #DMDHRAGE  +
+                         #DMDHHSZE  +
+                         #DLQ050  + 
+                         #BPXSY2  + 
+                         #BPXSY3  + 
+                         #OHX26TC  + 
+                         #OHX07TC  + 
+                         #OHX25TC  , 
+                         #OHX23TC  , 
+                         data = train_Combined,
+                       method = "glmnet",
+                       metric="ROC",
+                       preProcess = c("center", "scale"),
+                       trControl=fitControl) 
+
+
+```
+
+```{r,eval=FALSE, echo=TRUE}
+pred_corr_lr <- predict(model_corr_lr, test_Combined)
+cm_corr_lr <- confusionMatrix(pred_corr_lr, test_Combined$TARGET, positive = "X1")
+cm_corr_lr
+
+Confusion Matrix and Statistics
+
+          Reference
+Prediction    X0    X1
+        X0 12951  2340
+        X1   797  5718
+                                          
+               Accuracy : 0.8561          
+                 95% CI : (0.8514, 0.8608)
+    No Information Rate : 0.6305          
+    P-Value [Acc > NIR] : < 2.2e-16       
+                                          
+                  Kappa : 0.6785          
+                                          
+ Mcnemar's Test P-Value : < 2.2e-16       
+                                          
+            Sensitivity : 0.7096          
+            Specificity : 0.9420          
+         Pos Pred Value : 0.8777          
+         Neg Pred Value : 0.8470          
+             Prevalence : 0.3695          
+         Detection Rate : 0.2622          
+   Detection Prevalence : 0.2988          
+      Balanced Accuracy : 0.8258          
+                                          
+       'Positive' Class : X1   
+
+```
+
+#### Random Forest
+
+Let's try random forest:
+
+```{r model_rf, eval=FALSE, echo=TRUE, message=FALSE, warning=FALSE, cache=FALSE}
+model_rf <- train(as.factor(TARGET)~.,
+                  train_Combined,
+                  method="ranger",
+                  metric="ROC",
+                  #tuneLength=10,
+                  #tuneGrid = expand.grid(mtry = c(2, 3, 6)),
+                  #tuneGrid = data.frame(mtry = 3)
+                  tuneGrid = tunegrid,
+                  preProcess = c('center', 'scale'),
+                  trControl=fitControl)
+```
+
+
+```{r,eval=FALSE, echo=TRUE}
+pred_rf <- predict(model_rf, test_Combined)
+cm_rf <- confusionMatrix(pred_rf, test_Combined$TARGET, positive = "X1")
+cm_rf
+Confusion Matrix and Statistics
+
+          Reference
+Prediction    X0    X1
+        X0 13739    20
+        X1     9  8038
+                                          
+               Accuracy : 0.9987          
+                 95% CI : (0.9981, 0.9991)
+    No Information Rate : 0.6305          
+    P-Value [Acc > NIR] : < 2e-16         
+                                          
+                  Kappa : 0.9971          
+                                          
+ Mcnemar's Test P-Value : 0.06332         
+                                          
+            Sensitivity : 0.9975          
+            Specificity : 0.9993          
+         Pos Pred Value : 0.9989          
+         Neg Pred Value : 0.9985          
+             Prevalence : 0.3695          
+         Detection Rate : 0.3686          
+   Detection Prevalence : 0.3690          
+      Balanced Accuracy : 0.9984          
+                                          
+       'Positive' Class : X1              
+                                       
+```
+
+#### Random Forest with PCA
+
+Random forest with pca
+
+```{r model_pca_rf, eval=FALSE, echo=TRUE,message=FALSE, warning=FALSE, cache=FALSE}
+model_pca_rf <- train(TARGET~.,
+                  train_Combined,
+                  method="ranger",
+                  metric="ROC",
+                  #tuneLength=10,
+                  #tuneGrid = expand.grid(mtry = c(2, 3, 6)),
+                  preProcess = c('center', 'scale', 'pca'),
+                  trControl=fitControl)
+```
+
+```{r, eval=FALSE, echo=TRUE}
+pred_pca_rf <- predict(model_pca_rf, test_Combined)
+cm_pca_rf <- confusionMatrix(pred_pca_rf, test_Combined$TARGET, positive = "X1")
+cm_pca_rf
+Confusion Matrix and Statistics
+
+          Reference
+Prediction    X0    X1
+        X0 13743    22
+        X1     5  8036
+                                          
+               Accuracy : 0.9988          
+                 95% CI : (0.9982, 0.9992)
+    No Information Rate : 0.6305          
+    P-Value [Acc > NIR] : < 2.2e-16       
+                                          
+                  Kappa : 0.9973          
+                                          
+ Mcnemar's Test P-Value : 0.002076        
+                                          
+            Sensitivity : 0.9973          
+            Specificity : 0.9996          
+         Pos Pred Value : 0.9994          
+         Neg Pred Value : 0.9984          
+             Prevalence : 0.3695          
+         Detection Rate : 0.3685          
+   Detection Prevalence : 0.3688          
+      Balanced Accuracy : 0.9985          
+                                          
+       'Positive' Class : X1          
+                                
+```
+
+
+
+
+#### Random Forest with correlated features
+
+Let's try Random forest with the top five  features correlated to the TARGET ( HAS_DIABETES): 
+
+
+1   "LBXGH": "Glycohemoglobin (%)"
+
+2   "LBXSGL": "Glucose, refrigerated serum (mg/dL)"
+
+3   "RIDAGEYR":    "Age in years of the participant " 
+
+4   "RXDUSE" :  "In the past 30 days, have you taken medication for which a prescription is needed? " 
+
+5  "LBDHDDSI": "Direct HDL-Cholesterol (mmol/L)"
+
+
+
+```{r model_corr_rf, eval=FALSE, echo=TRUE,message=FALSE, warning=FALSE, cache=FALSE}
+
+model_corr_rf <- train(TARGET~ LBXGH  +
+                         LBXSGL  +
+                         RIDAGEYR  +
+                         RXDUSE  +
+                         LBDHDDSI  ,
+                       #LBDHDD  +
+                       #DMDHRAGE  +
+                       #DMDHHSZE  +
+                       #DLQ050  + 
+                       #BPXSY2  + 
+                       #BPXSY3  + 
+                       #OHX26TC  + 
+                       #OHX07TC  + 
+                       #OHX25TC  , 
+                       #OHX23TC  , 
+                       data = train_Combined,
+                       method="ranger",
+                       metric="ROC",
+                       preProcess = c("center", "scale"),
+                       trControl=fitControl) 
+
+```
+
+
+```{r, eval=FALSE, echo=TRUE}
+
+pred_corr_rf <- predict(model_corr_rf, test_Combined)
+cm_corr_rf <- confusionMatrix(pred_corr_rf, test_Combined$TARGET, positive = "X1")
+cm_corr_rf
+Confusion Matrix and Statistics
+
+          Reference
+Prediction    X0    X1
+        X0 13736    20
+        X1    12  8038
+                                         
+               Accuracy : 0.9985         
+                 95% CI : (0.9979, 0.999)
+    No Information Rate : 0.6305         
+    P-Value [Acc > NIR] : <2e-16         
+                                         
+                  Kappa : 0.9968         
+                                         
+ Mcnemar's Test P-Value : 0.2159         
+                                         
+            Sensitivity : 0.9975         
+            Specificity : 0.9991         
+         Pos Pred Value : 0.9985         
+         Neg Pred Value : 0.9985         
+             Prevalence : 0.3695         
+         Detection Rate : 0.3686         
+   Detection Prevalence : 0.3692         
+      Balanced Accuracy : 0.9983         
+                                         
+       'Positive' Class : X1     
+
+```
+
+#### KNN
+
+Let's try KNN model
+
+```{r model_knn, eval=FALSE, echo=TRUE, message=FALSE, warning=FALSE, cache=FALSE}
+
+model_knn <- train(TARGET~.,
+                   train_Combined,
+                   method="knn",
+                   metric="ROC",
+                   preProcess = c('center', 'scale'),
+                   tuneLength=10,
+                   trControl=fitControl)
+```
+
+```{r, eval=FALSE, echo=TRUE}
+pred_knn <- predict(model_knn, test_Combined)
+cm_knn <- confusionMatrix(pred_knn, test_Combined$TARGET, positive = "X1")
+> cm_knn
+Confusion Matrix and Statistics
+
+          Reference
+Prediction    X0    X1
+        X0 13673    58
+        X1    75  8000
+                                          
+               Accuracy : 0.9939          
+                 95% CI : (0.9928, 0.9949)
+    No Information Rate : 0.6305          
+    P-Value [Acc > NIR] : <2e-16          
+                                          
+                  Kappa : 0.9869          
+                                          
+ Mcnemar's Test P-Value : 0.1653          
+                                          
+            Sensitivity : 0.9928          
+            Specificity : 0.9945          
+         Pos Pred Value : 0.9907          
+         Neg Pred Value : 0.9958          
+             Prevalence : 0.3695          
+         Detection Rate : 0.3669          
+   Detection Prevalence : 0.3703          
+      Balanced Accuracy : 0.9937          
+                                          
+       'Positive' Class : X1     
+```
+
+```{r, eval=FALSE, echo=TRUE}
+pred_prob_knn <- predict(model_knn, test_Combined, type="prob")
+roc_knn <- roc(test_Combined$TARGET, pred_prob_knn$X1)
+plot(roc_knn)
+```
+
+![](Figures/combined/KNN_ROC.png){width=500px}
+
+#### SVM with radial kernel
+ 
+
+```{r model_svm, eval=FALSE, echo=TRUE, message=FALSE, warning=FALSE, cache=FALSE}
+model_svm <- train(TARGET~.,
+                    train_Combined,
+                    method="svmRadial",
+                    metric="ROC",
+                    preProcess=c('center', 'scale'),
+                    trace=FALSE,
+                    trControl=fitControl)
+```
+
+```{r, eval=FALSE, echo=TRUE}
+pred_svm <- predict(model_svm, test_Combined)
+cm_svm <- confusionMatrix(pred_svm, test_Combined$TARGET, positive = "X1")
+> cm_svm
+
+Confusion Matrix and Statistics
+
+          Reference
+Prediction    X0    X1
+        X0 13470   507
+        X1   278  7551
+                                          
+               Accuracy : 0.964           
+                 95% CI : (0.9614, 0.9664)
+    No Information Rate : 0.6305          
+    P-Value [Acc > NIR] : < 2.2e-16       
+                                          
+                  Kappa : 0.9223          
+                                          
+ Mcnemar's Test P-Value : 4.03e-16        
+                                          
+            Sensitivity : 0.9371          
+            Specificity : 0.9798          
+         Pos Pred Value : 0.9645          
+         Neg Pred Value : 0.9637          
+             Prevalence : 0.3695          
+         Detection Rate : 0.3463          
+   Detection Prevalence : 0.3590          
+      Balanced Accuracy : 0.9584          
+                                          
+       'Positive' Class : X1              
+                             
+``` 
+
+
+```{r, eval=FALSE, echo=TRUE}
+
+
+```
+
+
+### Model result comparasion 
+
+Let's compare the models and check their correlation:
+
+```{r, eval=FALSE, echo=TRUE}
+model_list <- list(LR= model_lr, PCA_LR= model_pca_lr, CORR_LR= model_corr_lr,RF=model_rf, 
+                   PCA_RF=model_pca_rf, CORR_RF=model_corr_rf,KNN = model_knn, SVM=model_svm)
+resamples <- resamples(model_list)
+
+
+```
+
+#### Correlation between models {.tabset .tabset-fade}
+
+```{r, eval=FALSE, echo=TRUE}
+model_cor <- modelCor(resamples)
+```
+
+##### Plot 
+```{r, eval=FALSE, echo=TRUE}
+corrplot(model_cor)
+```
+
+![](Figures/combined/corrplot_model_list.png){width=500px}
+
+##### Data
+```{r, eval=FALSE, echo=TRUE}
+model_cor
+                LR     PCA_LR    CORR_LR         RF      PCA_RF    CORR_RF
+LR       1.0000000 -0.2797105  0.2728638  0.1528731 -0.46610641  0.4907913
+PCA_LR  -0.2797105  1.0000000  0.8339244 -0.9275219  0.89006376  0.1853586
+CORR_LR  0.2728638  0.8339244  1.0000000 -0.8590370  0.56778253  0.5814183
+RF       0.1528731 -0.9275219 -0.8590370  1.0000000 -0.80942818 -0.4135697
+PCA_RF  -0.4661064  0.8900638  0.5677825 -0.8094282  1.00000000 -0.1984461
+CORR_RF  0.4907913  0.1853586  0.5814183 -0.4135697 -0.19844606  1.0000000
+KNN      0.6309999  0.4464693  0.8433293 -0.4786641  0.05167214  0.7598467
+SVM      0.3891005 -0.6609020 -0.4504645  0.8274750 -0.75982536 -0.1669214
+                KNN         SVM
+LR       0.63099993  0.38910048
+PCA_LR   0.44646929 -0.66090198
+CORR_LR  0.84332932 -0.45046447
+RF      -0.47866414  0.82747497
+PCA_RF   0.05167214 -0.75982536
+CORR_RF  0.75984669 -0.16692139
+KNN      1.00000000  0.02863682
+SVM      0.02863682  1.00000000
+```
+
+
+#### Comparasion
+
+```{r, eval=FALSE, echo=TRUE}
+bwplot(resamples, metric="ROC")
+```
+
+
+![](Figures/combined/bwplot_model_list.png){width=500px}
+
+Most of the models have a low variability with respect of the processed sample.
+Random Forest (RF, PCA_RF, and CORR_RF) achieve a great auc with a very low variability.
+
+
+
+```{r, eval=FALSE, echo=TRUE}
+cm_list <- list(LR= model_rf, PCA_LR=model_pca_lr, CORR_LR= model_corr_lr,RF=model_rf, PCA_RF=model_pca_rf, CORR_RF=model_corr_rf, KNN = model_knn, SVM=model_svm)
+
+```
+
+Let's remember how these models result with the testing dataset. Prediction classes are obtained by default with 
+a threshold of 0.5 which could not be the best with an unbalanced dataset like this.
+
+```{r, eval=FALSE, echo=TRUE}
+cm_list <- list(LR= cm_lr, PCA_LR= cm_pca_lr, CORR_LR= cm_corr_lr,RF=cm_rf, PCA_RF=cm_pca_rf,  KNN = cm_knn, SVM=cm_svm)
+cm_list_results <- sapply(cm_list, function(x) x$byClass)
+cm_list_results
+                            LR    PCA_LR   CORR_LR        RF    PCA_RF   CORR_RF
+Sensitivity          0.7112187 0.7150658 0.7096054 0.9975180 0.9972698 0.9975180
+Specificity          0.9389729 0.9418825 0.9420279 0.9993454 0.9996363 0.9991271
+Pos Pred Value       0.8722983 0.8782198 0.8776669 0.9988816 0.9993782 0.9985093
+Neg Pred Value       0.8472696 0.8493932 0.8469688 0.9985464 0.9984017 0.9985461
+Precision            0.8722983 0.8782198 0.8776669 0.9988816 0.9993782 0.9985093
+Recall               0.7112187 0.7150658 0.7096054 0.9975180 0.9972698 0.9975180
+F1                   0.7835658 0.7882892 0.7847389 0.9981993 0.9983229 0.9980134
+Prevalence           0.3695313 0.3695313 0.3695313 0.3695313 0.3695313 0.3695313
+Detection Rate       0.2628176 0.2642392 0.2622214 0.3686141 0.3685224 0.3686141
+Detection Prevalence 0.3012932 0.3008805 0.2987710 0.3690269 0.3687517 0.3691645
+Balanced Accuracy    0.8250958 0.8284741 0.8258166 0.9984317 0.9984531 0.9983226
+                           KNN       SVM
+Sensitivity          0.9928022 0.9370812
+Specificity          0.9945447 0.9797789
+Pos Pred Value       0.9907121 0.9644910
+Neg Pred Value       0.9957760 0.9637261
+Precision            0.9907121 0.9644910
+Recall               0.9928022 0.9370812
+F1                   0.9917560 0.9505885
+Prevalence           0.3695313 0.3695313
+Detection Rate       0.3668715 0.3462808
+Detection Prevalence 0.3703109 0.3590296
+Balanced Accuracy    0.9936734 0.9584300
+```
+
+
+
+
+The best results for Sensitivity (detection of diabetes) is the Random forest with the top five correlated features, and The  with PCA has a great F1 score.
+
+
+```{r, eval=FALSE, echo=TRUE}
+require(nnet)
+cm_results_max <- apply(cm_list_results, 1, which.is.max)
+```
+
+
+```{r, eval=FALSE, echo=TRUE}
+
+output_report <- data.frame(metric=names(cm_results_max), 
+                            best_model=colnames(cm_list_results)[cm_results_max],
+                            value=mapply(function(x,y) {cm_list_results[x,y]}, 
+                                         names(cm_results_max), 
+                                         cm_results_max))
+rownames(output_report) <- NULL
+output_report
+                 metric best_model     value
+1           Sensitivity    CORR_RF 0.9975180
+2           Specificity     PCA_RF 0.9996363
+3        Pos Pred Value     PCA_RF 0.9993782
+4        Neg Pred Value         RF 0.9985464
+5             Precision     PCA_RF 0.9993782
+6                Recall         RF 0.9975180
+7                    F1     PCA_RF 0.9983229
+8            Prevalence        SVM 0.3695313
+9        Detection Rate    CORR_RF 0.3686141
+10 Detection Prevalence        KNN 0.3703109
+11    Balanced Accuracy     PCA_RF 0.9984531
+
+```
+
+### Conclusions
+
+We have found Random forest with the top five  features correlated to the TARGET ( HAS_DIABETES)  model preprocessed data with good results over the test set. This model has a **sensibility of 0.997** with a **F1 score of 0.998**.
+
+
 
 ```{r, eval=FALSE, echo=TRUE}
 
@@ -1782,27 +3001,38 @@ ggplot(demo_subset_8, aes(x =Gender, y = Age)) +
 
 
 
+# Shiny App
 
-# Problem 1: Clustering 
+The ShinyApp was built to assist to predict a patients condition based on the selected attribues.
 
-## Applying machine learning models  {.tabset}
+## Models for Shiny
 
-In this section, we will combine all the datasets and perform clustering algorithms.  
+The models implemeneted on the ShinyApp are:
+- Random Forest and Logistic Regression
+- 
 
-```{r, eval=FALSE, echo=TRUE}
-```
-###  PCA
-```{r, eval=FALSE, echo=TRUE}
-```
-###  K-means 
-```{r, eval=FALSE, echo=TRUE}
-```
-###  Hierarchical Agglomerative
-```{r, eval=FALSE, echo=TRUE}
-```
-##  Summary of models
-```{r, eval=FALSE, echo=TRUE}
-```
+## Link for ShinyApp
+The ShinyApp can be accessed from:
+https://ml1000-group6.shinyapps.io/NAHNES/
+
+# Conclusion 
+
+With our models, we aim to present the following to the business regarding applications of our models to assist with drug deployment: 
+
+Firstly, for different diseases, our models can help identify related attributes/values (clusters) for a given disease.  
+This will help select suitable patients for trials.  Trial process can be costly.  And we reduce the cost. 
+ Additionally, this information can also be used to provide hints to researchers on drug treatments on the what might could helpful.    
+(PROVIDE EXAMPLE WHEN AVAILABLE)
+
+For different diseases, our app can different types of non-medical (diet/demographics) which are related.  
+- This can help with directed marketing of our current and future drugs for those diseases.    
+- This could also assist with marketing to attract potential candidates for trails.
+
+(PROVIDE EXAMPLE WHEN AVAILABLE)
+
+
+
+
 # Problem 2: Unsupervised Association 
 
 Find associations with diseases and diet/demographics data.  
@@ -2880,7 +4110,7 @@ The following is a scatter graph for visualizing the top 20 association rules fo
 
 CANCER (small itemsets)
 
-```{r eval=TRUE, echo=FALSE, error=FALSE, warning=FALSE, message=FALSE,cache=TRUE }
+```{r eval=TRUE, echo=FALSE, error=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
 plotly_arules(has_cancer.association.rules_smallitemset)
 ```
 
@@ -3199,1096 +4429,103 @@ The association models used in the preceding sections contained 18 variables.  W
 Within the data for not having diseases, frequently, the condition not having medical insurance appears multiple times.  Is this an indication, people without medical insurance are truly not associated with the diseases? Recall the data for the field is based on a questionnaire that presuppositions, the individual has seen a doctor.  If the individual has not seen a doctor for diagnose due to health insurance coverage, then they may not have been able to accurately ascertain whether they have a particular disease.    
 
 
+# Problem 3: Clustering 
 
-# Problem 3: Supervised 
+# Models against sub-datasets (OPTIONAL)
 
+## Cluster Model for Demographic  {.tabset}
 
-Target attributes need to be added .   
-
-
-
-## Create target dataset
-
-As part of the business problem, we focusing on 3 targets(diabetes, hypertension, cancer):
-
-```{r eval=FALSE, echo=TRUE}
-#DIQ010 - Doctor told you have diabetes
-#https://wwwn.cdc.gov/Nchs/Nhanes/2013-2014/DIQ_H.htm
-#The next questions are about specific medical conditions. {Other than during pregnancy, {have you/has SP}/{Have you/Has SP}} ever been told by a doctor or health professional that {you have/{he/she/SP} has} diabetes or sugar diabetes?
-
-# BPQ020 - Ever told you had high blood pressure
-# https://wwwn.cdc.gov/Nchs/Nhanes/2013-2014/BPQ_H.htm
-# {Have you/Has SP} ever been told by a doctor or other health professional that {you/s/he} had hypertension, also called high blood pressure?
-
-# MCQ220 - Ever told you had cancer or malignancy
-# https://wwwn.cdc.gov/Nchs/Nhanes/2013-2014/MCQ_H.htm#MCQ220
-# {Have you/Has SP} ever been told by a doctor or other health professional that {you/s/he} had cancer or a malignancy (ma-lig-nan-see) of any kind?
-
-# Create the target dataset for the Supervised problem.
-temp_questionnaire = read.csv("Data/Raw/questionnaire.csv", header = TRUE, na.strings = c("NA","","#NA"))
-target_columns <- c("SEQN","DIQ010","BPQ020","MCQ220")
-target_disease_dataset = subset(temp_questionnaire, select=target_columns)
-
-# Change disease indicators into factors
-target_disease_dataset$MCQ220 <- as.factor(target_disease_dataset$MCQ220)
-target_disease_dataset$DIQ010 <- as.factor(target_disease_dataset$DIQ010)
-target_disease_dataset$BPQ020 <- as.factor(target_disease_dataset$BPQ020)
-
-#Create new column for target values
-target_disease_dataset = cbind(target_disease_dataset, HAS_DIABETES= ifelse(target_disease_dataset$DIQ010 == 1, "YES", "NO" ) )
-target_disease_dataset= cbind(target_disease_dataset, HAS_HYPERTENSION= ifelse(target_disease_dataset$BPQ020 == 1, "YES", "NO" ) )
-target_disease_dataset = cbind(target_disease_dataset, HAS_CANCER= ifelse(target_disease_dataset$MCQ220 == 1, "YES", "NO" ) )
-summary(target_disease_dataset)
-
-# With new target values, set "NA" to "NO"
-target_disease_dataset$HAS_DIABETES[is.na(target_disease_dataset$HAS_DIABETES)] <- "NO"
-target_disease_dataset$HAS_HYPERTENSION[is.na(target_disease_dataset$HAS_HYPERTENSION)] <- "NO"
-target_disease_dataset$HAS_CANCER[is.na(target_disease_dataset$HAS_CANCER)] <- "NO"
-summary(target_disease_dataset)
-
-```
-
-Given an individual has diabetes, predict individual has cancer or hypertension.  Use the less amount of data possible to keep costs low.  
-
-
-
-## DIABETES 
-
- 
-Marking data for Diabetes
-
-```{r eval=FALSE, echo=TRUE}
-ques_data_imputed   = read.csv("Data/Clean_Imputes/ques_data_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
-target_columns <- c("SEQN","DIQ010")
-Diabetes_dataset = subset(ques_data_imputed, select=target_columns)
-# Change disease indicators into factors
-Diabetes_dataset$DIQ010 <- as.numeric(Diabetes_dataset$DIQ010)
-#Create new column for target values
-Diabetes_dataset = cbind(Diabetes_dataset, HAS_DIABETES= ifelse(Diabetes_dataset$DIQ010 == 1, "YES", "NO" ) )
-Diabetes_dataset = cbind(Diabetes_dataset, TARGET= ifelse(Diabetes_dataset$DIQ010 == 1,1,0))
-Diabetes_dataset<- Diabetes_dataset[,-2]
-rm(ques_data_imputed)
-#write.csv(Diabetes_dataset,file = "Data/Working/Diabetes_dataset.csv",row.names = FALSE)
-Diabetes_dataset   = read.csv("Data/Working/Diabetes_dataset.csv", header = TRUE, na.strings = c("NA","","#NA"))
-
-```
-
-## DEMOGRAPHIC DATA MINING FOR DIABETES
-
-We now will keep the associated features related to Diabetes disease using PCA and Correlation plots.
-
-
-Correlation Plot:
-```{r eval=FALSE, echo=TRUE}
-corrplot(combi_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt = 45)
-
-```
-
-
-![](Figures/Supervised/Demo_Corr.png){width=800px}
-
-
-
-
-PCA 
-
-
-```{r eval=FALSE, echo=TRUE}
-pcmp <- princomp(Test_Data,retx=TRUE, cor =TRUE, center=TRUE, scale=TRUE)
-
-plot(pcmp, main = "PCA for Demographics", col.axis="blue",npcs = 33)
-abline(h = 1, col="red", lty=5)
-```
-
-
-![](Figures/Supervised/Demo_PCA.png){width=800px}
-```{r eval=FALSE, echo=TRUE}
-
-plot(pcmp, type = "l", main = "PCA for Demographics", col.axis="blue",npcs = 33)
-abline(h = 1, col="red", lty=5)
-abline(v = 11, col="blue", lty=5)
-
-```
-
-
-![](Figures/Supervised/Demo_PCA2.png){width=800px}
-
-
-```{r eval=FALSE, echo=TRUE}
-library("factoextra")
-fviz_pca_ind(pcmp, geom.ind = "point", pointshape = 21, 
-             pointsize = 2, 
-             fill.ind = Demo_target$HAS_DIABETES, 
-             col.ind = "black", 
-             palette = "jco", 
-             addEllipses = TRUE,
-             label = "var",
-             col.var = "black",
-             repel = TRUE,
-             legend.title = "HAS_DIABETES") +
-  ggtitle("2D PCA-plot from 30 feature dataset") +
-  theme(plot.title = element_text(hjust = 0.5))
-
-```
-
-
-
-![](Figures/Supervised/Demo_30.png){width=800px}
-
-
-
-
-```{r eval=FALSE, echo=TRUE}
-Demo_select_colns <- c("SEQN","HAS_DIABETES","TARGET","WTINT2YR","WTMEC2YR","DMDHHSZE","DMDHRAGE","RIDAGEYR","SIAPROXY","DMDHHSZA","DMDHRMAR","DMDHREDU","DMDHRGND","RIDEXMON")
-
-Demo_target_final <- subset(Demo_target2, select = Demo_select_colns)
-
-Demo_target_final   = read.csv("Data/Target Datasets/Demo_target_final.csv", header = TRUE, na.strings = c("NA","","#NA"))
-
-
-```
-
-
-
-![](Figures/Supervised/Demo_8.png){width=800px}
-
-
-
-
-
-
-
-## DIET DATA MINING FOR DIABETES
-
-We now will keep the associated features related to Diabetes disease using PCA and Correlation plots.
-
-
- Correlation Plot:
-```{r eval=FALSE, echo=TRUE}
-corrplot(combi_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt = 55)
-require(corrplot)
-
-# let remove 
-#7 =DIQ010  : "told by a doctor that you have diabetes or sugar diabetes?"  
-#8 = DIQ050  : "{Is SP/Are you} now taking insulin"
-
-combi_diabetes_cor=rcorr(as.matrix(combined_target_final[-c(1,2,7,8,39,40,41,42)]))
-
-corrplot(combi_diabetes_cor$r, 
-         type = "upper", order = "hclust", tl.col = "black",
-         tl.srt = 45,tl.cex =0.4,
-         cl.cex = 0.7)
-
-```
-
-
-![](Figures/Supervised/Diet_Corr.png){width=800px}
-
-
-
-
- PCA 
-
-
-```{r eval=FALSE, echo=TRUE}
-pcmp <- princomp(Test_Data,retx=TRUE, cor =TRUE, center=TRUE, scale=TRUE)
-
-plot(pcmp, main = "PCA for Diet", col.axis="blue",npcs = 90)
-abline(h = 1, col="red", lty=5)
-
-```
-
-
-![](Figures/Supervised/Diet_PCA.png){width=800px}
-```{r eval=FALSE, echo=TRUE}
-
-
-plot(pcmp, type = "l", main = "PCA for Diet", col.axis="blue",npcs = 90)
-abline(h = 1, col="red", lty=5)
-abline(v = 24, col="blue", lty=5)
-
-```
-
-
-![](Figures/Supervised/Diet_PCA2.png){width=800px}
-
-
-```{r eval=FALSE, echo=TRUE}
-library("factoextra")
-fviz_pca_ind(pcmp, geom.ind = "point", pointshape = 21, 
-             pointsize = 2, 
-             fill.ind = Diet_target$HAS_DIABETES, 
-             col.ind = "black", 
-             palette = "jco", 
-             addEllipses = TRUE,
-             label = "var",
-             col.var = "black",
-             repel = TRUE,
-             legend.title = "HAS_DIABETES") +
-  ggtitle("2D PCA-plot from 87 feature dataset") +
-  theme(plot.title = element_text(hjust = 0.5))
-```
-
-
-
-![](Figures/Supervised/Diet_87.png){width=800px}
-
-
-
-
-```{r eval=FALSE, echo=TRUE}
-Diet_select_colns <- c("SEQN","HAS_DIABETES","TARGET","DR1TSFAT","DR1TS040","DR1TS060","DR1TS100","DR1TS140","DR1TS160","DR1TS180","DR1DRSTZ","DRDINT","DR1STY","DRQSDIET","DRD340","DRD360")
-
-
-```
-
-
-![](Figures/Supervised/Diet_13.png){width=800px}
-
-
-
-
-
-## EXAMS DATA MINING FOR DIABETES
-
-We now will keep the associated features related to Diabetes disease using PCA and Correlation plots.
-
-
- Correlation Plot:
-```{r eval=FALSE, echo=TRUE}
-corrplot(combi_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt = 55)
-
-```
-
-
-![](Figures/Supervised/Exam_Corr.png){width=800px}
-
-
-
-
- PCA 
-
-
-```{r eval=FALSE, echo=TRUE}
-pcmp <- princomp(Test_Data,retx=TRUE, cor =TRUE, center=TRUE, scale=TRUE)
-
-plot(pcmp, main = "PCA for Examination", col.axis="blue", npcs=100)
-abline(h = 1, col="red", lty=5)
-```
-
-
-![](Figures/Supervised/Exam_PCA.png){width=800px}
-```{r eval=FALSE, echo=TRUE}
-
-
-plot(pcmp, type = "l", main = "PCA for Examination", col.axis="blue", npcs=100)
-abline(h = 1.4, col="red", lty=5)
-abline(v = 14, col="blue", lty=5)
-
-```
-
-
-![](Figures/Supervised/Exam_PCA2.png){width=800px}
-
-
-```{r eval=FALSE, echo=TRUE}
-fviz_pca_ind(pcmp, geom.ind = "point", pointshape = 21, 
-             pointsize = 2, 
-             fill.ind = Exam_target$HAS_DIABETES, 
-             col.ind = "black", 
-             palette = "jco", 
-             addEllipses = TRUE,
-             label = "var",
-             col.var = "black",
-             repel = TRUE,
-             legend.title = "HAS_DIABETES") +
-  ggtitle("2D PCA-plot from 97 feature dataset") +
-  theme(plot.title = element_text(hjust = 0.5))
-```
-
-
-
-![](Figures/Supervised/Exam_97.png){width=800px}
-
-
-
-
-```{r eval=FALSE, echo=TRUE}
-Exam_select_colns <- c("SEQN","HAS_DIABETES","TARGET","BMXBMI","BMXWAIST","BPXDI2","BPXML1","BPXSY2","BPXSY3","OHX02TC","OHX03TC","OHX04TC","OHX05TC","OHX06TC","OHX07TC","OHX08TC","OHX09TC","OHX10TC","OHX11TC","OHX12TC","OHX13TC","OHX14TC","OHX15TC","OHX18TC","OHX19TC","OHX20TC","OHX23TC","OHX24TC","OHX25TC","OHX26TC","OHX29TC","OHX30TC","OHX31TC","PEASCST1")
-
-
-```
-
-
-![](Figures/Supervised/Exam_31.png){width=800px}
-
-
-
-
-
-
-## LABS DATA MINING FOR DIABETES
-
-We now will keep the associated features related to Diabetes disease using PCA and Correlation plots.
-
-
- Correlation Plot:
-```{r eval=FALSE, echo=TRUE}
-corrplot(combi_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt = 55)
-
-```
-
-
-![](Figures/Supervised/Labs_Corr.png){width=800px}
-
-
-
-
- PCA 
-
-
-```{r eval=FALSE, echo=TRUE}
-pcmp <- princomp(Test_Data,retx=TRUE, cor =TRUE, center=TRUE, scale=TRUE)
-
-plot(pcmp, main = "PCA for Labs", col.axis="blue",npcs=80)
-abline(h = 1, col="red", lty=5)
-```
-
-
-![](Figures/Supervised/Labs_PCA.png){width=800px}
-```{r eval=FALSE, echo=TRUE}
-
-plot(pcmp, type = "l", main = "PCA for Labs", col.axis="blue",npcs=80)
-abline(h = 1, col="red", lty=5)
-abline(v = 26, col="blue", lty=5)
-
-```
-
-
-![](Figures/Supervised/Labs_PCA2.png){width=800px}
-
-
-```{r eval=FALSE, echo=TRUE}
-fviz_pca_ind(pcmp, geom.ind = "point", pointshape = 21, 
-             pointsize = 2, 
-             fill.ind = Labs_target$HAS_DIABETES, 
-             col.ind = "black", 
-             palette = "jco", 
-             addEllipses = TRUE,
-             label = "var",
-             col.var = "black",
-             repel = TRUE,
-             legend.title = "HAS_DIABETES") +
-  ggtitle("2D PCA-plot from 77 feature dataset") +
-  theme(plot.title = element_text(hjust = 0.5))
-```
-
-
-
-![](Figures/Supervised/Labs_77.png){width=800px}
-
-
-
-
-```{r eval=FALSE, echo=TRUE}
-Labs_select_colns <- c("SEQN","HAS_DIABETES","TARGET","LBXGH","LBXSGL","LBXHGB","LBXSOSSI","LBXSNASI","URXCRS","LBXHCT","URXUCR.x","LBDSGBSI","LBXMC","LBDHDDSI","LBXSGB","LBDHDD","URXVOL1","URDFLOW1","LBDLYMNO","LBXLYPCT","LBXSCLSI","LBXNEPCT")
-
-
-```
-
-
-![](Figures/Supervised/Labs_19.png){width=800px}
-
-
-
-## QUESTIONNAIRE DATA MINING FOR DIABETES
-
-We now will keep the associated features related to Diabetes disease using PCA and Correlation plots.
-
-
- Correlation Plot:
-```{r eval=FALSE, echo=TRUE}
-corrplot(combi_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt = 55)
-
-```
-
-
-![](Figures/Supervised/Ques_Corr.png){width=800px}
-
-
-
-
- PCA 
-
-
-```{r eval=FALSE, echo=TRUE}
-pcmp <- princomp(Test_Data,retx=TRUE, cor =TRUE, center=TRUE, scale=TRUE)
-
-plot(pcmp, main = "PCA for Questionnaire", col.axis="blue",npcs=80)
-abline(h = 1, col="red", lty=5)
-```
-
-
-![](Figures/Supervised/Ques_PCA.png){width=800px}
-```{r eval=FALSE, echo=TRUE}
-plot(pcmp, type = "l", main = "PCA for Questionnaire", col.axis="blue",npcs=80)
-abline(h = 1, col="red", lty=5)
-abline(v = 22, col="blue", lty=5)
-
-```
-
-
-![](Figures/Supervised/Ques_PCA2.png){width=800px}
-
-
-```{r eval=FALSE, echo=TRUE}
-fviz_pca_ind(pcmp, geom.ind = "point", pointshape = 21, 
-             pointsize = 2, 
-             fill.ind = ques_target$HAS_DIABETES, 
-             col.ind = "black", 
-             palette = "jco", 
-             addEllipses = TRUE,
-             label = "var",
-             col.var = "black",
-             repel = TRUE,
-             legend.title = "HAS_DIABETES") +
-  ggtitle("2D PCA-plot from 75 feature dataset") +
-  theme(plot.title = element_text(hjust = 0.5))
-```
-
-
-
-![](Figures/Supervised/Ques_75.png){width=800px}
-
-
-
-
-```{r eval=FALSE, echo=TRUE}
-ques_select_colns <- c("SEQN","HAS_DIABETES","TARGET","PAAQUEX","SMAQUEX.x","DBD910","FSDAD","DBD895","FSDHH","DIQ010","DBD905","FSD032B","FSD032C","FSD032A","DLQ050","DIQ050","HSAQUEX","DLQ060")
-
-```
-
-
-![](Figures/Supervised/Ques_15.png){width=800px}
-
-
-
-
-
-
-
-select features correlated to the TARGET ( HAS_DIABETES) with "abs(coefficiant) > 0.1" 
-
-```{r eval=FALSE, echo=TRUE}
-# ++++++++++++++++++++++++++++
-# flattenCorrMatrix
-# ++++++++++++++++++++++++++++
-# cormat : matrix of the correlation coefficients
-# pmat : matrix of the correlation p-values
-flattenCorrMatrix <- function(cormat, pmat) {
-  ut <- upper.tri(cormat)
-  data.frame(
-    row = rownames(cormat)[row(cormat)[ut]],
-    column = rownames(cormat)[col(cormat)[ut]],
-    cor  =(cormat)[ut],
-    p = pmat[ut]
-  )
-}
-
-CorrMatrix = as.data.frame(flattenCorrMatrix(combi_diabetes_cor$r, combi_diabetes_cor$P))
-
-#withdraw feasture correlated to the TARGET and select cor > 0.1 
-
-TARGET_CorrMatrix <- CorrMatrix %>%
-  filter(row=="TARGET")%>%
-  arrange(desc(abs(cor)))%>%
-  filter(abs(cor)>0.1)
-
-head(TARGET_CorrMatrix)
-
-      row   column        cor p
-1  TARGET    LBXGH  0.6089779 0
-2  TARGET   LBXSGL  0.5035482 0
-3  TARGET RIDAGEYR  0.2402681 0
-4  TARGET   RXDUSE -0.2004047 0
-5  TARGET LBDHDDSI -0.1918771 0
-6  TARGET   LBDHDD -0.1899955 0
-7  TARGET DMDHRAGE  0.1700048 0
-8  TARGET DMDHHSZE  0.1578885 0
-9  TARGET   DLQ050 -0.1493532 0
-10 TARGET   BPXSY2  0.1413383 0
-11 TARGET   BPXSY3  0.1389114 0
-12 TARGET  OHX26TC  0.1328777 0
-13 TARGET  OHX07TC  0.1167468 0
-14 TARGET  OHX25TC  0.1032902 0
-15 TARGET  OHX23TC  0.1000596 0
-```
-
-
-#### PCA FOR DIABETES
-
-
-```{r eval=FALSE, echo=TRUE}
-pcmp <- princomp(Test_Data,retx=TRUE, cor =TRUE, center=TRUE, scale=TRUE)
-
-Demo_target2 <- as.data.frame(cbind(Demo_target2, pcmp$scores[,1:5]))
-
-plot(pcmp, main = "PCA for Demographics", col.axis="blue",npcs = 20)
-abline(h = 1, col="red", lty=5)
-
-plot(pcmp, type = "l", main = "PCA for Demographics", col.axis="blue",npcs = 20)
-abline(h = 1, col="red", lty=5)
-abline(v = 10, col="blue", lty=5)
-
-```
-
-
+### PCA 
 
 
 ```{r, eval=FALSE, echo=TRUE}
-combined_target_final <- read_csv("Data/Target Datasets/combined_target_final.csv")
+
+demo_subset_8   = read.csv("Data/Working/demo_subset_8_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
+target_disease_dataset   = read.csv("Data/Working/target_disease_dataset.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
+demographic_imputed   = read.csv("Data/Clean_Imputes/demographic_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
 
 library(devtools)
+#install_github("vqv/ggbiplot")
 library(ggbiplot)
-combined_target_final.pca <- prcomp(combined_target_final[-c(1,2,7,8,39,40,41,42)], center = TRUE,scale = TRUE)
-summary(combined_target_final.pca)
 
-screeplot(combined_target_final.pca, type = "l", npcs = 20, main = "Screeplot of the first 20 PCs")
+demo_subset_8.pca <- prcomp(demo_subset_8[,c(2:9)], center = TRUE,scale = TRUE)
+summary(demo_subset_8.pca)
+str(demo_subset_8.pca)
+
+#ggbiplot(demo_subset_8.pca)
+
+screeplot(demo_subset_8.pca, type = "l", npcs = 8, main = "Screeplot of the 8 PCs")
 abline(h = 1, col="red", lty=5)
 legend("topright", legend=c("Eigenvalue = 1"),
        col=c("red"), lty=5, cex=0.6)
 
-
-cumpro <- cumsum(combined_target_final.pca$sdev^2 / sum(combined_target_final.pca$sdev^2))
-plot(cumpro[0:20], xlab = "PC #", ylab = "Amount of explained variance", main = "Cumulative variance plot")
-abline(v = 9, col="blue", lty=5)
-abline(h = 0.79850, col="blue", lty=5)
-legend("topleft", legend=c("Cut-off @ PC9"),
-       col=c("blue"), lty=5, cex=0.6)
-
-
+cumpro <- cumsum(demo_subset_8.pca$sdev^2 / sum(demo_subset_8.pca$sdev^2))
+plot(cumpro[0:8], xlab = "PC #", ylab = "Amount of explained variance", main = "Cumulative variance plot")
+abline(v = 4, col="blue", lty=5)
+abline(h = 0.5934, col="blue", lty=5)
+legend("topleft", legend=c("Cut-off @ PC4"),
+       
 ```
 
+![](Figures/demo/demo8_PCA_1.png){width=350px}
+![](Figures/demo/demo8_PCA_2.png){width=350px}
 
-![](Figures/combined/combined_PCA1.png){width=350px}
-![](Figures/combined/combined_PCA2.png){width=350px}
-
-
-We notice is that the first 9 components has an Eigenvalue >1 
-and explains almost 80% of variance. 
-So if  wereduce dimensionality from 35  to 8  we will lose 
-  20% of variance!
-
-![](Figures/combined/combined_PCA3.png){width=350px}
-![](Figures/combined/combined_PCA_diabetes.png){width=350px}
-
-The two first components explains only 30%  of the variance. 
-We need 18 principal components to explain more than 95% of the variance 
-and 27 to explain more than 0.99
-
-
-### Applying machine learning models  {.tabset}
-
-
-
-```{r, eval=FALSE, echo=TRUE}
-fitControl <- trainControl(method="cv",
-                           number = 5,
-                           preProcOptions = list(thresh = 0.99), # threshold for pca preprocess
-                           classProbs = TRUE,
-                           summaryFunction = twoClassSummary)
-```
-
-
-We are going to create a training and test set of these data:
-
-```{r, eval=FALSE, echo=TRUE}
-combined_target_final <- read_csv("Data/Target Datasets/combined_target_final.csv")
-
-require(caret)
-require(dplyr)
-require(caretEnsemble)
-require(pROC)
-set.seed(101)
-
-
-data_index <- createDataPartition(combined_target_final$TARGET, p=0.75, list = FALSE)
-train_Combined <- combined_target_final[data_index,-c(1,2,7,8,39,40,41,42) ]
-test_Combined <- combined_target_final[-data_index, -c(1,2,7,8,39,40,41,42)]
-
-train_Combined$TARGET =  as.factor(train_Combined$TARGET)
-test_Combined$TARGET =  as.factor(test_Combined$TARGET)
-
- #try to predict class probabilities in R - caret
-levels(train_Combined$TARGET) <- make.names(levels(factor(train_Combined$TARGET)))
-levels(test_Combined$TARGET) <- make.names(levels(factor(test_Combined$TARGET)))
-
-
-```
-
-
-#### Logistic Regression
-
-Let's try Logistic Regression:
-
-```{r model_lr, eval=FALSE, echo=TRUE, message=FALSE, warning=FALSE, cache=FALSE}
-
-model_lr <- train(TARGET~.,train_Combined,
-                  method = "glmnet",
-                     metric="ROC",
-                  #tuneGrid = expand.grid(alpha = c(0,  .1,  .2, .4, .6, .8, 1),lambda = seq(.01, .2, length = 20)),
-                     preProcess = c("center", "scale"),
-                  trControl=fitControl) 
-
-
-```
-
+From the above graphs, we notice is that the first 4 components has an Eigenvalue >1 
+and explains almost 60% of variance! We can not effectively reduce dimensionality from 8  to 4 becuase we will lose about 40% of variance!
 
 ```{r, eval=FALSE, echo=TRUE}
 
-pred_lr <- predict(model_lr, test_Combined)
-cm_lr <- confusionMatrix(pred_lr, test_Combined$TARGET, positive = "X1")
-cm_lr
-
-Confusion Matrix and Statistics
-
-          Reference
-Prediction    X0    X1
-        X0 12909  2327
-        X1   839  5731
-                                          
-               Accuracy : 0.8548          
-                 95% CI : (0.8501, 0.8595)
-    No Information Rate : 0.6305          
-    P-Value [Acc > NIR] : < 2.2e-16       
-                                          
-                  Kappa : 0.676           
-                                          
- Mcnemar's Test P-Value : < 2.2e-16       
-                                          
-            Sensitivity : 0.7112          
-            Specificity : 0.9390          
-         Pos Pred Value : 0.8723          
-         Neg Pred Value : 0.8473          
-             Prevalence : 0.3695          
-         Detection Rate : 0.2628          
-   Detection Prevalence : 0.3013          
-      Balanced Accuracy : 0.8251          
-                                          
-       'Positive' Class : X1 
-```
+library("factoextra")
+fviz_pca_ind(demo_subset_8.pca, geom.ind = "point", pointshape = 21, 
+             pointsize = 2, 
+             fill.ind = target_disease_dataset$HAS_DIABETES, 
+             col.ind = "black", 
+             palette = "jco", 
+             addEllipses = TRUE,
+             label = "var",
+             col.var = "black",
+             repel = TRUE,
+             legend.title = "HAS_DIABETES") +
+  ggtitle("2D PCA-plot from 8 feature dataset") +
+  theme(plot.title = element_text(hjust = 0.5))
 
 
-#### Logistic Regression with  PCA
+fviz_pca_ind(demo_subset_8.pca, geom.ind = "point", pointshape = 21, 
+             pointsize = 2, 
+             fill.ind = target_disease_dataset$HAS_HYPERTENSION, 
+             col.ind = "black", 
+             palette = "jco", 
+             addEllipses = TRUE,
+             label = "var",
+             col.var = "black",
+             repel = TRUE,
+             legend.title = "HAS_HYPERTENSION") +
+  ggtitle("2D PCA-plot from 8 feature dataset") +
+  theme(plot.title = element_text(hjust = 0.5))
 
-Logistic Regression  with  pca:
+fviz_pca_ind(demo_subset_8.pca, geom.ind = "point", pointshape = 21, 
+             pointsize = 2, 
+             fill.ind = target_disease_dataset$HAS_CANCER, 
+             col.ind = "black", 
+             palette = "jco", 
+             addEllipses = TRUE,
+             label = "var",
+             col.var = "black",
+             repel = TRUE,
+             legend.title = "HAS_CANCER") +
+  ggtitle("2D PCA-plot from 8 feature dataset") +
+  theme(plot.title = element_text(hjust = 0.5))
 
-
-```{r model_pca_lr, eval=FALSE, echo=TRUE, message=FALSE, warning=FALSE, cache=FALSE}
-
-model_pca_lr <- train(TARGET~.,
-                      train_Combined,
-                      method = "glmnet",
-                      metric="ROC",
-                      #family = "binomial", 
-                      #tuneGrid = expand.grid(alpha = c(0,  .1,  .2, .4, .6, .8, 1),lambda = seq(.01, .2, length = 20)),
-                      preProcess = c('center', 'scale', 'pca'),
-                      trControl=fitControl)
 
 
 ```
 
-
-
-```{r, eval=FALSE, echo=TRUE}
-pred_pca_lr <- predict(model_pca_lr, test_Combined)
-cm_pca_lr <- confusionMatrix(pred_pca_rf, test_Combined$TARGET, positive = "X1")
-cm_pca_lr
-Confusion Matrix and Statistics
-
-          Reference
-Prediction    X0    X1
-        X0 12949  2296
-        X1   799  5762
-                                          
-               Accuracy : 0.8581          
-                 95% CI : (0.8534, 0.8627)
-    No Information Rate : 0.6305          
-    P-Value [Acc > NIR] : < 2.2e-16       
-                                          
-                  Kappa : 0.6832          
-                                          
- Mcnemar's Test P-Value : < 2.2e-16       
-                                          
-            Sensitivity : 0.7151          
-            Specificity : 0.9419          
-         Pos Pred Value : 0.8782          
-         Neg Pred Value : 0.8494          
-             Prevalence : 0.3695          
-         Detection Rate : 0.2642          
-   Detection Prevalence : 0.3009          
-      Balanced Accuracy : 0.8285          
-                                          
-       'Positive' Class : X1 
-```
-
-
-#### Logistic Regression with correlated features
-
-
-Let's try Logistic Regression  with the top five  features correlated to the TARGET ( HAS_DIABETES):
-
-1   "LBXGH": "Glycohemoglobin (%)"
-
-2   "LBXSGL": "Glucose, refrigerated serum (mg/dL)"
-
-3   "RIDAGEYR":    "Age in years of the participant " 
-
-4   "RXDUSE" :  "In the past 30 days, have you taken medication for which a prescription is needed? " 
-
-5  "LBDHDDSI": "Direct HDL-Cholesterol (mmol/L)"
-
-
-```{r model_corr_lr, eval=FALSE, echo=TRUE, message=FALSE, warning=FALSE, cache=FALSE}
-
-model_corr_lr <- train(TARGET~ LBXGH  +
-                         LBXSGL  +
-                         RIDAGEYR  +
-                         RXDUSE  +
-                         LBDHDDSI  ,
-                         #LBDHDD  +
-                         #DMDHRAGE  +
-                         #DMDHHSZE  +
-                         #DLQ050  + 
-                         #BPXSY2  + 
-                         #BPXSY3  + 
-                         #OHX26TC  + 
-                         #OHX07TC  + 
-                         #OHX25TC  , 
-                         #OHX23TC  , 
-                         data = train_Combined,
-                       method = "glmnet",
-                       metric="ROC",
-                       preProcess = c("center", "scale"),
-                       trControl=fitControl) 
-
-
-```
-
-```{r,eval=FALSE, echo=TRUE}
-pred_corr_lr <- predict(model_corr_lr, test_Combined)
-cm_corr_lr <- confusionMatrix(pred_corr_lr, test_Combined$TARGET, positive = "X1")
-cm_corr_lr
-
-Confusion Matrix and Statistics
-
-          Reference
-Prediction    X0    X1
-        X0 12951  2340
-        X1   797  5718
-                                          
-               Accuracy : 0.8561          
-                 95% CI : (0.8514, 0.8608)
-    No Information Rate : 0.6305          
-    P-Value [Acc > NIR] : < 2.2e-16       
-                                          
-                  Kappa : 0.6785          
-                                          
- Mcnemar's Test P-Value : < 2.2e-16       
-                                          
-            Sensitivity : 0.7096          
-            Specificity : 0.9420          
-         Pos Pred Value : 0.8777          
-         Neg Pred Value : 0.8470          
-             Prevalence : 0.3695          
-         Detection Rate : 0.2622          
-   Detection Prevalence : 0.2988          
-      Balanced Accuracy : 0.8258          
-                                          
-       'Positive' Class : X1   
-
-```
-
-#### Random Forest
-
-Let's try random forest:
-
-```{r model_rf, eval=FALSE, echo=TRUE, message=FALSE, warning=FALSE, cache=FALSE}
-model_rf <- train(as.factor(TARGET)~.,
-                  train_Combined,
-                  method="ranger",
-                  metric="ROC",
-                  #tuneLength=10,
-                  #tuneGrid = expand.grid(mtry = c(2, 3, 6)),
-                  #tuneGrid = data.frame(mtry = 3)
-                  tuneGrid = tunegrid,
-                  preProcess = c('center', 'scale'),
-                  trControl=fitControl)
-```
-
-
-```{r,eval=FALSE, echo=TRUE}
-pred_rf <- predict(model_rf, test_Combined)
-cm_rf <- confusionMatrix(pred_rf, test_Combined$TARGET, positive = "X1")
-cm_rf
-Confusion Matrix and Statistics
-
-          Reference
-Prediction    X0    X1
-        X0 13739    20
-        X1     9  8038
-                                          
-               Accuracy : 0.9987          
-                 95% CI : (0.9981, 0.9991)
-    No Information Rate : 0.6305          
-    P-Value [Acc > NIR] : < 2e-16         
-                                          
-                  Kappa : 0.9971          
-                                          
- Mcnemar's Test P-Value : 0.06332         
-                                          
-            Sensitivity : 0.9975          
-            Specificity : 0.9993          
-         Pos Pred Value : 0.9989          
-         Neg Pred Value : 0.9985          
-             Prevalence : 0.3695          
-         Detection Rate : 0.3686          
-   Detection Prevalence : 0.3690          
-      Balanced Accuracy : 0.9984          
-                                          
-       'Positive' Class : X1              
-                                       
-```
-
-#### Random Forest with PCA
-
-Random forest with pca
-
-```{r model_pca_rf, eval=FALSE, echo=TRUE,message=FALSE, warning=FALSE, cache=FALSE}
-model_pca_rf <- train(TARGET~.,
-                  train_Combined,
-                  method="ranger",
-                  metric="ROC",
-                  #tuneLength=10,
-                  #tuneGrid = expand.grid(mtry = c(2, 3, 6)),
-                  preProcess = c('center', 'scale', 'pca'),
-                  trControl=fitControl)
-```
-
-```{r, eval=FALSE, echo=TRUE}
-pred_pca_rf <- predict(model_pca_rf, test_Combined)
-cm_pca_rf <- confusionMatrix(pred_pca_rf, test_Combined$TARGET, positive = "X1")
-cm_pca_rf
-Confusion Matrix and Statistics
-
-          Reference
-Prediction    X0    X1
-        X0 13743    22
-        X1     5  8036
-                                          
-               Accuracy : 0.9988          
-                 95% CI : (0.9982, 0.9992)
-    No Information Rate : 0.6305          
-    P-Value [Acc > NIR] : < 2.2e-16       
-                                          
-                  Kappa : 0.9973          
-                                          
- Mcnemar's Test P-Value : 0.002076        
-                                          
-            Sensitivity : 0.9973          
-            Specificity : 0.9996          
-         Pos Pred Value : 0.9994          
-         Neg Pred Value : 0.9984          
-             Prevalence : 0.3695          
-         Detection Rate : 0.3685          
-   Detection Prevalence : 0.3688          
-      Balanced Accuracy : 0.9985          
-                                          
-       'Positive' Class : X1          
-                                
-```
-
-
-
-
-#### Random Forest with correlated features
-
-Let's try Random forest with the top five  features correlated to the TARGET ( HAS_DIABETES): 
-
-
-1   "LBXGH": "Glycohemoglobin (%)"
-
-2   "LBXSGL": "Glucose, refrigerated serum (mg/dL)"
-
-3   "RIDAGEYR":    "Age in years of the participant " 
-
-4   "RXDUSE" :  "In the past 30 days, have you taken medication for which a prescription is needed? " 
-
-5  "LBDHDDSI": "Direct HDL-Cholesterol (mmol/L)"
-
-
-
-```{r model_corr_rf, eval=FALSE, echo=TRUE,message=FALSE, warning=FALSE, cache=FALSE}
-
-model_corr_rf <- train(TARGET~ LBXGH  +
-                         LBXSGL  +
-                         RIDAGEYR  +
-                         RXDUSE  +
-                         LBDHDDSI  ,
-                       #LBDHDD  +
-                       #DMDHRAGE  +
-                       #DMDHHSZE  +
-                       #DLQ050  + 
-                       #BPXSY2  + 
-                       #BPXSY3  + 
-                       #OHX26TC  + 
-                       #OHX07TC  + 
-                       #OHX25TC  , 
-                       #OHX23TC  , 
-                       data = train_Combined,
-                       method="ranger",
-                       metric="ROC",
-                       preProcess = c("center", "scale"),
-                       trControl=fitControl) 
-
-```
-
-
-```{r, eval=FALSE, echo=TRUE}
-
-pred_corr_rf <- predict(model_corr_rf, test_Combined)
-cm_corr_rf <- confusionMatrix(pred_corr_rf, test_Combined$TARGET, positive = "X1")
-cm_corr_rf
-Confusion Matrix and Statistics
-
-          Reference
-Prediction    X0    X1
-        X0 13736    20
-        X1    12  8038
-                                         
-               Accuracy : 0.9985         
-                 95% CI : (0.9979, 0.999)
-    No Information Rate : 0.6305         
-    P-Value [Acc > NIR] : <2e-16         
-                                         
-                  Kappa : 0.9968         
-                                         
- Mcnemar's Test P-Value : 0.2159         
-                                         
-            Sensitivity : 0.9975         
-            Specificity : 0.9991         
-         Pos Pred Value : 0.9985         
-         Neg Pred Value : 0.9985         
-             Prevalence : 0.3695         
-         Detection Rate : 0.3686         
-   Detection Prevalence : 0.3692         
-      Balanced Accuracy : 0.9983         
-                                         
-       'Positive' Class : X1     
-
-```
-
-#### KNN
-
-Let's try KNN model
-
-```{r model_knn, eval=FALSE, echo=TRUE, message=FALSE, warning=FALSE, cache=FALSE}
-
-model_knn <- train(TARGET~.,
-                   train_Combined,
-                   method="knn",
-                   metric="ROC",
-                   preProcess = c('center', 'scale'),
-                   tuneLength=10,
-                   trControl=fitControl)
-```
-
-```{r, eval=FALSE, echo=TRUE}
-pred_knn <- predict(model_knn, test_Combined)
-cm_knn <- confusionMatrix(pred_knn, test_Combined$TARGET, positive = "X1")
-> cm_knn
-Confusion Matrix and Statistics
-
-          Reference
-Prediction    X0    X1
-        X0 13673    58
-        X1    75  8000
-                                          
-               Accuracy : 0.9939          
-                 95% CI : (0.9928, 0.9949)
-    No Information Rate : 0.6305          
-    P-Value [Acc > NIR] : <2e-16          
-                                          
-                  Kappa : 0.9869          
-                                          
- Mcnemar's Test P-Value : 0.1653          
-                                          
-            Sensitivity : 0.9928          
-            Specificity : 0.9945          
-         Pos Pred Value : 0.9907          
-         Neg Pred Value : 0.9958          
-             Prevalence : 0.3695          
-         Detection Rate : 0.3669          
-   Detection Prevalence : 0.3703          
-      Balanced Accuracy : 0.9937          
-                                          
-       'Positive' Class : X1     
-```
-
-```{r, eval=FALSE, echo=TRUE}
-pred_prob_knn <- predict(model_knn, test_Combined, type="prob")
-roc_knn <- roc(test_Combined$TARGET, pred_prob_knn$X1)
-plot(roc_knn)
-```
-
-![](Figures/combined/KNN_ROC.png){width=500px}
-
-#### SVM with radial kernel
- 
-
-```{r model_svm, eval=FALSE, echo=TRUE, message=FALSE, warning=FALSE, cache=FALSE}
-model_svm <- train(TARGET~.,
-                    train_Combined,
-                    method="svmRadial",
-                    metric="ROC",
-                    preProcess=c('center', 'scale'),
-                    trace=FALSE,
-                    trControl=fitControl)
-```
-
-```{r, eval=FALSE, echo=TRUE}
-pred_svm <- predict(model_svm, test_Combined)
-cm_svm <- confusionMatrix(pred_svm, test_Combined$TARGET, positive = "X1")
-> cm_svm
-
-Confusion Matrix and Statistics
-
-          Reference
-Prediction    X0    X1
-        X0 13470   507
-        X1   278  7551
-                                          
-               Accuracy : 0.964           
-                 95% CI : (0.9614, 0.9664)
-    No Information Rate : 0.6305          
-    P-Value [Acc > NIR] : < 2.2e-16       
-                                          
-                  Kappa : 0.9223          
-                                          
- Mcnemar's Test P-Value : 4.03e-16        
-                                          
-            Sensitivity : 0.9371          
-            Specificity : 0.9798          
-         Pos Pred Value : 0.9645          
-         Neg Pred Value : 0.9637          
-             Prevalence : 0.3695          
-         Detection Rate : 0.3463          
-   Detection Prevalence : 0.3590          
-      Balanced Accuracy : 0.9584          
-                                          
-       'Positive' Class : X1              
-                             
-``` 
+![](Figures/demo/demo8_PCA_diabetes.png){width=260px}
+![](Figures/demo/demo8_PCA_hypertension.png){width=260px}
+![](Figures/demo/demo8_PCA_cancer.png){width=260px}
+
+With just use the first two components, no diseases present separation between sick and healthy people 
+. This  clearly  indicate that the we can not do classification base only on the demographics data. 
 
 
 ```{r, eval=FALSE, echo=TRUE}
@@ -4297,148 +4534,60 @@ Prediction    X0    X1
 ```
 
 
-### Model result comparasion 
-
-Let's compare the models and check their correlation:
-
-```{r, eval=FALSE, echo=TRUE}
-model_list <- list(LR= model_lr, PCA_LR= model_pca_lr, CORR_LR= model_corr_lr,RF=model_rf, 
-                   PCA_RF=model_pca_rf, CORR_RF=model_corr_rf,KNN = model_knn, SVM=model_svm)
-resamples <- resamples(model_list)
-
-
-```
-
-#### Correlation between models {.tabset .tabset-fade}
-
-```{r, eval=FALSE, echo=TRUE}
-model_cor <- modelCor(resamples)
-```
-
-##### Plot 
-```{r, eval=FALSE, echo=TRUE}
-corrplot(model_cor)
-```
-
-![](Figures/combined/corrplot_model_list.png){width=500px}
-
-##### Data
-```{r, eval=FALSE, echo=TRUE}
-model_cor
-                LR     PCA_LR    CORR_LR         RF      PCA_RF    CORR_RF
-LR       1.0000000 -0.2797105  0.2728638  0.1528731 -0.46610641  0.4907913
-PCA_LR  -0.2797105  1.0000000  0.8339244 -0.9275219  0.89006376  0.1853586
-CORR_LR  0.2728638  0.8339244  1.0000000 -0.8590370  0.56778253  0.5814183
-RF       0.1528731 -0.9275219 -0.8590370  1.0000000 -0.80942818 -0.4135697
-PCA_RF  -0.4661064  0.8900638  0.5677825 -0.8094282  1.00000000 -0.1984461
-CORR_RF  0.4907913  0.1853586  0.5814183 -0.4135697 -0.19844606  1.0000000
-KNN      0.6309999  0.4464693  0.8433293 -0.4786641  0.05167214  0.7598467
-SVM      0.3891005 -0.6609020 -0.4504645  0.8274750 -0.75982536 -0.1669214
-                KNN         SVM
-LR       0.63099993  0.38910048
-PCA_LR   0.44646929 -0.66090198
-CORR_LR  0.84332932 -0.45046447
-RF      -0.47866414  0.82747497
-PCA_RF   0.05167214 -0.75982536
-CORR_RF  0.75984669 -0.16692139
-KNN      1.00000000  0.02863682
-SVM      0.02863682  1.00000000
-```
-
-
-#### Comparasion
-
-```{r, eval=FALSE, echo=TRUE}
-bwplot(resamples, metric="ROC")
-```
-
-
-![](Figures/combined/bwplot_model_list.png){width=500px}
-
-Most of the models have a low variability with respect of the processed sample.
-Random Forest (RF, PCA_RF, and CORR_RF) achieve a great auc with a very low variability.
-
-
-
-```{r, eval=FALSE, echo=TRUE}
-cm_list <- list(LR= model_rf, PCA_LR=model_pca_lr, CORR_LR= model_corr_lr,RF=model_rf, PCA_RF=model_pca_rf, CORR_RF=model_corr_rf, KNN = model_knn, SVM=model_svm)
-
-```
-
-Let's remember how these models result with the testing dataset. Prediction classes are obtained by default with 
-a threshold of 0.5 which could not be the best with an unbalanced dataset like this.
-
-```{r, eval=FALSE, echo=TRUE}
-cm_list <- list(LR= cm_lr, PCA_LR= cm_pca_lr, CORR_LR= cm_corr_lr,RF=cm_rf, PCA_RF=cm_pca_rf,  KNN = cm_knn, SVM=cm_svm)
-cm_list_results <- sapply(cm_list, function(x) x$byClass)
-cm_list_results
-                            LR    PCA_LR   CORR_LR        RF    PCA_RF   CORR_RF
-Sensitivity          0.7112187 0.7150658 0.7096054 0.9975180 0.9972698 0.9975180
-Specificity          0.9389729 0.9418825 0.9420279 0.9993454 0.9996363 0.9991271
-Pos Pred Value       0.8722983 0.8782198 0.8776669 0.9988816 0.9993782 0.9985093
-Neg Pred Value       0.8472696 0.8493932 0.8469688 0.9985464 0.9984017 0.9985461
-Precision            0.8722983 0.8782198 0.8776669 0.9988816 0.9993782 0.9985093
-Recall               0.7112187 0.7150658 0.7096054 0.9975180 0.9972698 0.9975180
-F1                   0.7835658 0.7882892 0.7847389 0.9981993 0.9983229 0.9980134
-Prevalence           0.3695313 0.3695313 0.3695313 0.3695313 0.3695313 0.3695313
-Detection Rate       0.2628176 0.2642392 0.2622214 0.3686141 0.3685224 0.3686141
-Detection Prevalence 0.3012932 0.3008805 0.2987710 0.3690269 0.3687517 0.3691645
-Balanced Accuracy    0.8250958 0.8284741 0.8258166 0.9984317 0.9984531 0.9983226
-                           KNN       SVM
-Sensitivity          0.9928022 0.9370812
-Specificity          0.9945447 0.9797789
-Pos Pred Value       0.9907121 0.9644910
-Neg Pred Value       0.9957760 0.9637261
-Precision            0.9907121 0.9644910
-Recall               0.9928022 0.9370812
-F1                   0.9917560 0.9505885
-Prevalence           0.3695313 0.3695313
-Detection Rate       0.3668715 0.3462808
-Detection Prevalence 0.3703109 0.3590296
-Balanced Accuracy    0.9936734 0.9584300
-```
-
-
-
-
-The best results for Sensitivity (detection of diabetes) is the Random forest with the top five correlated features, and The  with PCA has a great F1 score.
-
-
-```{r, eval=FALSE, echo=TRUE}
-require(nnet)
-cm_results_max <- apply(cm_list_results, 1, which.is.max)
-```
+### k-means Clustering 
 
 
 ```{r, eval=FALSE, echo=TRUE}
 
-output_report <- data.frame(metric=names(cm_results_max), 
-                            best_model=colnames(cm_list_results)[cm_results_max],
-                            value=mapply(function(x,y) {cm_list_results[x,y]}, 
-                                         names(cm_results_max), 
-                                         cm_results_max))
-rownames(output_report) <- NULL
-output_report
-                 metric best_model     value
-1           Sensitivity    CORR_RF 0.9975180
-2           Specificity     PCA_RF 0.9996363
-3        Pos Pred Value     PCA_RF 0.9993782
-4        Neg Pred Value         RF 0.9985464
-5             Precision     PCA_RF 0.9993782
-6                Recall         RF 0.9975180
-7                    F1     PCA_RF 0.9983229
-8            Prevalence        SVM 0.3695313
-9        Detection Rate    CORR_RF 0.3686141
-10 Detection Prevalence        KNN 0.3703109
-11    Balanced Accuracy     PCA_RF 0.9984531
+#Elbow plot method.
+library(purrr)
+set.seed(226)
+# function to calculate total intra-cluster sum of square
+demo8_iss <- function(k) {
+  kmeans(demo_subset_8[,2:9],k,iter.max=100,nstart=100,algorithm="Lloyd" )$tot.withinss
+}
+k.values <- 1:10
+demo8_iss_values <- map_dbl(k.values, demo8_iss)
+plot(k.values, demo8_iss_values,
+     type="b", pch = 19, frame = FALSE,
+     xlab="Number of clusters K",
+     ylab="Total intra-clusters sum of squares")
+```
+
+![](Figures/demo/demo8_ISS.png){width=500px}
+
+From the above graph, we conclude that 6 is the appropriate number of clusters 
+since it seems to be appearing at the bend in the elbow plot.
+
+Now, let us take k = 6 as our optimal cluster
+
+```{r, eval=FALSE, echo=TRUE}
+
+demo8_k6<-kmeans(demo_subset_8[,2:9],6,iter.max=100,nstart=50,algorithm="Lloyd")
+demo8_k6
+
+# Visualizing the Clustering Results using the First Two Principle Components
+
+pcclust=prcomp(demo_subset_8[,2:9],scale=TRUE) #principal component analysis
+summary(pcclust)
+pcclust$rotation[,1:2]
+
+set.seed(100)
+ggplot(demo_subset_8, aes(x =Gender, y = Age)) +
+  geom_point(stat = "identity", aes(color = as.factor(demo8_k6$cluster))) +
+  scale_color_discrete(name=" ",
+                       breaks=c("1", "2", "3", "4", "5","6"),
+                       labels=c("Cluster 1", "Cluster 2", "Cluster 3", "Cluster 4", "Cluster 5","Cluster 6")) +
+  ggtitle("Demographics Data ", subtitle = "Using K-means Clustering")
+
 
 ```
 
-### Conclusions
 
-We have found Random forest with the top five  features correlated to the TARGET ( HAS_DIABETES)  model preprocessed data with good results over the test set. This model has a **sensibility of 0.997** with a **F1 score of 0.998**.
+![](Figures/demo/demo8_K6_Age-Gender.png){width=500px}
 
 
+ From the above visualization, we observe that in the clusters distribution both Male and female  have almost the same range of age 
 
 ```{r, eval=FALSE, echo=TRUE}
 
@@ -4446,35 +4595,22 @@ We have found Random forest with the top five  features correlated to the TARGET
 ```
 
 
+## Applying machine learning models  {.tabset}
 
+In this section, we will combine all the datasets and perform clustering algorithms.  
 
-
-# Shiny App
-
-The ShinyApp was built to assist to predict a patients condition based on the selected attribues.
-
-## Models for Shiny
-
-The models implemeneted on the ShinyApp are:
-- Random Forest and Logistic Regression
-- 
-
-## Link for ShinyApp
-The ShinyApp can be accessed from:
-https://ml1000-group6.shinyapps.io/NAHNES/
-
-# Conclusion 
-
-With our models, we aim to present the following to the business regarding applications of our models to assist with drug deployment: 
-
-Firstly, for different diseases, our models can help identify related attributes/values (clusters) for a given disease.  
-This will help select suitable patients for trials.  Trial process can be costly.  And we reduce the cost. 
- Additionally, this information can also be used to provide hints to researchers on drug treatments on the what might could helpful.    
-(PROVIDE EXAMPLE WHEN AVAILABLE)
-
-For different diseases, our app can different types of non-medical (diet/demographics) which are related.  
-- This can help with directed marketing of our current and future drugs for those diseases.    
-- This could also assist with marketing to attract potential candidates for trails.
-
-(PROVIDE EXAMPLE WHEN AVAILABLE)
+```{r, eval=FALSE, echo=TRUE}
+```
+###  PCA
+```{r, eval=FALSE, echo=TRUE}
+```
+###  K-means 
+```{r, eval=FALSE, echo=TRUE}
+```
+###  Hierarchical Agglomerative
+```{r, eval=FALSE, echo=TRUE}
+```
+##  Summary of models
+```{r, eval=FALSE, echo=TRUE}
+```
 
