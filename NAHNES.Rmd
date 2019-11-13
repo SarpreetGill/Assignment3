@@ -4,8 +4,8 @@ author:
   - name: Imran Aziz
   - name: Conrard G. T. Feugmo
   - name: Andre Schardong
-  - name: Milton Segura
   - name: Sarpreet Gill
+  - name: Milton Segura
     affiliation: York University School of Continuing Studies
 date: "Nov 15, 2019"
 output:
@@ -3254,9 +3254,8 @@ Given an individual has diabetes, predict individual has cancer or hypertension.
 
 ## DIABETES 
 
-### PCA
-=======
-### Marking data for Diabetes
+ 
+Marking data for Diabetes
 
 ```{r eval=FALSE, echo=TRUE}
 ques_data_imputed   = read.csv("Data/Clean_Imputes/ques_data_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
@@ -3274,12 +3273,12 @@ Diabetes_dataset   = read.csv("Data/Working/Diabetes_dataset.csv", header = TRUE
 
 ```
 
-### DEMOGRAPHIC DATA MINING FOR DIABETES
+## DEMOGRAPHIC DATA MINING FOR DIABETES
 
 We now will keep the associated features related to Diabetes disease using PCA and Correlation plots.
 
 
-#### Correlation Plot:
+Correlation Plot:
 ```{r eval=FALSE, echo=TRUE}
 corrplot(combi_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt = 45)
 
@@ -3291,7 +3290,7 @@ corrplot(combi_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt
 
 
 
-#### PCA 
+PCA 
 
 
 ```{r eval=FALSE, echo=TRUE}
@@ -3359,12 +3358,12 @@ Demo_target_final   = read.csv("Data/Target Datasets/Demo_target_final.csv", hea
 
 
 
-### DIET DATA MINING FOR DIABETES
+## DIET DATA MINING FOR DIABETES
 
 We now will keep the associated features related to Diabetes disease using PCA and Correlation plots.
 
 
-#### Correlation Plot:
+ Correlation Plot:
 ```{r eval=FALSE, echo=TRUE}
 corrplot(combi_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt = 55)
 require(corrplot)
@@ -3388,7 +3387,7 @@ corrplot(combi_diabetes_cor$r,
 
 
 
-#### PCA 
+ PCA 
 
 
 ```{r eval=FALSE, echo=TRUE}
@@ -3450,12 +3449,12 @@ Diet_select_colns <- c("SEQN","HAS_DIABETES","TARGET","DR1TSFAT","DR1TS040","DR1
 
 
 
-### EXAMS DATA MINING FOR DIABETES
+## EXAMS DATA MINING FOR DIABETES
 
 We now will keep the associated features related to Diabetes disease using PCA and Correlation plots.
 
 
-#### Correlation Plot:
+ Correlation Plot:
 ```{r eval=FALSE, echo=TRUE}
 corrplot(combi_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt = 55)
 
@@ -3467,7 +3466,7 @@ corrplot(combi_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt
 
 
 
-#### PCA 
+ PCA 
 
 
 ```{r eval=FALSE, echo=TRUE}
@@ -3528,12 +3527,12 @@ Exam_select_colns <- c("SEQN","HAS_DIABETES","TARGET","BMXBMI","BMXWAIST","BPXDI
 
 
 
-### LABS DATA MINING FOR DIABETES
+## LABS DATA MINING FOR DIABETES
 
 We now will keep the associated features related to Diabetes disease using PCA and Correlation plots.
 
 
-#### Correlation Plot:
+ Correlation Plot:
 ```{r eval=FALSE, echo=TRUE}
 corrplot(combi_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt = 55)
 
@@ -3545,7 +3544,7 @@ corrplot(combi_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt
 
 
 
-#### PCA 
+ PCA 
 
 
 ```{r eval=FALSE, echo=TRUE}
@@ -3602,12 +3601,75 @@ Labs_select_colns <- c("SEQN","HAS_DIABETES","TARGET","LBXGH","LBXSGL","LBXHGB",
 
 
 
+## QUESTIONNAIRE DATA MINING FOR DIABETES
+
+We now will keep the associated features related to Diabetes disease using PCA and Correlation plots.
+
+
+ Correlation Plot:
+```{r eval=FALSE, echo=TRUE}
+corrplot(combi_cor$r, type = "upper", order = "hclust", tl.col = "black", tl.srt = 55)
+
+```
+
+
+![](Figures/Supervised/Ques_Corr.png){width=800px}
 
 
 
 
+ PCA 
 
 
+```{r eval=FALSE, echo=TRUE}
+pcmp <- princomp(Test_Data,retx=TRUE, cor =TRUE, center=TRUE, scale=TRUE)
+
+plot(pcmp, main = "PCA for Questionnaire", col.axis="blue",npcs=80)
+abline(h = 1, col="red", lty=5)
+```
+
+
+![](Figures/Supervised/Ques_PCA.png){width=800px}
+```{r eval=FALSE, echo=TRUE}
+plot(pcmp, type = "l", main = "PCA for Questionnaire", col.axis="blue",npcs=80)
+abline(h = 1, col="red", lty=5)
+abline(v = 22, col="blue", lty=5)
+
+```
+
+
+![](Figures/Supervised/Ques_PCA2.png){width=800px}
+
+
+```{r eval=FALSE, echo=TRUE}
+fviz_pca_ind(pcmp, geom.ind = "point", pointshape = 21, 
+             pointsize = 2, 
+             fill.ind = ques_target$HAS_DIABETES, 
+             col.ind = "black", 
+             palette = "jco", 
+             addEllipses = TRUE,
+             label = "var",
+             col.var = "black",
+             repel = TRUE,
+             legend.title = "HAS_DIABETES") +
+  ggtitle("2D PCA-plot from 75 feature dataset") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+
+![](Figures/Supervised/Ques_75.png){width=800px}
+
+
+
+
+```{r eval=FALSE, echo=TRUE}
+ques_select_colns <- c("SEQN","HAS_DIABETES","TARGET","PAAQUEX","SMAQUEX.x","DBD910","FSDAD","DBD895","FSDHH","DIQ010","DBD905","FSD032B","FSD032C","FSD032A","DLQ050","DIQ050","HSAQUEX","DLQ060")
+
+```
+
+
+![](Figures/Supervised/Ques_15.png){width=800px}
 
 
 
