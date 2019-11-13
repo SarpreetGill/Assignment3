@@ -3315,7 +3315,7 @@ corrplot(combi_diabetes_cor$r,
 ```
 
 
-![](Figures/Supervised/Demo_Corr.png){width=500px}
+![](Figures/Supervised/Demo_Corr.png){width=800px}
 
 
 
@@ -3578,13 +3578,18 @@ Prediction    X0    X1
 
 #### Logistic Regression with correlated features
 
-Let's try Logistic Regression  with the Top  positive correlated features:
-      row   column        cor 
-1  TARGET    LBXGH  0.6089779 "LBXGH","Glycohemoglobin (%)"
-2  TARGET   LBXSGL  0.5035482 "LBXSGL","Glucose, refrigerated serum (mg/dL)"
-3  TARGET RIDAGEYR  0.2402681 "Age in years of the participant " 
-4  TARGET   RXDUSE -0.2004047 "In the past 30 days, have you taken medication for which a prescription is needed? " 
-5  TARGET LBDHDDSI -0.1918771 "Direct HDL-Cholesterol (mmol/L)"
+Let's try Logistic Regression  with the top 5 positive correlated features:
+
+
+1   "LBXGH": "Glycohemoglobin (%)"
+
+2   "LBXSGL": "Glucose, refrigerated serum (mg/dL)"
+
+3   "RIDAGEYR":    "Age in years of the participant " 
+
+4   "RXDUSE" :  "In the past 30 days, have you taken medication for which a prescription is needed? " 
+
+5  "LBDHDDSI": "Direct HDL-Cholesterol (mmol/L)"
 
 
 ```{r model_corr_lr, eval=FALSE, echo=TRUE, message=FALSE, warning=FALSE, cache=FALSE}
@@ -3878,7 +3883,7 @@ model_cor <- modelCor(resamples)
 corrplot(model_cor)
 ```
 
-![](Figures/combined/corrplot_model_list.png){width=500px}
+![](Figures/combined/corrplot_model_list.png){width=800px}
 
 ##### Data
 ```{r, eval=FALSE, echo=TRUE}
@@ -3910,7 +3915,7 @@ bwplot(resamples, metric="ROC")
 ```
 
 
-![](Figures/combined/bwplot_model_list.png){width=500px}
+![](Figures/combined/bwplot_model_list.png){width=800px}
 
 Most of the models have a low variability with respect of the processed sample.
 RF and PCA_RF achieve a great auc with a very low variability.

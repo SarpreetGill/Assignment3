@@ -2682,8 +2682,8 @@ combi_diabetes_cor=rcorr(as.matrix(combined_target_final[-c(1,2,7,8,39,40,41,42)
 
 corrplot(combi_diabetes_cor$r, 
          type = "upper", order = "hclust", tl.col = "black",
-         tl.srt = 45,tl.cex =0.4,
-         cl.cex = 0.9)
+         tl.srt = 45,tl.cex =0.9,
+         cl.cex = 1.2)
 
 
 # ++++++++++++++++++++++++++++
