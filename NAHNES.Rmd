@@ -3578,8 +3578,8 @@ Prediction    X0    X1
 
 #### Logistic Regression with correlated features
 
-Let's try Logistic Regression  with the top 5 positive correlated features:
 
+Let's try Logistic Regression  with the top five  features correlated to the TARGET ( HAS_DIABETES):
 
 1   "LBXGH": "Glycohemoglobin (%)"
 
@@ -3756,7 +3756,7 @@ Prediction    X0    X1
 
 #### Random Forest with correlated features
 
-Let's try Random Forest  with the top 5 positive correlated features:
+Let's try Random forest with the top five  features correlated to the TARGET ( HAS_DIABETES): 
 
 
 1   "LBXGH": "Glycohemoglobin (%)"
@@ -3766,7 +3766,8 @@ Let's try Random Forest  with the top 5 positive correlated features:
 3   "RIDAGEYR":    "Age in years of the participant " 
 
 4   "RXDUSE" :  "In the past 30 days, have you taken medication for which a prescription is needed? " 
-Random forest with pca
+
+5  "LBDHDDSI": "Direct HDL-Cholesterol (mmol/L)"
 
 
 
@@ -3962,7 +3963,7 @@ model_cor <- modelCor(resamples)
 corrplot(model_cor)
 ```
 
-![](Figures/combined/corrplot_model_list.png){width=800px}
+![](Figures/combined/corrplot_model_list.png){width=500px}
 
 ##### Data
 ```{r, eval=FALSE, echo=TRUE}
@@ -3995,7 +3996,7 @@ bwplot(resamples, metric="ROC")
 ```
 
 
-![](Figures/combined/bwplot_model_list.png){width=800px}
+![](Figures/combined/bwplot_model_list.png){width=500px}
 
 Most of the models have a low variability with respect of the processed sample.
 Random Forest (RF, PCA_RF, and CORR_RF) achieve a great auc with a very low variability.
@@ -4078,7 +4079,7 @@ output_report
 
 ### Conclusions
 
-We have found Random forest the top five correlated features  model preprocessed data with good results over the test set. This model has a **sensibility of 0.997** with a **F1 score of 0.998**.
+We have found Random forest with the top five  features correlated to the TARGET ( HAS_DIABETES)  model preprocessed data with good results over the test set. This model has a **sensibility of 0.997** with a **F1 score of 0.998**.
 
 
 
