@@ -11,34 +11,36 @@ library(shinyalert)
 library(data.table)
 #library(ggplot2)
 library(ggfortify)
+library(arules)
+library(arulesViz)
 
 #setwd('D:/ProjetosGIT/Assignment3/ShinyApp')
 #prepare_data_frame <- function(data_source) {
-mydata <-
-  read.csv(
-    "./data/working_malaria_data.csv",
-    header = TRUE,
-    na.strings = c("NA", "", "#NA")
-  )
-# return(mydata)
-#}
+individuals_transaction_class <- read.transactions('../Data/Working/transactiondata.csv', format = 'basket',sep=',')
 
-#model_list = colnames(mydata[6:31])
+has_cancer.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.4, maxlen=15), appearance=list(default="lhs", rhs="HAS CANCER"))
+has_diabetes.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.7, maxlen=15), appearance=list(default="lhs", rhs="HAS DIABETES"))
+has_hypertension.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.8, maxlen=15), appearance=list(default="lhs", rhs="HAS HYPERTENSION"))
 
-model_list = c(
-  "Random Forest" , 
-  "Logistic Regression" )    
+has_cancer.association.rules_smallitemset <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.1, maxlen=3), appearance=list(default="lhs", rhs="HAS CANCER"))
+has_diabetes.association.rules_smallitemset <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.4, maxlen=3), appearance=list(default="lhs", rhs="HAS DIABETES"))
+has_hypertension.association.rules_smallitemset <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.4, maxlen=3), appearance=list(default="lhs", rhs="HAS HYPERTENSION"))
 
-model_list = sort(model_list)
-country_list = mydata[, 2]
+no_cancer.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.9,maxlen=10), appearance=list(default="lhs", rhs="NO CANCER"))
+no_diabetes.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.9, maxlen=10), appearance=list(default="lhs", rhs="NO DIABETES"))
+no_hypertension.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.8, maxlen=10), appearance=list(default="lhs", rhs="NO HYPERTENSION"))
 
-country_list = sort(unique(country_list))
-mydata_selected = mydata[1:8]
-# Choices for drop-downs
-#vars <- c(
-#    "Anopheles" = "Anopheles",
-#    "Country" = "Country",
-#)
+
+top20cancerrules <- head(has_cancer.association.rules, n=20, by="confidence")
+top20cancerrules_smallitemset <- head(has_cancer.association.rules_smallitemset, n=20, by="confidence")
+
+top20diabetesrules <- head(has_diabetes.association.rules, n=20, by="confidence")
+top20diabetesrules_smallitemset <- head(has_diabetes.association.rules_smallitemset, n=20, by="confidence")
+
+top20hypertensionrules <- head(has_hypertension.association.rules, n=20, by="confidence")
+top20hypertensionrules_smallitemset <- head(has_hypertension.association.rules_smallitemset, n=20, by="confidence")
+
+
 
 #model_rf
 model_rf <- function() {
@@ -49,16 +51,10 @@ model_rf <- function() {
   return(model_rf)
 }
 
+predict.model_rf <- function(data) {
 
-predict.kmeans = function (lat, long, model) {
-  new_point = data.frame("Lat"=rep(lat, max(model$cluster)), "Long"=rep(long, max(model$cluster)))
-  centers = data.frame("Lat"=model$centers[c(1:4)],
-                       "Long"=model$centers[c(5:8)])
-  dist=sqrt((new_point - centers)^2)
-  dist = mutate(dist, Dist=rowSums(dist),
-                Group = row_number())
-  dist = filter(dist, Dist==min(dist$Dist))
-  return(dist$Group)
+  pred <- predict(model_rf, data)
+  return(pred)
 }
 
 # Define UI for application that draws a histogram
@@ -111,20 +107,60 @@ ui <- navbarPage(
         
         # Main panel for displaying outputs ----
         mainPanel(
-           
+          
+          h2("This patient is likely to:"),
+          h1("Have"),
+          h2("Cancer"),
           # Output: Table summarizing the values entered ----
           #tableOutput("values")
+          htmlOutput("resHtml"),
           tableOutput('values')
           
         )
         
       )   
   ),
-  tabPanel("Explore Data - Cool stuff",
+  tabPanel("Interactive plots",
            fluidRow(column(
              12,
+             h2("Interactive Graph Visualization"),
              
-           ))  ),
+             
+             
+           )),
+           fluidRow(column(
+             12,
+             h2("Cancer"),
+             
+             
+             plotly_arules(has_cancer.association.rules)
+             %>%
+               layout(autosize = F, width = "100%", height = 500)
+             
+           ))
+           ,
+           fluidRow(column(
+             12,
+             h2("Diabetes"),
+             
+             plotly_arules(has_diabetes.association.rules)
+             %>%
+               layout(autosize = F, width = "100%", height = 500)
+             
+             
+           ))
+           ,
+           fluidRow(column(
+             12,
+             h2("Hypertension"),
+             
+             plotly_arules(has_hypertension.association.rules)
+             %>%
+               layout(autosize = F, width = "100%", height = 500)
+             
+           ))
+           
+           ),
   
   tabPanel("Technical Manual",
            fluidRow(column(
@@ -154,6 +190,10 @@ server <- function(input, output,session) {
                as.character(input$LBDHDDSI),
                as.character(input$RIDAGEYR))
     )
+    
+    #predic the model
+    predict.model_rf(data)    
+    
   })
   
   # Show the values in an HTML table ----
@@ -172,11 +212,6 @@ server <- function(input, output,session) {
     #res <- malariaModel();
     
     #pred <- predict.kmeans(clat, clng, malariaModel())
-    
-    listOrder <- order(sqrt((res[["centers"]][,"Lat"] - clat) ^ 2 + (res[["centers"]][,"Long"] - clng) ^ 2))
-    
-    #closest cluster
-    clusterNumer = listOrder[1]
     
     htmltext <- paste(
       sep = '',
@@ -215,69 +250,37 @@ server <- function(input, output,session) {
   }
   
   observe({
-    #countriesBy <- input$countries
-    speciesBy <- input$species
-    #
-    datafilter <- malaria_species[ malaria_species$Species == speciesBy,  ]
+    data = c(as.character(input$LBXGH),
+              as.character(input$LBXSGL),
+              input$RXDUSE,
+              as.character(input$LBDHDDSI),
+              as.character(input$RIDAGEYR))
+  
     
-    leafletProxy("map", data = datafilter) %>%
-      
-      #addWebGLHeatmap(size=10,units='px')# %>%
-      clearMarkers() %>%
-      clearMarkerClusters() %>%
-      clearShapes() %>%
-      clearControls() %>%
-      #addMarkers(
-      #  clusterOptions = markerClusterOptions()
-      #)
-      addCircleMarkers(~Long, ~Lat, radius=4, stroke = FALSE, fillOpacity=0.9, fillColor =  ~ pal(as.integer(k_cluster))) %>%
-      addLegend(pal = pal, title = "Cluster Number", values = ~as.integer(k_cluster), opacity = 1.0)
-    
+    #predic the model
+    predict.model_rf(data)    
+    fncPredictModel(data)
   }) 
   
-  
-  
-  output$timeseries <- renderPlot({
-    # If no species are in view, don't plot
-    if (is.null(input$species))
-      return()
-    
-    # Time series plot###############
-    time_series = ts(ifelse(malaria_dataset_clean[,c(10:35)]=="Yes",1,0),
-                     start=c(1898), end=c(2016), frequency=1)
-    #  #autoplot(plot_data[,1:26], facets =TRUE) # All
-    autoplot(time_series[,c(input$species)],  xlab = "Time",
-             main =paste("Evolution of ", input$species) )  + 
-      scale_y_continuous(breaks=c(0.00,1.00),labels=c("No", "Yes")) +
-      theme(plot.title = element_text(hjust = 0.5)) 
-    
-  })
+
   
   ## Data Explorer ###########################################
   observe({
-    region <- if (is.null(input$country)) character(0) else {
-      filter(by_countries, Country %in% input$country) %>%
-        `$`('Region') %>%
-        unique() %>%
-        sort()
-    }
-    stillSelected <- isolate(input$region[input$region %in% region])
-    updateSelectizeInput(session, "region", choices = region,
-                         selected = stillSelected, server = TRUE)
-  })
+
+      })
   
   
   output$countrytable <- DT::renderDataTable({
-    df <-  by_countries %>%
-      filter(
-        is.null(input$country) | Country %in% input$country,
-        is.null(input$region) | Region %in% input$region,
-        is.null(input$locality) | Locality %in% input$locality
-      ) %>%
-      mutate(Action = paste('<a class="go-map" href="" data-lat="', Lat, '" data-long="', Long, '"><i class="fa fa-crosshairs"></i></a>', sep=""))
-    action <- DT::dataTableAjax(session, df)
+  #  df <-  by_countries %>%
+  #    filter(
+  #      is.null(input$country) | Country %in% input$country,
+  #      is.null(input$region) | Region %in% input$region,
+  #      is.null(input$locality) | Locality %in% input$locality
+  #    ) %>%
+  #    mutate(Action = paste('<a class="go-map" href="" data-lat="', Lat, '" data-long="', Long, '"><i class="fa fa-crosshairs"></i></a>', sep=""))
+    #action <- DT::dataTableAjax(session, df)
     
-    DT::datatable(df, options = list(ajax = list(url = action)), escape = FALSE)
+    #DT::datatable(df, options = list(ajax = list(url = action)), escape = FALSE)
     #DT::datatable(df, escape = FALSE)
   })
   

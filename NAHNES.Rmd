@@ -4598,9 +4598,8 @@ In this section, we will combine all the datasets and perform clustering algorit
 
 ## Models for Shiny
 
-The models implemeneted on the ShinyApp are:
-- Random Forest and Logistic Regression
-- 
+The model used in the ShinyApp to precit if a patient was changes to contract cancer is Random Forest, 
+give it best performance.
 
 ## Link for ShinyApp
 The ShinyApp can be accessed from:
