@@ -63,91 +63,68 @@ predict.kmeans = function (lat, long, model) {
 
 # Define UI for application that draws a histogram
 ui <- navbarPage(
-  "NHANES dataset",
+  "NAHNES Tool",
   id = "nav",
+  
   tabPanel(
-    "Supervised models",
-    div(
-      class = "outer",
-      
-      tags$head(# Include our custom CSS
-        includeCSS("styles.css")),
-      
-      # If not using custom CSS, set height of leafletOutput to a number instead of percent
-      leafletOutput("map", width = "100%", height = "100%"),
-      
-      # Shiny versions prior to 0.11 should use class = "modal" instead.
-      absolutePanel(
-        id = "controls",
-        class = "panel panel-default",
-        fixed = TRUE,
-        draggable = TRUE,
-        top = 60,
-        left = "auto",
-        right = 100,
-        bottom = "auto",
-        width = 330,
-        height = "auto",
+    "Study patient",
         
-        h2("Supervided Methods"),
+        # App title ----
+        #titlePanel("Investigate patient"),
+  
+    titlePanel("Enter the patients data:"),
+    
+    sidebarLayout(
         
-        selectInput("species", "Anopheles Species", model_list),
-        #selectInput("countries", "Countries", country_list) ,
-        #conditionalPanel("input.species == 'gambiae_c' || countries == 'superzip'",
-        # Only prompt for threshold when coloring or sizing by superzip
-        #numericInput("threshold", "SuperZIP threshold (top n percentile)", 5))#,
-        plotOutput("vectors_per_species", height = 200),
-        plotOutput("timeseries", height = 200)
-      ),
-      
-      absolutePanel(
-        id = "controls",
-        class = "panel panel-default",
-        fixed = TRUE,
-        draggable = TRUE,
-        top = 130,
-        left = "20",
-        right = "auto",
-        bottom = "auto",
-        width = 350,
-        height = "auto",
+        # Sidebar to demonstrate various slider options ----
+        sidebarPanel(
+          
+          sliderInput("LBXGH", "Glycohemoglobin (%):",
+                      min = 0, max = 100,
+                      value = 50),
+          
+          # Input: Decimal interval with step value ----
+          sliderInput("LBXSGL", "Glucose, refrigerated serum (mg/dL)",
+                      min = 0, max = 1,
+                      value = 0.5, step = 0.1),
+          
+          # Input: Specification of range within an interval ----
+          selectizeInput('RXDUSE', 'In the past 30 days, did you take medication?',
+                         choices = c("Yes","No")),
+          
+          # Input: Custom currency format for with basic animation ----
+          sliderInput("LBDHDDSI", "HDL-Cholesterol (mmol/L)",
+                      min = 0, max = 100,
+                      value = 0, step = 25,
+                      animate = TRUE),
+          
+          # Input: Animation with custom interval (in ms) ----
+          # to control speed, plus looping
+          sliderInput("RIDAGEYR", "Age in years:",
+                      min = 1, max = 120,
+                      value = 1, step = 5,
+                      animate =
+                        animationOptions(interval = 300, loop = TRUE))
+        ),
         
-        h3("Model precidction"),
         
-        # Output: Header + summary of distribution ----
-        h4("Summary"),
-        #verbatimTextOutput("summary"),
         
-        htmlOutput("resHtml")
+        # Main panel for displaying outputs ----
+        mainPanel(
+           
+          # Output: Table summarizing the values entered ----
+          #tableOutput("values")
+          tableOutput('values')
+          
+        )
         
-      ),
-      
-      tags$div(id = "cite", 'Data')
-    )
+      )   
   ),
-  
-  
-  tabPanel("Unsupervised models",
-           fluidRow(
-             column(3,
-                    selectInput("country", "Country",country_list, multiple=TRUE)
-             ),
-             column(3,
-                    conditionalPanel("input.country",
-                                     selectInput("region", "Region", c("All regions"=""), multiple=TRUE)
-                    )
-             ),
-             column(3,
-                    conditionalPanel("input.country",
-                                     selectInput("locality", "Locality", c("All localities"=""), multiple=TRUE)
-                    )
-             )
-           ),
-           hr(),
-           DT::dataTableOutput("countrytable")
-  ),
-  
-  
+  tabPanel("Explore Data - Cool stuff",
+           fluidRow(column(
+             12,
+             
+           ))  ),
   
   tabPanel("Technical Manual",
            fluidRow(column(
@@ -160,76 +137,41 @@ ui <- navbarPage(
 # Define server logic required to draw a histogram
 server <- function(input, output,session) {
   
-  ##### Malaria Dataset clean ######
-  malaria_dataset_clean = read.csv("./data/working_malaria_data.csv", header = TRUE, na.strings = c("NA","","#NA"),fileEncoding ="latin1")[-1]
   
+  # Reactive expression to create data frame of all input values ----
   
-  malaria_species= melt(select(mydata, c(2,6,7,10:35)), id=c('Country','Lat','Long')) %>%
-    filter(value=='Yes') %>% filter(!is.na(Lat)) %>%
-    rename(Species = variable) %>% 
-    select(-value)
-  
-  plot_species = ifelse(malaria_dataset_clean[,c(10:35)]=="Yes",1,0) %>%
-    colSums %>% sort(decreasing=TRUE) %>% stack %>% rev %>% setNames(nm=c('Species', 'MEV')) %>%
-    mutate(Species=Species %>% substr(1,13))
-  
-  by_countries = melt(select(malaria_dataset_clean, c(1,2,4,5,6,10:35)), id=c('Country',"Region",'Locality', 'Lat','Long')) %>%
-    filter(value=='Yes')  %>% filter(!is.na(Region)) %>% filter(!is.na(Locality)) %>% filter(!is.na(Lat))  %>%
-    rename(Species = variable) %>%
-    select(-value)
-  
-  kmeans.select_data.rds = readRDS("kmeans.select_data.rds")
-  kmeans.select_data.rds <- kmeans.select_data.rds %>%
-    select(Lat, Long, k_cluster)
-  
-  malaria_species <- merge(malaria_species, kmeans.select_data.rds, by=c("Lat","Long")) # NA's match
-  
-  geoAfrica <- geojsonio::geojson_read("Africa.geojson",
-                                       what = "sp")
-  
-  pal <- colorNumeric("viridis", NULL)  
-  #leaflet(geoAfrica) %>%
-  #  addTiles() %>%
-  #  addPolygons(
-  #    stroke = FALSE,
-  #    smoothFactor = 0.3,
-  #    fillOpacity = 1,
-  #    fillColor = ~ pal(log10(strtoi(ID))),
-  #    label = ~ paste0(COUNTRY, ": ", formatC(ID, big.mark = ","))
-  #  ) %>%
-  #  addLegend(pal = pal,
-  #            values = 1,
-  #            opacity = 1.0)
-  
-  ## Interactive Map ###########################################
-  
-  # Create the map
-  output$map <- renderLeaflet({
-    leaflet(geoAfrica) %>%
-      addTiles(urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-               attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>') %>%
-      setView(lng = 12.35,
-              lat = 7.36,
-              zoom = 3) #%>%
-    #addPolygons(
-    #  stroke = FALSE,
-    #  smoothFactor = 0.3,
-    #  fillOpacity = 0.5,
-    #  fillColor = ~ pal(log10(as.numeric(ID))),
-    #  label = ~ paste0(COUNTRY, ": ", formatC(ID, big.mark = ","))
-    #) %>%
-    #addLegend(pal = pal, values = ~log10(as.numeric(ID)), opacity = 1.0,
-    #          labFormat = labelFormat(transform = function(x) round(10^x)))
+  sliderValues <- reactive({
+    
+    data.frame(
+      Name = c("LBXGH",
+               "LBXSGL",
+               "RXDUSE",
+               "LBDHDDSI",
+               "RIDAGEYR"),
+     Value = c(as.character(input$LBXGH),
+               as.character(input$LBXSGL),
+               input$RXDUSE,
+               as.character(input$LBDHDDSI),
+               as.character(input$RIDAGEYR))
+    )
   })
   
+  # Show the values in an HTML table ----
+  output$values <- renderTable({
+    sliderValues()
+  })
+  
+  #kmeans.select_data.rds = readRDS("kmeans.select_data.rds")
+  #kmeans.select_data.rds <- kmeans.select_data.rds %>%
+  #  select(Lat, Long, k_cluster)
   
   fncPredictModel <- function(clng, clat) {
     #calculate the model with Lat and Long
     #and return the result.
     
-    res <- malariaModel();
+    #res <- malariaModel();
     
-    pred <- predict.kmeans(clat, clng, malariaModel())
+    #pred <- predict.kmeans(clat, clng, malariaModel())
     
     listOrder <- order(sqrt((res[["centers"]][,"Lat"] - clat) ^ 2 + (res[["centers"]][,"Long"] - clng) ^ 2))
     
@@ -272,28 +214,6 @@ server <- function(input, output,session) {
     result <- resHtml
   }
   
-  
-  observeEvent(input$map_click, {
-    click <- input$map_click
-    clat <- click$lat
-    clng <- click$lng
-    content <- fncPredictModel(clng, clat)
-    leafletProxy('map') %>%
-      addCircles(
-        lng = clng,
-        lat = clat,
-        group = 'circles',
-        weight = 5,
-        radius = 100,
-        color = 'brown',
-        fillColor = 'orange',
-        fillOpacity = 0.5,
-        opacity = 1
-      )  #%>%
-    #addPopups(lng = clng, lat = clat, content)
-    
-  })
-  
   observe({
     #countriesBy <- input$countries
     speciesBy <- input$species
@@ -315,20 +235,6 @@ server <- function(input, output,session) {
     
   }) 
   
-  
-  output$vectors_per_species <- renderPlot({
-    # If no zipcodes are in view, don't plot
-    #if (nrow(zipsInBounds()) == 0)
-    # return(NULL)
-    
-    #Most widespread species
-    ggplot(plot_species, aes(x = reorder(Species, -MEV), y=MEV, fill=Species)) +
-      geom_bar(stat="identity", width =1, colour = 'black', show.legend = FALSE) +
-      labs(title="Malarian Entry Vectors Per Species",
-           x="Species") +
-      theme(axis.text.x = element_text(vjust=0.6, angle=90))
-    
-  })
   
   
   output$timeseries <- renderPlot({
@@ -360,36 +266,6 @@ server <- function(input, output,session) {
                          selected = stillSelected, server = TRUE)
   })
   
-  
-  
-  observe({
-    locality <- if (is.null(input$country)) character(0) else {
-      by_countries %>%
-        filter(Country %in% input$country,
-               is.null(input$region) | Region %in% input$region) %>%
-        `$`('Locality') %>%
-        unique() %>%
-        sort()
-    }
-    stillSelected <- isolate(input$locality[input$locality %in% locality])
-    updateSelectizeInput(session, "locality", choices = locality,
-                         selected = stillSelected, server = TRUE)
-  })
-  
-  observe({
-    if (is.null(input$goto))
-      return()
-    isolate({
-      map <- leafletProxy("map")
-      map %>% clearPopups()
-      dist <- 0.5
-      #zip <- input$goto$zip
-      lat <- input$goto$lat
-      lng <- input$goto$lng
-      #showZipcodePopup(zip, lat, lng)
-      map %>% fitBounds(lng - dist, lat - dist, lng + dist, lat + dist)
-    })
-  })
   
   output$countrytable <- DT::renderDataTable({
     df <-  by_countries %>%
