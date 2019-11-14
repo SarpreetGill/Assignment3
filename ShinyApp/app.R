@@ -14,6 +14,15 @@ library(ggfortify)
 library(arules)
 library(arulesViz)
 
+
+m <- list(
+  l = 50,
+  r = 50,
+  b = 100,
+  t = 100,
+  pad = 4
+)
+
 #setwd('D:/ProjetosGIT/Assignment3/ShinyApp')
 #prepare_data_frame <- function(data_source) {
 individuals_transaction_class <- read.transactions('../Data/Working/transactiondata.csv', format = 'basket',sep=',')
@@ -54,6 +63,7 @@ model_rf <- function() {
 predict.model_rf <- function(data) {
 
   pred <- predict(model_rf, data)
+  
   return(pred)
 }
 
@@ -68,7 +78,7 @@ ui <- navbarPage(
         # App title ----
         #titlePanel("Investigate patient"),
   
-    titlePanel("Enter the patients data:"),
+    titlePanel("Enter the patients data. With only 5 parameters will tell you if the patient is at risk:"),
     
     sidebarLayout(
         
@@ -109,8 +119,7 @@ ui <- navbarPage(
         mainPanel(
           
           h2("This patient is likely to:"),
-          h1("Have"),
-          h2("Cancer"),
+          h1("BE SICK"),
           # Output: Table summarizing the values entered ----
           #tableOutput("values")
           htmlOutput("resHtml"),
@@ -135,7 +144,7 @@ ui <- navbarPage(
              
              plotly_arules(has_cancer.association.rules)
              %>%
-               layout(autosize = F, width = "100%", height = 500)
+               layout(autosize = F, width = "100%", height = 500, margin=m)
              
            ))
            ,
@@ -145,7 +154,7 @@ ui <- navbarPage(
              
              plotly_arules(has_diabetes.association.rules)
              %>%
-               layout(autosize = F, width = "100%", height = 500)
+               layout(autosize = F, width = "100%", height = 500, margin=m)
              
              
            ))
@@ -156,7 +165,7 @@ ui <- navbarPage(
              
              plotly_arules(has_hypertension.association.rules)
              %>%
-               layout(autosize = F, width = "100%", height = 500)
+               layout(autosize = F, width = "100%", height = 500, margin=m)
              
            ))
            
@@ -205,42 +214,16 @@ server <- function(input, output,session) {
   #kmeans.select_data.rds <- kmeans.select_data.rds %>%
   #  select(Lat, Long, k_cluster)
   
-  fncPredictModel <- function(clng, clat) {
-    #calculate the model with Lat and Long
-    #and return the result.
+  fncPredictModel <- function(data) {
     
-    #res <- malariaModel();
-    
-    #pred <- predict.kmeans(clat, clng, malariaModel())
-    
-    htmltext <- paste(
-      sep = '',
-      "<h4>The coordinates:</h4>",
-      "Lat: ",
-      clat,
-      "\n",
-      "Long: ",
-      clng,
-      "Based on the location selected our model is predicting cluster number:</h4>",
-      "",clusterNumer,"\n"
-    )
+    pred <- predict.model_rf(data)
     
     resHtml <- paste(
       sep = ,
       "<h4>The coordinates you selected:</h4>",
-      "Lat: <b>",
-      clat,
-      "</b>",
-      "<br>Long: <b>",
-      clng,
-      "<h4>Based on the location selected our model is predicting cluster number:</h4>",
-      "<h3>",clusterNumer,"</h3>",
+      "<h3>",pred,"</h3>",
       "</b>"
     )
-    
-    output$summary <- renderPrint({
-      htmltext
-    })
     
     output$resHtml <- renderText({
       resHtml
@@ -258,11 +241,10 @@ server <- function(input, output,session) {
   
     
     #predic the model
-    predict.model_rf(data)    
+      
     fncPredictModel(data)
   }) 
   
-
   
   ## Data Explorer ###########################################
   observe({
@@ -270,19 +252,6 @@ server <- function(input, output,session) {
       })
   
   
-  output$countrytable <- DT::renderDataTable({
-  #  df <-  by_countries %>%
-  #    filter(
-  #      is.null(input$country) | Country %in% input$country,
-  #      is.null(input$region) | Region %in% input$region,
-  #      is.null(input$locality) | Locality %in% input$locality
-  #    ) %>%
-  #    mutate(Action = paste('<a class="go-map" href="" data-lat="', Lat, '" data-long="', Long, '"><i class="fa fa-crosshairs"></i></a>', sep=""))
-    #action <- DT::dataTableAjax(session, df)
-    
-    #DT::datatable(df, options = list(ajax = list(url = action)), escape = FALSE)
-    #DT::datatable(df, escape = FALSE)
-  })
   
 }
 
