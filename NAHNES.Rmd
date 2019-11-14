@@ -1206,6 +1206,7 @@ colSums(is.na(ques_data75))
 ques_data75 %>% summarise_all(~(sum(is.na(.))/n()*100))
 ```
 We have selected the following 38 relevant columns among the 79 that have less than 25% of missing values:
+
 * **ID (SEQN)** - Respondent sequence number.
 * **Spent_total (CBD070)** - The next questions are about how much money {your family spends/you spend} on food. First I'll ask you about money spent at supermarkets or grocery stores. Then we will talk about money spent at other types of stores. During the past 30 days, how much money {did your family/did you} spend at supermarkets or grocery stores? Please include purchases made with food stamps..
 * **Spent_groceries (CBD110)** - About how much money {did your family/did you} spend on food at these types of stores? (Please do not include any stores you have already told me about.).
