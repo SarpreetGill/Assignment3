@@ -29,7 +29,7 @@ def print_selected_vars(data_dict):
 def print_rename_vars(data_dict, suffix=''):
     for index, new_name in data_dict['selected'].items():
         var_name = var_names[index]
-        new_name = new_name + '_' + suffix
+        new_name = new_name + suffix
         print('"{}" = "{}",'.format(new_name, var_name))
         #print('#{} - '.format(new_name))
     
@@ -65,7 +65,7 @@ demo['data'] = '''[1] "SEQN"     "SDDSRVYR" "RIDSTATR" "RIAGENDR" "RIDAGEYR" "RI
 
 ##################
 
-SELECTED = exam
+SELECTED = demo
 
 ##################
 
@@ -236,4 +236,4 @@ if 'var_descs' in SELECTED:
     print('')
     print_selected_vars(SELECTED)
     print('')
-    print_rename_vars(SELECTED, 'exam')
+    print_rename_vars(SELECTED)
