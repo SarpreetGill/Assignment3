@@ -63,91 +63,65 @@ predict.kmeans = function (lat, long, model) {
 
 # Define UI for application that draws a histogram
 ui <- navbarPage(
-  "NHANES dataset",
+  "NAHNES Tool",
   id = "nav",
+  
   tabPanel(
-    "Supervised models",
-    div(
-      class = "outer",
-      
-      tags$head(# Include our custom CSS
-        includeCSS("styles.css")),
-      
-      # If not using custom CSS, set height of leafletOutput to a number instead of percent
-      leafletOutput("map", width = "100%", height = "100%"),
-      
-      # Shiny versions prior to 0.11 should use class = "modal" instead.
-      absolutePanel(
-        id = "controls",
-        class = "panel panel-default",
-        fixed = TRUE,
-        draggable = TRUE,
-        top = 60,
-        left = "auto",
-        right = 100,
-        bottom = "auto",
-        width = 330,
-        height = "auto",
+    "Study patient",
         
-        h2("Supervided Methods"),
+        # App title ----
+        #titlePanel("Investigate patient"),
+  
+    titlePanel("Enter the patients data:"),
+    
+    sidebarLayout(
         
-        selectInput("species", "Anopheles Species", model_list),
-        #selectInput("countries", "Countries", country_list) ,
-        #conditionalPanel("input.species == 'gambiae_c' || countries == 'superzip'",
-        # Only prompt for threshold when coloring or sizing by superzip
-        #numericInput("threshold", "SuperZIP threshold (top n percentile)", 5))#,
-        plotOutput("vectors_per_species", height = 200),
-        plotOutput("timeseries", height = 200)
-      ),
-      
-      absolutePanel(
-        id = "controls",
-        class = "panel panel-default",
-        fixed = TRUE,
-        draggable = TRUE,
-        top = 130,
-        left = "20",
-        right = "auto",
-        bottom = "auto",
-        width = 350,
-        height = "auto",
+        # Sidebar to demonstrate various slider options ----
+        sidebarPanel(
+          
+          sliderInput("LBXGH", "Glycohemoglobin (%):",
+                      min = 0, max = 100,
+                      value = 50),
+          
+          # Input: Decimal interval with step value ----
+          sliderInput("LBXSGL", "Glucose, refrigerated serum (mg/dL)",
+                      min = 0, max = 1,
+                      value = 0.5, step = 0.1),
+          
+          # Input: Specification of range within an interval ----
+          sliderInput("RIDAGEYR", "in the past 30 days, has he taken medication for which a prescription is needed?:",
+                      min = 0, max = 1,
+                      step = 1,
+                      value = 0),
+          
+          # Input: Custom currency format for with basic animation ----
+          sliderInput("inputHDL", "HDL-Cholesterol (mmol/L)",
+                      min = 0, max = 100,
+                      value = 0, step = 25,
+                      animate = TRUE),
+          
+          # Input: Animation with custom interval (in ms) ----
+          # to control speed, plus looping
+          sliderInput("animation", "Age in years:",
+                      min = 1, max = 120,
+                      value = 1, step = 5,
+                      animate =
+                        animationOptions(interval = 300, loop = TRUE))
+          
+        ),
         
-        h3("Model precidction"),
+        # Main panel for displaying outputs ----
+        mainPanel(
+          
+          # Output: Table summarizing the values entered ----
+          tableOutput("values")
+          
+          
+          
+        )
         
-        # Output: Header + summary of distribution ----
-        h4("Summary"),
-        #verbatimTextOutput("summary"),
-        
-        htmlOutput("resHtml")
-        
-      ),
-      
-      tags$div(id = "cite", 'Data')
-    )
+      )   
   ),
-  
-  
-  tabPanel("Unsupervised models",
-           fluidRow(
-             column(3,
-                    selectInput("country", "Country",country_list, multiple=TRUE)
-             ),
-             column(3,
-                    conditionalPanel("input.country",
-                                     selectInput("region", "Region", c("All regions"=""), multiple=TRUE)
-                    )
-             ),
-             column(3,
-                    conditionalPanel("input.country",
-                                     selectInput("locality", "Locality", c("All localities"=""), multiple=TRUE)
-                    )
-             )
-           ),
-           hr(),
-           DT::dataTableOutput("countrytable")
-  ),
-  
-  
   
   tabPanel("Technical Manual",
            fluidRow(column(
@@ -159,6 +133,30 @@ ui <- navbarPage(
 
 # Define server logic required to draw a histogram
 server <- function(input, output,session) {
+  
+  
+  # Reactive expression to create data frame of all input values ----
+  sliderValues <- reactive({
+    
+    data.frame(
+      Name = c("LBXGH",
+               "LBXSGL",
+               "RXDUSE",
+               "LBDHDDSI",
+               "RIDAGEYR"),
+      Value = as.character(c(input$LBXGH,
+                             input$LBXSGL,
+                             input$RXDUSE,
+                             input$LBDHDDSI,
+                             input$RIDAGEYR)),
+      stringsAsFactors = FALSE)
+    
+  })
+  
+  # Show the values in an HTML table ----
+  output$values <- renderTable({
+    sliderValues()
+  })
   
   ##### Malaria Dataset clean ######
   malaria_dataset_clean = read.csv("./data/working_malaria_data.csv", header = TRUE, na.strings = c("NA","","#NA"),fileEncoding ="latin1")[-1]
@@ -181,47 +179,6 @@ server <- function(input, output,session) {
   kmeans.select_data.rds = readRDS("kmeans.select_data.rds")
   kmeans.select_data.rds <- kmeans.select_data.rds %>%
     select(Lat, Long, k_cluster)
-  
-  malaria_species <- merge(malaria_species, kmeans.select_data.rds, by=c("Lat","Long")) # NA's match
-  
-  geoAfrica <- geojsonio::geojson_read("Africa.geojson",
-                                       what = "sp")
-  
-  pal <- colorNumeric("viridis", NULL)  
-  #leaflet(geoAfrica) %>%
-  #  addTiles() %>%
-  #  addPolygons(
-  #    stroke = FALSE,
-  #    smoothFactor = 0.3,
-  #    fillOpacity = 1,
-  #    fillColor = ~ pal(log10(strtoi(ID))),
-  #    label = ~ paste0(COUNTRY, ": ", formatC(ID, big.mark = ","))
-  #  ) %>%
-  #  addLegend(pal = pal,
-  #            values = 1,
-  #            opacity = 1.0)
-  
-  ## Interactive Map ###########################################
-  
-  # Create the map
-  output$map <- renderLeaflet({
-    leaflet(geoAfrica) %>%
-      addTiles(urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-               attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>') %>%
-      setView(lng = 12.35,
-              lat = 7.36,
-              zoom = 3) #%>%
-    #addPolygons(
-    #  stroke = FALSE,
-    #  smoothFactor = 0.3,
-    #  fillOpacity = 0.5,
-    #  fillColor = ~ pal(log10(as.numeric(ID))),
-    #  label = ~ paste0(COUNTRY, ": ", formatC(ID, big.mark = ","))
-    #) %>%
-    #addLegend(pal = pal, values = ~log10(as.numeric(ID)), opacity = 1.0,
-    #          labFormat = labelFormat(transform = function(x) round(10^x)))
-  })
-  
   
   fncPredictModel <- function(clng, clat) {
     #calculate the model with Lat and Long
