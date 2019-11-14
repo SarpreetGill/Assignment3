@@ -3008,3 +3008,208 @@ summary(Working_Data$DID040)
 summary(Working_Data$BPQ020)
 summary(Working_Data$BPD035)
 summary(Working_Data$MCQ220)
+
+
+
+
+####### Problem 3
+# Marketing
+# The marketing department is struggling with high costs of television advertisements
+# and is interested in ways to reduce their costs while still hitting their target
+# markets for both the advertisement of drugs and attracting candidates for trails.
+#######
+
+# Data labeling
+demographic = (
+  read.csv("Data/Raw/demographic.csv", header = TRUE, na.strings = c("NA","","#NA")) %>%
+    dplyr::select(c("SEQN","RIAGENDR","RIDAGEYR","RIDRETH3","DMDEDUC3","DMDEDUC2","DMDCITZN","DMDFMSIZ","DMDHRMAR","INDFMIN2")) %>%
+    dplyr::rename(
+      "ID" = "SEQN",
+      "Gender" = "RIAGENDR",
+      "Age" = "RIDAGEYR",
+      "Race" = "RIDRETH3",
+      "Education_level2" = "DMDEDUC3",
+      "Education_level" = "DMDEDUC2",
+      "Citizenship_status" = "DMDCITZN",
+      "Family_members" = "DMDFMSIZ",
+      "Marital_status" = "DMDHRMAR",
+      "Family_income" = "INDFMIN2") %>%
+    dplyr::mutate(
+      Gender = dplyr::recode(
+        Gender,
+        "1" = "M",
+        "2" = "F") %>%
+        as.factor,
+      Race = dplyr::recode(
+        Race,
+        "1" = "Hispanic",
+        "2" = "Hispanic",
+        "3" = "White",
+        "4" = "Black",
+        "6" = "Asian",
+        "7" = "Other") %>%
+        as.factor,
+      Education_level2  = dplyr::recode(
+        Education_level2,
+        "0" = "None",
+        "1" = "Primary",
+        "2" = "Primary",
+        "3" = "Primary",
+        "4" = "Primary",
+        "5" = "Primary",
+        "6" = "Primary",
+        "7" = "Primary",
+        "8" = "Primary",
+        "9" = "Primary",
+        "10" = "Primary",
+        "11" = "Primary",
+        "12" = "Primary",
+        "13" = "High_School",
+        "14" = "High_School",
+        "15" = "Primary",
+        "55" = "Primary",
+        "66" = "Unknown",
+        "77" = "Unknown",
+        "99" = "Unknown"),
+      Education_level  = dplyr::recode(
+        Education_level,
+        "1" = "Primary",
+        "2" = "Primary",
+        "3" = "High_School",
+        "4" = "High_School",
+        "5" = "University",
+        "7" = "Unknown",
+        "9" = "Unknown"),
+      Citizenship_status = dplyr::recode(
+        Citizenship_status,
+        "1" = "US",
+        "2" = "Other",
+        "7" = "Unknown",
+        "9" = "Unknown") %>%
+        as.factor,
+      Marital_status = recode(
+        Marital_status,
+        "1"  = "Married",
+        "2"  = "Widowed",
+        "3"  = "Divorced",
+        "4"  = "Separated",
+        "5"  = "Never_married",
+        "6"  = "Partner",
+        "77" = "Unknown",
+        "99" = "Unknown") %>%
+        as.factor,
+      Family_income = recode(
+        Family_income,
+        "1"  = "$0 - $4999",
+        "2"  = "$5000 - $9999",
+        "3"  = "$10000 - $14999",
+        "4"  = "$15000 - $19999",
+        "5"  = "$20000 - $24999",
+        "6"  = "$25000 - $34999",
+        "7"  = "$35000 - $44999",
+        "8"  = "$45000 - $54999",
+        "9"  = "$55000 - $64999",
+        "10" = "$65000 - $74999",
+        "12" = "$20000 and Over",
+        "13" = "Under $20000",
+        "14" = "$75000 - $99999",
+        "15" = "$100000 and Over",
+        "77" = "Unknown",
+        "99" = "Unknown") %>%
+        as.factor
+    ))
+# Data cleanup
+# Merging the education columns to reduce missing values
+demographic$Education_level=as.factor(ifelse(!is.na(demographic$Education_level), demographic$Education_level, demographic$Education_level2))
+demographic$Education_level2 = NULL
+demographic$Family_members=as.factor(demographic$Family_members)
+
+# Data binning
+demographic$Age = cut(demographic$Age,
+                      include.lowest=TRUE,right=FALSE,
+                      breaks=c(seq(0, 90, by=10)),
+                      labels=c("0 to 9","10 to 19","20 to 29","30 to 39","40 to 49","50 to 59","60 to 69","70 to 79","80 to >80"))
+#cbind(seq(0, 80, by=10), c(sapply(seq(0, 70, by=10), function(x)x+9), ">80")) %>% as.data.frame %>% unite(Age, sep=" to "))
+
+# Check feature classes
+sapply(demographic, class)
+
+# Check missing values
+apply(demographic, 2, function(x) length(which(x == "" | is.na(x) | x == "NA" | x == "-999" ))/length(x))
+
+# Data imputation
+mice = mice(demographic, m=5)
+mice$predictorMatrix[,'ID']=0
+demographic = mice::complete(mice)
+rm(mice)
+
+# Hierarchical clustering
+d = dist(demographic,method = "euclidean")
+h_clust = hclust(d, method = "ward.D2")
+h_clusters = cutree(h_clust,k=8)
+demographic$cluster = as.factor(h_clusters)
+rm(d, h_clust, h_clusters)
+
+# Data Visualization
+# General plot
+general_plot = ggplot(demographic, aes(x=cluster, fill=cluster)) +
+  geom_bar(stat="count") +
+  labs(title="Observations per cluster",
+       x="Cluster", y="Percent")
+# Gender plot
+gender_plot = ggplot(demographic, aes(x=cluster, fill=Gender)) +
+  geom_bar(stat="count", position="fill") + 
+  labs(title="Gender per cluster",
+       x="Cluster", y="Percent")
+
+# Age plot
+age_plot = ggplot(demographic, aes(x=cluster, fill=Age)) +
+  geom_bar(stat="count", position="fill") +
+  labs(title="Age per cluster",
+       x="Cluster", y="Percent")
+
+# Race plot
+race_plot = ggplot(demographic, aes(x=cluster, fill=Race)) +
+  geom_bar(stat="count", position="fill") +
+  labs(title="Race per cluster",
+       x="Cluster", y="Percent")
+
+# Education_level plot
+education_level_plot = ggplot(demographic, aes(x=cluster, fill=Education_level)) +
+  geom_bar(stat="count", position="fill") +
+  labs(title="Education_level per cluster",
+       x="Cluster", y="Percent")
+
+# Citizenship_status plot
+citizenship_status_plot = ggplot(demographic, aes(x=cluster, fill=Citizenship_status)) +
+  geom_bar(stat="count", position="fill") +
+  labs(title="Citizenship_status per cluster",
+       x="Cluster", y="Percent")
+
+# Family_members plot
+family_members_plot = ggplot(demographic, aes(x=cluster, fill=Family_members)) +
+  geom_bar(stat="count", position="fill") +
+  labs(title="Family_members per cluster",
+       x="Cluster", y="Percent")
+
+# Marital_status plot
+marital_status_plot = ggplot(demographic, aes(x=cluster, fill=Marital_status)) +
+  geom_bar(stat="count", position="fill") +
+  labs(title="Marital_status per cluster",
+       x="Cluster", y="Percent")
+
+# Family_income plot
+family_income_plot = ggplot(demographic, aes(x=cluster, fill=Family_income)) +
+  geom_bar(stat="count", position="fill") +
+  labs(title="Family_income per cluster",
+       x="Cluster", y="Percent")
+
+# Final plot
+grid.arrange(general_plot, gender_plot, age_plot,
+             race_plot, education_level_plot,
+             citizenship_status_plot, family_members_plot,
+             marital_status_plot, family_income_plot) %>%
+  ggsave(height=8, width=8, dpi = 300, filename = "Figures/Problem3.png")
+
+
+
