@@ -298,7 +298,7 @@ ggsave(plot = questionnaire_MS_plot, width = 8, height = 4, dpi = 300,
 
 \pagebreak
 
-## Data Imputation {.tabset}
+# Data Imputation {.tabset}
 
 As per our guidelines, we will select attributes/columns of interest based on our business/personal judgements. The full NHANES data dictionary/variable list is available at the following URL:
 
