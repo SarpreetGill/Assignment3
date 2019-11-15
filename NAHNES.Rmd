@@ -1607,6 +1607,24 @@ ggplotly(p)
 
 ```
 
+
+#### Diabetes, Age & Weight
+
+```{r eval=TRUE, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE, cache=TRUE}
+library(tidyverse)
+library(plotly)
+
+demo_labeledV = read_csv("Data/Target Datasets/demo_labeledV.csv")
+
+p <- plot_ly(data = demo_labeledV, x = ~Age, y = ~interview_weight_2years, type = 'scatter',
+             mode = 'markers', symbol = ~HAS_DIABETES, symbols = c('circle','x','o'),
+             color = ~TARGET, size = ~TARGET,text ="Has Diabetes", marker = list(size = 10))
+ggplotly(p)
+
+```
+
+
+
 #### Number of proxy users
 
 This graph shows the number of proxy users we have in our database:
