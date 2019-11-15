@@ -4411,11 +4411,15 @@ Within the data for not having diseases, frequently, the condition not having me
 
 
 # Problem 3: Clustering problem
+
 ## Business case
+
 The marketing department is struggling with high costs of television advertisements and is interested in ways to reduce their costs while still hitting their target markets for both the advertisement of drugs and attracting candidates for trails.
 
 ### Data preparation
-#### Data labeling and feature selection
+
+### Data labeling and feature selection
+
 We only used the demographics database to avoid potential HIPAA breaches. The features below were selected to assist the marketing department with their market segmentation efforts:
 ```{r, eval=FALSE, echo=TRUE}
 demographic = (
@@ -4518,7 +4522,8 @@ demographic = (
     ))
 ```
 
-#### Data cleanup
+### Data cleanup
+
 There were two columns for education, one that breaks down the elementary studies of the participants and another that more broadly indicates higher levels of education. We are not interested in such a level of granularity and proceeded to merge both columns and reduced the number of factors to mean "Highest level of education achieved", this helped reduce the missing values from over 40% in each column to under 17%.
 ```{r, eval=FALSE, echo=TRUE}
 demographic$Education_level=as.factor(ifelse(!is.na(demographic$Education_level), demographic$Education_level, demographic$Education_level2))
@@ -4526,7 +4531,8 @@ demographic$Education_level2 = NULL
 demographic$Family_members=as.factor(demographic$Family_members)
 ```
 
-#### Data binning
+### Data binning
+
 For consistency, the Age feature was converted to categorical.
 ```{r, eval=FALSE, echo=TRUE}
 demographic$Age = cut(demographic$Age,
@@ -4536,13 +4542,15 @@ demographic$Age = cut(demographic$Age,
                       #cbind(seq(0, 80, by=10), c(sapply(seq(0, 70, by=10), function(x)x+9), ">80")) %>% as.data.frame %>% unite(Age, sep=" to "))
 ```
 
-#### Data verification
+### Data verification
+
 Check that features have the appropiate class and that missing values are below 25%.
 ```{r, eval=FALSE, echo=TRUE}
 sapply(demographic, class)
 ```
 
 #### Data imputation
+
 Impute missing values
 ```{r, eval=FALSE, echo=TRUE}
 mice = mice(demographic, m=5)
@@ -4551,13 +4559,15 @@ demographic = mice::complete(mice)
 rm(mice)
 ```
 
-#### Data verification
+### Data verification
+
 Check that features have the appropiate class and that missing values are below 25%.
 ```{r, eval=FALSE, echo=TRUE}
 apply(demographic, 2, function(x) length(which(x == "" | is.na(x) | x == "NA" | x == "-999" ))/length(x))
 ```
 
-#### Hierarchical clustering
+### Hierarchical clustering
+
 Hierarchical clustering was chosen due to the features being categorical
 ```{r, eval=FALSE, echo=TRUE}
 d = dist(demographic,method = "euclidean")
@@ -4567,7 +4577,9 @@ demographic$cluster = as.factor(h_clusters)
 rm(d, h_clust, h_clusters)
 
 ```
-#### Data visualization
+
+### Data visualization
+
 The first plot is a tally of how many observations there are in each cluster. Subsequent plots show the distribution of the features among each cluster. All the plots are shown after the code.
 ```{r, eval=FALSE, echo=TRUE}
 # General plot
@@ -4632,7 +4644,9 @@ grid.arrange(general_plot, gender_plot, age_plot,
 
 ```
 ![](Figures/Problem3.png){width=100%}
-#### Conclusion
+
+### Conclusion
+
 Although the data appears to be very homogenous, with many of the clusters having similar proportions. There are two clusters, 7 and 8, that encompass more observations. The data from these two would be recommended to the marketing department for further analysis.
 
 
