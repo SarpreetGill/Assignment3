@@ -1613,8 +1613,7 @@ ggplotly(p)
 
 ```
 
-
-#### Diabetes, Age & Weight
+#### Diabetes, weight and Age
 
 ```{r eval=TRUE, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE, cache=TRUE}
 library(tidyverse)
