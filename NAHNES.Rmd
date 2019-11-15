@@ -1641,13 +1641,9 @@ Visuals against the cleaned dataset
 ## Visualization for union of datsets 
 
 
+# Problem 1(a): Supervised Prediction for diabetes 
 
-# Problem 1: Supervised 
-
-
-Target attributes need to be added .   
-
-
+First, our target attributes need to be added to a dataset.   
 
 ## Create target dataset
 
@@ -4806,12 +4802,12 @@ Although the data appears to be very homogenous, with many of the clusters havin
 
 
 
-## Models for Shiny
+# Models for Shiny
 
 The model used in the ShinyApp to precit if a patient was changes to contract cancer is Random Forest, 
 give it best performance.
 
-## Link for ShinyApp
+# Link for ShinyApp
 The ShinyApp can be accessed from:
 https://ml1000-group6.shinyapps.io/NAHNES/
 
