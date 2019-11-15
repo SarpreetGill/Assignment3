@@ -2998,10 +2998,7 @@ We have found Random forest with the top five  features correlated to the TARGET
 ```
 
 
-
-
-
-# Shiny App
+## Shiny App
 
 The ShinyApp was built to assist to predict a patients condition based on the selected attribues.
 
