@@ -45,13 +45,17 @@ The data gettered is spread into six distinct files (CSV format): Demographics, 
 # Business Case
 Our client wants to develop new drugs that primary intent to improve the quality of life of the individuals survived. The company is interested as to whether existing data on subjects and their associated health conditions could provide advice and insight to their researcher. They have obtained the NHANES dataset and requested our assistance to perform the intended analysis.  This dataset contains individuals data along with various information, including health conditions.  
 
-The company is interested in developing new drugs for the following health conditions: diabetes, hypertension (blood pressure), and cancer. <we can add or remove health conditions later.  At the very least, let’s keep diabetes or something>
+The company is interested in developing new drugs for the following health conditions: diabetes, hypertension (blood pressure), and cancer.
 
 The company, aware of our Machine Learning skills, approached us for help on the following problems:
 
 ##  First Problem: Reduce lab/data collection costs 
 
-With the healthcare dataset, the business has noted there are 1000s of attributes within the data.  There are also many missing values throughout the data.  The business has lot of old trail data and  would like to enrol more patients with their diabetes drugs, but they are unsure which attributes are the most meaningful in relation to diabetes.  They also be in the middle of cancer trail and are looking for future possible referrals for their diabetes trials.  Could there be a smaller subset of data could help te tell who has diabetes? Because data collection could be refined to only capture those elements.     
+With the healthcare dataset, the business has noted there are 1000s of attributes within the data.  There are also many missing values throughout the data.  The business has lot of old trial data and  would like to enrol more patients with their diabetes drugs, but they don't want spend too much on findings new candidates.  They are unsure which attributes are the most meaningful in relation to diabetes.  They also be in the middle of cancer trials and are looking for future possible referrals for their diabetes trials.  
+
+a) Could there be a smaller subset of data could help tell who has diabetes? Because data collection could be refined to only capture those elements.       
+
+b) And is there insights  that could be gained from the in the demographics data in relation to diseases.   
 
 The company would ask us about possible wraping the model as a robust, easy to use App that could be present to managment and corporate to assist with the decision making, based on a few user inputs.
 
@@ -65,15 +69,17 @@ The marketing department is struggling with high costs of television advertiseme
 
 # Analytical Reframing for the Business Case.  
 
-To address the **first business problem**, we will apply supervised and unsupervised machine learning.  From 1000s attribute across the dataset, we will flatten (PCA) the dataset and apply supervised machine learning algorithms to predict who has diabetes; this will hopefully improve the phramedical’s capability to find referrals using current or past trial data.  The key will be to use as few attributes as possible in order to maximize its portability. 
+To address the **first business problem**, we will apply supervised and unsupervised machine learning.  From 1000s attribute across the dataset, we will flatten (PCA) the dataset and apply supervised machine learning algorithms to predict who has diabetes(a); this will hopefully improve the phramedical’s capability to find referrals using current or past trial data.  The key will be to use as few attributes as possible in order to maximize its portability. Secondly, we will use an unsupervised clustering approach on the demographics data to explore whether the data shows any significant findings for the company (b).  
 
-The **second business problem** involves using “health condition” features and finding related features. We will apply 2 types of unsupervised machine learning approaches to address this problem. Firstly, we will use an association learning methods to discover what attributes are associated with health conditions.  Secondly, we will use an unsupervised clustering approach on the data to explore whether the data shows any significant findings:
+
+The **second business problem** involves using “health condition” features and finding related features. We will apply 2 types of unsupervised machine learning approaches to address this problem. Firstly, we will use an association learning methods to discover what attributes are associated with health conditions (a).  Secondly, we will use machine learning unsupervised clustering techniques to look for meaningful insights in the data (b).     
+
+Questions to consider during work: 
 
 * According to their health conditions, can subjects be divided into discrete groups that could provide meaningful data for the drug researchers?  
 * Can this information be useful to reduce the costs of clinical trials?  
 
 If this is the case, we need to find clusters of subjects that segregate the data by health conditions and report these findings to the business.  
-
 
 If this is the case, we need to find clusters of subjects that segregate the data by health conditions and report these findings to the business.  
 
@@ -83,7 +89,7 @@ If this is the case, we need to find clusters of subjects that segregate the dat
 
 
 ## How do we define "health condition" features within the dataset ? 
-For the association problem, we will need to see which attributes are tied to the "health condition" features. In order to achieve this, we are postulating that the following columns/features of the Questionnaire dataset indicate that an individual has a "health condition":
+For the our problems, we will need to see which attributes are tied to the "health condition" features. In order to achieve this, we are assuming that the following columns/features of the Questionnaire dataset indicate that an individual has a "health condition":
 
 ### Diabetes
 DIQ010 - Doctor told you have diabetes
@@ -129,14 +135,13 @@ library(AMR)
 
 # Data cleaning
 
-<Describe what needs to happen to the data files> 
-
 As indicated earlier, the dataset consists of six raw data files: Demographics, Examinations, Dietary, Laboratory, Questionnaire, and Medication. The largest dataset, in terms of attributes, contains 953 variables, while the smallest one contains 47 variables.
 
 Because this is a large amount of data, with over a thousand attributes cumulatively, we decided to employ the following guidelines to reduce the complexity of the data: 
 
 * If more than 25% of the values are missing for an attribute(column), we will consider removing the column from further evaluation.
 * If the majority of attributes are missing 25% or more of their values for a given dataset, we will use business and expert judgement to select a smaller subset of values of interest subjectively. Of these subsets of missing values, we will decide how to impute the values on these attributes.     
+* We will also use discretion where appropriate.  
 
 Ideally, we would like to analyze and impute every attribute with missing values, but in this situation, it may not be practical due to the large volume of missing data. 
 
