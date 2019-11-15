@@ -1,4 +1,5 @@
 library(shiny)
+library(caret)
 #library(leaflet)
 ##library(RColorBrewer)
 #library(scales)
@@ -13,6 +14,26 @@ library(forcats)
 #library(ggfortify)
 library(arules)
 library(arulesViz)
+library(e1071)
+library(ranger)
+
+has_cancer.association.rules <- readRDS("has_cancer.association.rules.rds")
+
+has_diabetes.association.rules <- readRDS("has_diabetes.association.rules.rds")
+top20cancerrules <- head(has_cancer.association.rules, n=20, by="confidence")
+top20diabetesrules <- head(has_diabetes.association.rules, n=20, by="confidence")
+
+
+has_hypertension.association.rules <- readRDS("has_hypertension.association.rules.rds")
+
+
+mar <- list(
+  l = 50,
+  r = 50,
+  b = 100,
+  t = 100,
+  pad = 4
+)
 
 
 predict.model_rf <- function(data) {
@@ -93,38 +114,23 @@ ui <- navbarPage(
              12,
              h2("Data Explorer - Interactive Graph Visualization"),
              
-             
-             
-           )),
-           fluidRow(column(
-             12,
-             h2("Cancer"),
-             
-             
-             #plotly_arules(has_cancer.association.rules)
-             #%>%
-            #   layout( width = "100%", height = 500 ) #margin=m
-             
-           ))
-           ,
-           fluidRow(column(
-             12,
-             h2("Diabetes"),
-             
-            # plotly_arules(has_diabetes.association.rules)
-            # %>%
-            #  layout( width = "100%", height = 500)#margin=m
-             
-             
-           ))
-           ,
-           fluidRow(column(
-             12,
-             h2("Hypertension"),
-             
-            # plotly_arules(has_hypertension.association.rules)
-            # %>%
-            #   layout(autosize = F, width = "100%", height = 500, margin=m)
+             tabsetPanel(
+               tabPanel("Cancer",
+                        
+                        "The following is a graph for visualizing the top 20 association rules for cancer with small itemsets",
+                       
+                        plot(top20cancerrules, method= "graph", engine = "htmlwidget"),
+                        plotly_arules(has_cancer.association.rules)
+                        %>%
+                          layout( width = "100%", height = 500,margin=mar )
+                        ),
+               tabPanel("Diabetes",
+                        "The following is a graph for visualizing the top 20 association rules for diabetes with large itemsets",
+                     plot(top20diabetesrules, method= "graph", engine = "htmlwidget"),
+                     plotly_arules(has_diabetes.association.rules)
+                     %>%
+                       layout( width = "100%", height = 500,margin=mar))
+             )
              
            ))
            
@@ -139,46 +145,16 @@ ui <- navbarPage(
 )
 
 
-#has_cancer.association.rules <- readRDS("has_cancer.association.rules.rds")
-#has_diabetes.association.rules <- readRDS("has_diabetes.association.rules.rds")
-#has_hypertension.association.rules <- readRDS("has_hypertension.association.rules.rds")
-
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
   
-  corr_rf = readRDS("model_corr_rf.rds")
-  
-  # Create the data frame.
-  test_data <- data.frame(
-    LBXGH =as.numeric("13.39"),
-    LBXSGL= as.numeric("504"),
-    RXDUSE= as.numeric("1"),
-    LBDHDDSI= as.numeric("1.68"),
-    RIDAGEYR = as.numeric("69"))
-  
-  
-  tests <- predict(corr_rf, test_data)
-  
-  result <- "Not SICK" # Default result
-  if (tests =="X1" ) {
-    result <- "SICK"
-  }
-  
-  
-  m <- list(
-    l = 50,
-    r = 50,
-    b = 100,
-    t = 100,
-    pad = 4
-  )
   
   #setwd('D:/ProjetosGIT/Assignment3/ShinyApp')
   
   # Reactive expression to create data frame of all input values ----
   
   output$frame <- renderUI({
-    my_test <- tags$iframe(src="http://resilsim-uwo.ca/NAHNES-noEcho.html", height=800, width="100%",frameBorder="0")
+    my_test <- tags$iframe(src="https://resilsim-uwo.ca/NAHNES-noEcho.html", height=800, width="100%",frameBorder="0")
     print(my_test)
     my_test
   })
@@ -187,9 +163,9 @@ server <- function(input, output, session) {
     
     pred <- predict.model_rf(data)
     
-    result <- "Has no Diabetes" # Default result
+    result <- "Not have Diabetes" # Default result
     if (pred =="YES" ) {
-      result <- "Has Diabetes"
+      result <- "Have Diabetes"
     }
     
     res <- paste(
