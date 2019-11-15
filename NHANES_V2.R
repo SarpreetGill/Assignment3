@@ -2276,6 +2276,354 @@ colnames(combined_final_labelled) <- with(Combined_Col_Labels,
 #write.csv(combined_final_labelled,file = "Data/Target Datasets/combined_final_labelled.csv",row.names = FALSE)
 combined_final_labelled   = read.csv("Data/Target Datasets/combined_final_labelled.csv", header = TRUE, na.strings = c("NA","","#NA"))
 
+########################### UNSUPERVISED ASSOCIATION PROBLEM 2 #############################################################
+       
+
+install.packages("arules")
+install.packages("arulesViz")
+library(arules)
+library(arulesViz)
+association_dataset <- data_selected
+association_target_dataset <- target_disease_dataset[ -c(2,3,4)]
+summary(association_target_dataset)
+summary(association_dataset)
+
+association_dataset <- merge(association_dataset, association_target_dataset,by="ID")
+#association_dataset <- lapply(association_dataset, function(x){as.factor(x)})
+str(association_dataset)
+
+
+
+#### Recode the values for all association dataset 
+
+association_dataset <- association_dataset %>%
+  mutate(Country_of_birth  = recode(Country_of_birth ,
+                          "Others"=	"Born outside of US",	
+                          "Refused"=	"Country of birth unknown",	
+                          "Uknown"=	"Country of birth unknown",
+                          "US"= "Born in US"
+                            ) )
+
+association_dataset <- association_dataset %>%
+  mutate(Citizenship_status  = recode(Citizenship_status ,
+                                  "Others"=	"non-US citizen",	
+                                  "Refused"=	"Citizenship unknown",	
+                                  "Uknown"=	"Citizenship unknown",
+                                  "US"= "US citizen"
+) )
+
+association_dataset <- association_dataset %>%
+  mutate(Family_income  = recode(Family_income,
+                                  "$100000 and Over" =	"Household income over $100,000",	
+                                  "$25000 - $34999"  =	"Household income between $25000 - $34999",	
+                                  "$35000 - $44999"  =	"Household income between $35000 - $44999",
+                                  "$20000 - $24999"  =	"Household income between $20000 - $24999",
+                                  "$75000 - $99999"  =	"Household income between $75000 - $99999",
+                                  "$45000 - $54999"  =	"Household income between $45000 - $54999"
+) )
+association_dataset <- association_dataset %>%
+  mutate(Dominant_hand_exam  = recode(Dominant_hand_exam,
+                               "Left" =	"Left-handed",	
+                               "Right"  =	"Right-handed",	
+                               "Neither"  =	"Ambidextrous"
+) )
+
+association_dataset <- association_dataset %>%
+  mutate(Milk_30   = recode(Milk_30 ,
+                                      "Never" =	"Does not drink milk",	
+                                      "Often-once a day or more?"  =	"Drinks milk multiple times a day",	
+                                      "Rarely-less than once a week "  =	"Drinks milk once a week",
+                                      "Refused" = "Might be a milk drinker",
+                                      "Sometimes-once a week or more, but less than once a day" = "Drinks milk multiple times a week",
+                                      "Varied"  = "Might be a milk drinker"
+  ) )
+
+association_dataset <- association_dataset %>%
+  mutate(Food_assistance   = recode(Food_assistance ,
+                            "No" =	"Has not requested emergency food assistance",	
+                            "Refused"  =	"Unknown if emergency food assistance was requested",	
+                            "Yes"  =	"Has requested emergency food assistance"
+  ) )
+
+association_dataset <- association_dataset %>%
+  mutate(Insurance_current   = recode(Insurance_current ,
+                                    "No" =	"No health insurance coverage",	
+                                    "Refused"  =	"Health insurance coverage unknown",	
+                                    "Unknown"  =	"Health insurance coverage unknown",
+                                    "Yes"    = "Has health insurance coverage"
+  ) )
+
+
+association_dataset <- association_dataset %>%
+  mutate(Health_mental_12   = recode(Health_mental_12 ,
+                                      "No" =	"Not seen a mental health professional in past 12 months",	
+                                      "Refused"  =	"Unknown if mental health professional was seen in the past 12 month",	
+                                      "Unknown"  =	"Unknown if mental health professional was seen in the past 12 month",
+                                      "Yes"    = "Has seen a mental health professional in past 12 months"
+  ) )
+
+association_dataset <- association_dataset %>%
+  mutate(Health_institution   = recode(Health_institution ,
+                                     "Clinic or health center" =	"Mostly visits a clinic or health center for healthcare",	
+                                     "Doctor's office or HMO"  =	"Mostly visits doctor's office for healthcare",	
+                                     "Doesn't go to one place most often"  =	"Visits multiple places for healthcare(not once location)",
+                                     "Hospital emergency room"    = "Mostly visits an emergency room for healthcare",
+                                     "Hospital outpatient department"    = "Mostly visits outpatient departments for healthcare",
+                                     "Refused"    = "Unknown where healthcare is received",
+                                     "Some other place" = "Healthcare is received from non-standard facility" 
+  ) )
+
+
+association_dataset <- association_dataset %>%
+  mutate(Gaming_hours   = recode(Gaming_hours ,
+                                       "1 hour" =	"Plays 1 hour of video games over the past 30 days",	
+                                       "2 hours"  =	"Plays 2 hours of video games over the past 30 days",	
+                                       "3 hours"  =	"Plays 3 hours of video games over the past 30 days",
+                                       "4 hours"    = "Plays 4 hours of video games over the past 30 days",
+                                       "5 hours or more"    = "Plays 5 or more hours of video games over the past 30 days",
+                                       "Less than 1 hour"    = "Plays less than an hours of video games over the past 30 days"
+  ) )
+
+
+association_dataset <- association_dataset %>%
+  mutate(Gaming_hours   = recode(Gaming_hours ,
+                                 "1 hour" =	"Plays 1 hour of video games over the past 30 days",	
+                                 "2 hours"  =	"Plays 2 hours of video games over the past 30 days",	
+                                 "3 hours"  =	"Plays 3 hours of video games over the past 30 days",
+                                 "4 hours"    = "Plays 4 hours of video games over the past 30 days",
+                                 "5 hours or more"    = "Plays 5 or more hours of video games over the past 30 days",
+                                 "Less than 1 hour"    = "Plays less than an hours of video games over the past 30 days",
+                                "{you do not/SP does not} use a computer outside of school" = "Does not play video games"
+  ) )
+
+
+
+association_dataset <- association_dataset %>%
+  mutate(Smoking_relatives   = recode(Smoking_relatives ,
+                                 "1 household member is a smoker" =	"Smokers present in house",	
+                                 "2 household members are smokers"  =	"Smokers present in house",	
+                                 "3 or more household members are smokers"  =	"Smokers present in houses",
+                                 "No one in houseold is a smoker"    = "No smokers present in house",
+                                 "Refused\t5\t10058\tEnd of Section"    = "Unknown if smokers in house",
+                                 "Unknown"    = "Unknown if smokers in house"
+  ) )
+
+association_dataset <- association_dataset %>%
+  mutate(Ride_motor_vehicle   = recode(Ride_motor_vehicle ,
+                                      "Yes" =	"Has rode in a vehicle within the past 7 days",	
+                                      "No"  =	"Has not rode in a vehicle within the past 7 days"
+  ) )
+
+association_dataset <- association_dataset %>%
+  mutate(Ride_motor_vehicle   = recode(Ride_motor_vehicle ,
+                                       "Yes" =	"Has rode in a vehicle within the past 7 days",	
+                                       "No"  =	"Has not rode in a vehicle within the past 7 days"
+  ) )
+
+
+association_dataset <- association_dataset %>%
+  mutate(HAS_DIABETES   = recode(HAS_DIABETES ,
+                                       "YES" =	"HAS DIABETES",	
+                                       "NO"  =	"NO DIABETES"
+  ) )
+
+
+
+association_dataset <- association_dataset %>%
+  mutate(HAS_CANCER   = recode(HAS_CANCER ,
+                                 "YES" =	"HAS CANCER",	
+                                 "NO"  =	"NO CANCER"
+  ) )
+
+
+
+association_dataset <- association_dataset %>%
+  mutate(HAS_HYPERTENSION   = recode(HAS_HYPERTENSION ,
+                                 "YES" =	"HAS HYPERTENSION",	
+                                 "NO"  =	"NO HYPERTENSION"
+  ) )
+
+
+
+
+association_test_columns <- c("ID", "Gender", "Race", "Country_of_birth", "Citizenship_status",
+                              'Marital_status', "Family_income", "Dominant_hand_exam", "Milk_30", "Food_assistance",
+                              "Insurance_current", "Health_institution", "Gaming_hours", "Smoking_relatives", "Ride_motor_vehicle",
+                              'HAS_DIABETES', 'HAS_CANCER', 'HAS_HYPERTENSION')
+
+subset_association = subset(association_dataset, select=association_test_columns)
+
+summary(subset_association)
+str(subset_association)
+unique(subset_association$Marital_status)
+subset_association <- subset_association %>% 
+  mutate(description= paste(subset_association$Race, ",",
+                            subset_association$Gender, ",",
+                            subset_association$Country_of_birth, ",",
+                            subset_association$Citizenship_status, ",",
+                            subset_association$Marital_status, ",",
+                            subset_association$Family_income, ",",
+                            subset_association$Dominant_hand_exam, ",",
+                            subset_association$Milk_30, ",",
+                            subset_association$Food_assistance, ",", 
+                            subset_association$Insurance_current, ",",
+                            subset_association$Health_institution, ",",
+                            subset_association$Gaming_hours, ",",
+                            subset_association$Smoking_relatives, ",",
+                            subset_association$Ride_motor_vehicle, "," ,
+                            subset_association$HAS_DIABETES, ",",
+                            subset_association$HAS_CANCER, ",", 
+                            subset_association$HAS_HYPERTENSION
+                            ))
+
+write.csv(subset_association, "Data/Working/subset_association_data.csv")
+
+transactionData <- ddply(subset_association, c("ID"),
+                         function(subset_association)paste(subset_association$description))
+
+#transactionData$`Individual Information` <- as.factor(transactionData$`Individual Information`)
+transactionData$ID <- NULL
+#colnames(transactionData) <- c("Individual Data")
+summary(transactionData)
+
+write.csv(transactionData, "Data/Working/transactiondata.csv", quote=FALSE , row.names = FALSE)
+
+individuals_transaction_class <- read.transactions('Data/Working/transactiondata.csv', format = 'basket',sep=',')
+
+
+summary(individuals_transaction_class)
+
+#itemFrequencyPlot(tr,topN=20,type="absolute",col=brewer.pal(8,'Pastel2'), main="Absolute Item Frequency Plot")
+rules_for_individuals <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.85, maxlen=5))
+summary(rules_for_individuals)
+inspect(rules_for_individuals[1:5])
+inspect(head(sort(rules_for_individuals, by = "confidence"),100))
+
+
+library(RColorBrewer)
+itemFrequencyPlot(individuals_transaction_class,topN=20,type="absolute",col=brewer.pal(8,'Set3'), main="Absolute Value Frequency Plot")
+#itemFrequencyPlot(individuals_transaction_class,topN=25,type="absolute")
+itemFrequencyPlot(individuals_transaction_class,topN=25,type="relative")
+#Creating initial association rules
+
+has_cancer.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.4, maxlen=15), appearance=list(default="lhs", rhs="HAS CANCER"))
+has_diabetes.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.7, maxlen=15), appearance=list(default="lhs", rhs="HAS DIABETES"))
+has_hypertension.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.8, maxlen=15), appearance=list(default="lhs", rhs="HAS HYPERTENSION"))
+
+#Lowest number itemsets
+
+has_cancer.association.rules_smallitemset <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.1, maxlen=3), appearance=list(default="lhs", rhs="HAS CANCER"))
+has_diabetes.association.rules_smallitemset <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.4, maxlen=3), appearance=list(default="lhs", rhs="HAS DIABETES"))
+has_hypertension.association.rules_smallitemset <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.4, maxlen=3), appearance=list(default="lhs", rhs="HAS HYPERTENSION"))
+
+inspect(head(sort(has_cancer.association.rules_smallitemset, by = "confidence",100)))
+inspect(head(sort(has_diabetes.association.rules_smallitemset, by = "confidence",100)))
+inspect(head(sort(has_hypertension.association.rules_smallitemset, by = "confidence",100)))
+
+
+no_cancer.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.9,minlen=5,maxlen=10), appearance=list(default="lhs", rhs="NO CANCER"))
+no_diabetes.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.9, minlen=5,maxlen=10), appearance=list(default="lhs", rhs="NO DIABETES"))
+no_hypertension.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.8, minlen=5,maxlen=10), appearance=list(default="lhs", rhs="NO HYPERTENSION"))
+
+summary(has_cancer.association.rules)
+inspect(has_cancer.association.rules)
+inspect(has_cancer.association.rules_smallitemset)
+
+summary(has_diabetes.association.rules)
+inspect(has_diabetes.association.rules)
+inspect(has_diabetes.association.rules_smallitemset)
+
+summary(has_hypertension.association.rules)
+inspect(has_hypertension.association.rules[1:20])
+inspect(has_hypertension.association.rules_smallitemset)
+
+summary(no_cancer.association.rules)
+inspect(no_cancer.association.rules[1:20])
+
+summary(no_diabetes.association.rules)
+inspect(no_diabetes.association.rules[1:20])
+
+summary(no_hypertension.association.rules)
+inspect(no_hypertension.association.rules[1:20])
+
+#inspect(head(sort(no_cancer.association.rules, by = "confidence",1)))
+#inspect(head(sort(no_diabetes.association.rules, by = "confidence",100)))
+#inspect(head(sort(no_hypertension.association.rules, by = "confidence",100)))
+library(arulesViz)
+# Graph rules
+
+cancer_html <- plotly_arules(has_cancer.association.rules)
+htmlwidgets::saveWidget(cancer_html, "cancer_large.html", selfcontained = FALSE)
+
+diabetes_html <- plotly_arules(has_diabetes.association.rules)
+htmlwidgets::saveWidget(diabetes_html, "diabetes_large.html", selfcontained = FALSE)
+
+hypertension_html <- plotly_arules(has_hypertension.association.rules)
+htmlwidgets::saveWidget(hypertension_html, "hypertension_large.html", selfcontained = FALSE)
+
+
+cancer_smallitemset_html <- plotly_arules(has_cancer.association.rules_smallitemset)
+htmlwidgets::saveWidget(cancer_smallitemset_html, "cancer_small.html", selfcontained = FALSE)
+
+diabetes_smallitemset_html <- plotly_arules(has_diabetes.association.rules_smallitemset)
+htmlwidgets::saveWidget(diabetes_smallitemset_html, "diabetes_small.html", selfcontained = FALSE)
+
+hypertension_smallitemset_html <- plotly_arules(has_hypertension.association.rules_smallitemset)
+htmlwidgets::saveWidget(hypertension_smallitemset_html, "hypertension_small.html", selfcontained = FALSE)
+
+plotly_arules(has_cancer.association.rules_smallitemset)
+plotly_arules(has_diabetes.association.rules_smallitemset)
+plotly_arules(has_hypertension.association.rules_smallitemset)
+
+top20cancerrules <- head(has_cancer.association.rules, n=20, by="confidence")
+top20cancerrules_smallitemset <- head(has_cancer.association.rules_smallitemset, n=20, by="confidence")
+cancer_graph_large_html <- plot(top20cancerrules, method= "graph", engine = "htmlwidget")
+cancer_graph_small_html <- plot(top20cancerrules_smallitemset, method= "graph", engine = "htmlwidget")
+
+htmlwidgets::saveWidget(cancer_graph_large_html , "cancer_graph_large.html", selfcontained = FALSE)
+htmlwidgets::saveWidget(cancer_graph_small_html , "cancer_graph_small.html", selfcontained = FALSE)
+
+top20diabetesrules <- head(has_diabetes.association.rules, n=20, by="confidence")
+top20diabetesrules_smallitemset <- head(has_diabetes.association.rules_smallitemset, n=20, by="confidence")
+diabetes_graph_large_html <- plot(top20diabetesrules, method= "graph", engine = "htmlwidget")
+diabetes_graph_small_html <- plot(top20diabetesrules_smallitemset, method= "graph", engine = "htmlwidget")
+
+htmlwidgets::saveWidget(diabetes_graph_large_html  , "diabetes_graph_large.html", selfcontained = FALSE)
+htmlwidgets::saveWidget(diabetes_graph_small_html  , "diabetes_graph_small.html", selfcontained = FALSE)
+
+top20hypertensionrules <- head(has_hypertension.association.rules, n=20, by="confidence")
+top20hypertensionrules_smallitemset <- head(has_hypertension.association.rules_smallitemset, n=20, by="confidence")
+hypertesion_graph_large_html <- plot(top20hypertensionrules, method= "graph", engine = "htmlwidget")
+hypertesion_graph_small_html <- plot(top20hypertensionrules_smallitemset, method= "graph", engine = "htmlwidget")
+
+htmlwidgets::saveWidget(hypertesion_graph_large_html , "hypertension_graph_large.html", selfcontained = FALSE)
+htmlwidgets::saveWidget(hypertesion_graph_small_html , "hypertension_graph_small.html", selfcontained = FALSE)
+
+
+plot(top20cancerrules, method="paracoord")
+plot(top20diabetesrules, method="paracoord")
+plot(top20hypertensionrules, method="paracoord")
+
+#plot(has_cancer.association.rules, method= "graph", engine = "htmlwidget")
+#plot(has_cancer.association.rules_smallitemset, method= "graph", engine = "htmlwidget")
+#plot(has_diabetes.association.rules, method= "graph", engine = "htmlwidget")
+#plot(has_diabetes.association.rules_smallitemset, method= "graph", engine = "htmlwidget")
+#plot(has_hypertension.association.rules, method= "graph", engine = "htmlwidget")
+#plot(has_hypertension.association.rules_smallitemset, method= "graph", engine = "htmlwidget")
+
+
+#saveAsGraph(has_cancer.association.rules, file = "has_cancer.association.rules.graphml")
+#saveAsGraph(has_diabetes.association.rules, by = "lift", file = "has_diabetes.association.rules.graphml")
+#saveAsGraph(has_hypertension.association.rules, by = "lift", file = "has_hypertension.association.rules.graphml")
+
+#saveAsGraph(has_cancer.association.rules_smallitemset, by = "lift", file = "has_cancer.association.rules_smallitemset.graphml")
+#saveAsGraph(has_diabetes.association.rules_smallitemset, by = "lift", file = "has_diabetes.association.rules_smallitemset.graphml")
+#saveAsGraph(has_hypertension.association.rules_smallitemset, by = "lift", file = "has_hypertension.association_smallitemset.rules.graphml")
+
+
+plotly_arules(no_cancer.association.rules)
+plotly_arules(no_diabetes.association.rules)
+plotly_arules(no_hypertension.association.rules)
 
 
 
