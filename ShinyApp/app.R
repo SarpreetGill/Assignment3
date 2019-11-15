@@ -24,32 +24,10 @@ m <- list(
 )
 
 #setwd('D:/ProjetosGIT/Assignment3/ShinyApp')
-#prepare_data_frame <- function(data_source) {
-#individuals_transaction_class <- read.transactions('../Data/Working/transactiondata.csv', format = 'basket',sep=',')
 
-#has_cancer.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.4, maxlen=15), appearance=list(default="lhs", rhs="HAS CANCER"))
-#has_diabetes.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.7, maxlen=15), appearance=list(default="lhs", rhs="HAS DIABETES"))
-#has_hypertension.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.8, maxlen=15), appearance=list(default="lhs", rhs="HAS HYPERTENSION"))
-
-#has_cancer.association.rules_smallitemset <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.1, maxlen=3), appearance=list(default="lhs", rhs="HAS CANCER"))
-#has_diabetes.association.rules_smallitemset <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.4, maxlen=3), appearance=list(default="lhs", rhs="HAS DIABETES"))
-#has_hypertension.association.rules_smallitemset <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.4, maxlen=3), appearance=list(default="lhs", rhs="HAS HYPERTENSION"))
-
-#no_cancer.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.9,maxlen=10), appearance=list(default="lhs", rhs="NO CANCER"))
-#no_diabetes.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.9, maxlen=10), appearance=list(default="lhs", rhs="NO DIABETES"))
-#no_hypertension.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.8, maxlen=10), appearance=list(default="lhs", rhs="NO HYPERTENSION"))
-
-#top20cancerrules <- head(has_cancer.association.rules, n=20, by="confidence")
-#top20cancerrules_smallitemset <- head(has_cancer.association.rules_smallitemset, n=20, by="confidence")
-
-#top20diabetesrules <- head(has_diabetes.association.rules, n=20, by="confidence")
-#top20diabetesrules_smallitemset <- head(has_diabetes.association.rules_smallitemset, n=20, by="confidence")
-
-#top20hypertensionrules <- head(has_hypertension.association.rules, n=20, by="confidence")
-#top20hypertensionrules_smallitemset <- head(has_hypertension.association.rules_smallitemset, n=20, by="confidence")
-
-
-
+has_cancer.association.rules <- readRDS("has_cancer.association.rules.rds")
+has_diabetes.association.rules <- readRDS("has_diabetes.association.rules.rds")
+has_hypertension.association.rules <- readRDS("has_hypertension.association.rules.rds")
 
 predict.model_rf <- function(data) {
 
@@ -137,9 +115,9 @@ ui <- navbarPage(
              h2("Cancer"),
              
              
-             #plotly_arules(has_cancer.association.rules)
-             #%>%
-            #   layout(autosize = F, width = "100%", height = 500, margin=m)
+             plotly_arules(has_cancer.association.rules)
+             %>%
+               layout(autosize = F, width = "100%", height = 500, margin=m)
              
            ))
            ,
@@ -147,9 +125,9 @@ ui <- navbarPage(
              12,
              h2("Diabetes"),
              
-             #plotly_arules(has_diabetes.association.rules)
-             #%>%
-            #   layout(autosize = F, width = "100%", height = 500, margin=m)
+             plotly_arules(has_diabetes.association.rules)
+             %>%
+               layout(autosize = F, width = "100%", height = 500, margin=m)
              
              
            ))
@@ -158,8 +136,8 @@ ui <- navbarPage(
              12,
              h2("Hypertension"),
              
-             #plotly_arules(has_hypertension.association.rules)
-             #%>%
+            # plotly_arules(has_hypertension.association.rules)
+            # %>%
             #   layout(autosize = F, width = "100%", height = 500, margin=m)
              
            ))
@@ -169,7 +147,7 @@ ui <- navbarPage(
   tabPanel("Technical Manual",
            fluidRow(column(
              12,
-             ""#includeHTML("NAHNES.html")
+              htmlOutput("frame")
            ))  ),
   conditionalPanel("false", icon("crosshair"))
 )
@@ -179,6 +157,11 @@ server <- function(input, output, session) {
   
   # Reactive expression to create data frame of all input values ----
   
+  output$frame <- renderUI({
+    my_test <- tags$iframe(src="./NAHNES.html", height=800, width="100%",frameBorder="0")
+    print(my_test)
+    my_test
+  })
   
   fncPredictModel <- function(data) {
     
@@ -200,28 +183,16 @@ server <- function(input, output, session) {
     
   }
   
-  sliderValues <- reactive({
-    
-    data = data.frame(
-      LBXGH =as.numeric(input$LBXGH),
-      LBXSGL= as.numeric(input$LBXSGL),
-      RXDUSE= as.numeric( ifelse(input$RXDUSE=='YES', 2, 1)),
-      LBDHDDSI= as.numeric(input$LBDHDDSI),
-      RIDAGEYR = as.numeric(input$RIDAGEYR))
-    
-    fncPredictModel(data)
-   
-  })
-  
   
   observe({
     
     data = data.frame(
-      LBXGH =as.numeric(input$LBXGH),
-      LBXSGL= as.numeric(input$LBXSGL),
-      RXDUSE= as.numeric( ifelse(input$RXDUSE=='YES', 2, 1)),
-      LBDHDDSI= as.numeric(input$LBDHDDSI),
-      RIDAGEYR = as.numeric(input$RIDAGEYR))
+      
+      "LBXGH" =as.numeric(input$LBXGH),
+      "LBXSGL"= as.numeric(input$LBXSGL),
+      "RXDUSE"= as.numeric( ifelse(input$RXDUSE=='Yes', 2, 1)),
+      "LBDHDDSI"= as.numeric(input$LBDHDDSI),
+      "RIDAGEYR" = as.numeric(input$RIDAGEYR))
     #predic the model
       
     fncPredictModel(data)
