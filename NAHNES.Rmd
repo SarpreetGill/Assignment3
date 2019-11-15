@@ -3010,10 +3010,166 @@ We have found Random forest with the top five  features correlated to the TARGET
 The ShinyApp was built to assist to predict a patients condition based on the selected attribues.
 
 
+# Models against sub-datasets (PROBLEM 1.B)
+
+## Unsupervised Cluster Model for Demographic  {.tabset}
+
+### PCA 
+
+
+```{r, eval=FALSE, echo=TRUE}
+
+demo_subset_8   = read.csv("Data/Working/demo_subset_8_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
+target_disease_dataset   = read.csv("Data/Working/target_disease_dataset.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
+demographic_imputed   = read.csv("Data/Clean_Imputes/demographic_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
+
+library(devtools)
+#install_github("vqv/ggbiplot")
+library(ggbiplot)
+
+demo_subset_8.pca <- prcomp(demo_subset_8[,c(2:9)], center = TRUE,scale = TRUE)
+summary(demo_subset_8.pca)
+str(demo_subset_8.pca)
+
+#ggbiplot(demo_subset_8.pca)
+
+screeplot(demo_subset_8.pca, type = "l", npcs = 8, main = "Screeplot of the 8 PCs")
+abline(h = 1, col="red", lty=5)
+legend("topright", legend=c("Eigenvalue = 1"),
+       col=c("red"), lty=5, cex=0.6)
+
+cumpro <- cumsum(demo_subset_8.pca$sdev^2 / sum(demo_subset_8.pca$sdev^2))
+plot(cumpro[0:8], xlab = "PC #", ylab = "Amount of explained variance", main = "Cumulative variance plot")
+abline(v = 4, col="blue", lty=5)
+abline(h = 0.5934, col="blue", lty=5)
+legend("topleft", legend=c("Cut-off @ PC4"),
+       
+```
+
+![](Figures/demo/demo8_PCA_1.png){width=350px}
+![](Figures/demo/demo8_PCA_2.png){width=350px}
+
+From the above graphs, we notice is that the first 4 components has an Eigenvalue >1 
+and explains almost 60% of variance! We can not effectively reduce dimensionality from 8  to 4 becuase we will lose about 40% of variance!
+
+```{r, eval=FALSE, echo=TRUE}
+
+library("factoextra")
+fviz_pca_ind(demo_subset_8.pca, geom.ind = "point", pointshape = 21, 
+             pointsize = 2, 
+             fill.ind = target_disease_dataset$HAS_DIABETES, 
+             col.ind = "black", 
+             palette = "jco", 
+             addEllipses = TRUE,
+             label = "var",
+             col.var = "black",
+             repel = TRUE,
+             legend.title = "HAS_DIABETES") +
+  ggtitle("2D PCA-plot from 8 feature dataset") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+
+fviz_pca_ind(demo_subset_8.pca, geom.ind = "point", pointshape = 21, 
+             pointsize = 2, 
+             fill.ind = target_disease_dataset$HAS_HYPERTENSION, 
+             col.ind = "black", 
+             palette = "jco", 
+             addEllipses = TRUE,
+             label = "var",
+             col.var = "black",
+             repel = TRUE,
+             legend.title = "HAS_HYPERTENSION") +
+  ggtitle("2D PCA-plot from 8 feature dataset") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+fviz_pca_ind(demo_subset_8.pca, geom.ind = "point", pointshape = 21, 
+             pointsize = 2, 
+             fill.ind = target_disease_dataset$HAS_CANCER, 
+             col.ind = "black", 
+             palette = "jco", 
+             addEllipses = TRUE,
+             label = "var",
+             col.var = "black",
+             repel = TRUE,
+             legend.title = "HAS_CANCER") +
+  ggtitle("2D PCA-plot from 8 feature dataset") +
+  theme(plot.title = element_text(hjust = 0.5))
 
 
 
-# Problem 2: Unsupervised Association 
+```
+
+![](Figures/demo/demo8_PCA_diabetes.png){width=260px}
+![](Figures/demo/demo8_PCA_hypertension.png){width=260px}
+![](Figures/demo/demo8_PCA_cancer.png){width=260px}
+
+With just use the first two components, no diseases present separation between sick and healthy people 
+. This  clearly  indicate that the we can not do classification base only on the demographics data. 
+
+
+```{r, eval=FALSE, echo=TRUE}
+
+
+```
+
+
+### k-means Clustering 
+
+
+```{r, eval=FALSE, echo=TRUE}
+
+#Elbow plot method.
+library(purrr)
+set.seed(226)
+# function to calculate total intra-cluster sum of square
+demo8_iss <- function(k) {
+  kmeans(demo_subset_8[,2:9],k,iter.max=100,nstart=100,algorithm="Lloyd" )$tot.withinss
+}
+k.values <- 1:10
+demo8_iss_values <- map_dbl(k.values, demo8_iss)
+plot(k.values, demo8_iss_values,
+     type="b", pch = 19, frame = FALSE,
+     xlab="Number of clusters K",
+     ylab="Total intra-clusters sum of squares")
+```
+
+![](Figures/demo/demo8_ISS.png){width=500px}
+
+From the above graph, we conclude that 6 is the appropriate number of clusters 
+since it seems to be appearing at the bend in the elbow plot.
+
+Now, let us take k = 6 as our optimal cluster
+
+```{r, eval=FALSE, echo=TRUE}
+
+demo8_k6<-kmeans(demo_subset_8[,2:9],6,iter.max=100,nstart=50,algorithm="Lloyd")
+demo8_k6
+
+# Visualizing the Clustering Results using the First Two Principle Components
+
+pcclust=prcomp(demo_subset_8[,2:9],scale=TRUE) #principal component analysis
+summary(pcclust)
+pcclust$rotation[,1:2]
+
+set.seed(100)
+ggplot(demo_subset_8, aes(x =Gender, y = Age)) +
+  geom_point(stat = "identity", aes(color = as.factor(demo8_k6$cluster))) +
+  scale_color_discrete(name=" ",
+                       breaks=c("1", "2", "3", "4", "5","6"),
+                       labels=c("Cluster 1", "Cluster 2", "Cluster 3", "Cluster 4", "Cluster 5","Cluster 6")) +
+  ggtitle("Demographics Data ", subtitle = "Using K-means Clustering")
+
+
+```
+
+
+![](Figures/demo/demo8_K6_Age-Gender.png){width=500px}
+
+ From the above visualization, we observe that in the clusters distribution both Male and female  have almost the same range of age 
+
+
+
+# Problem 2 (a): Unsupervised Association 
 
 Find associations with diseases and diet/demographics data.  
 
@@ -4409,7 +4565,7 @@ The association models used in the preceding sections contained 18 variables.  W
 Within the data for not having diseases, frequently, the condition not having medical insurance appears multiple times.  Is this an indication, people without medical insurance are truly not associated with the diseases? Recall the data for the field is based on a questionnaire that presuppositions, the individual has seen a doctor.  If the individual has not seen a doctor for diagnose due to health insurance coverage, then they may not have been able to accurately ascertain whether they have a particular disease.    
 
 
-# Problem 3: Clustering problem
+# Problem 2(b): Unsupervised Clustering problem 
 
 ## Business case
 
@@ -4645,188 +4801,9 @@ grid.arrange(general_plot, gender_plot, age_plot,
 Although the data appears to be very homogenous, with many of the clusters having similar proportions. There are two clusters, 7 and 8, that encompass more observations. The data from these two would be recommended to the marketing department for further analysis.
 
 
-# Models against sub-datasets (OPTIONAL)
-
-## Cluster Model for Demographic  {.tabset}
-
-### PCA 
-
-
-```{r, eval=FALSE, echo=TRUE}
-
-demo_subset_8   = read.csv("Data/Working/demo_subset_8_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
-target_disease_dataset   = read.csv("Data/Working/target_disease_dataset.csv", header = TRUE, na.strings = c("NA","","#NA"))[-1]
-demographic_imputed   = read.csv("Data/Clean_Imputes/demographic_imputed.csv", header = TRUE, na.strings = c("NA","","#NA"))
-
-library(devtools)
-#install_github("vqv/ggbiplot")
-library(ggbiplot)
-
-demo_subset_8.pca <- prcomp(demo_subset_8[,c(2:9)], center = TRUE,scale = TRUE)
-summary(demo_subset_8.pca)
-str(demo_subset_8.pca)
-
-#ggbiplot(demo_subset_8.pca)
-
-screeplot(demo_subset_8.pca, type = "l", npcs = 8, main = "Screeplot of the 8 PCs")
-abline(h = 1, col="red", lty=5)
-legend("topright", legend=c("Eigenvalue = 1"),
-       col=c("red"), lty=5, cex=0.6)
-
-cumpro <- cumsum(demo_subset_8.pca$sdev^2 / sum(demo_subset_8.pca$sdev^2))
-plot(cumpro[0:8], xlab = "PC #", ylab = "Amount of explained variance", main = "Cumulative variance plot")
-abline(v = 4, col="blue", lty=5)
-abline(h = 0.5934, col="blue", lty=5)
-legend("topleft", legend=c("Cut-off @ PC4"),
-       
-```
-
-![](Figures/demo/demo8_PCA_1.png){width=350px}
-![](Figures/demo/demo8_PCA_2.png){width=350px}
-
-From the above graphs, we notice is that the first 4 components has an Eigenvalue >1 
-and explains almost 60% of variance! We can not effectively reduce dimensionality from 8  to 4 becuase we will lose about 40% of variance!
-
-```{r, eval=FALSE, echo=TRUE}
-
-library("factoextra")
-fviz_pca_ind(demo_subset_8.pca, geom.ind = "point", pointshape = 21, 
-             pointsize = 2, 
-             fill.ind = target_disease_dataset$HAS_DIABETES, 
-             col.ind = "black", 
-             palette = "jco", 
-             addEllipses = TRUE,
-             label = "var",
-             col.var = "black",
-             repel = TRUE,
-             legend.title = "HAS_DIABETES") +
-  ggtitle("2D PCA-plot from 8 feature dataset") +
-  theme(plot.title = element_text(hjust = 0.5))
-
-
-fviz_pca_ind(demo_subset_8.pca, geom.ind = "point", pointshape = 21, 
-             pointsize = 2, 
-             fill.ind = target_disease_dataset$HAS_HYPERTENSION, 
-             col.ind = "black", 
-             palette = "jco", 
-             addEllipses = TRUE,
-             label = "var",
-             col.var = "black",
-             repel = TRUE,
-             legend.title = "HAS_HYPERTENSION") +
-  ggtitle("2D PCA-plot from 8 feature dataset") +
-  theme(plot.title = element_text(hjust = 0.5))
-
-fviz_pca_ind(demo_subset_8.pca, geom.ind = "point", pointshape = 21, 
-             pointsize = 2, 
-             fill.ind = target_disease_dataset$HAS_CANCER, 
-             col.ind = "black", 
-             palette = "jco", 
-             addEllipses = TRUE,
-             label = "var",
-             col.var = "black",
-             repel = TRUE,
-             legend.title = "HAS_CANCER") +
-  ggtitle("2D PCA-plot from 8 feature dataset") +
-  theme(plot.title = element_text(hjust = 0.5))
 
 
 
-```
-
-![](Figures/demo/demo8_PCA_diabetes.png){width=260px}
-![](Figures/demo/demo8_PCA_hypertension.png){width=260px}
-![](Figures/demo/demo8_PCA_cancer.png){width=260px}
-
-With just use the first two components, no diseases present separation between sick and healthy people 
-. This  clearly  indicate that the we can not do classification base only on the demographics data. 
-
-
-```{r, eval=FALSE, echo=TRUE}
-
-
-```
-
-
-### k-means Clustering 
-
-
-```{r, eval=FALSE, echo=TRUE}
-
-#Elbow plot method.
-library(purrr)
-set.seed(226)
-# function to calculate total intra-cluster sum of square
-demo8_iss <- function(k) {
-  kmeans(demo_subset_8[,2:9],k,iter.max=100,nstart=100,algorithm="Lloyd" )$tot.withinss
-}
-k.values <- 1:10
-demo8_iss_values <- map_dbl(k.values, demo8_iss)
-plot(k.values, demo8_iss_values,
-     type="b", pch = 19, frame = FALSE,
-     xlab="Number of clusters K",
-     ylab="Total intra-clusters sum of squares")
-```
-
-![](Figures/demo/demo8_ISS.png){width=500px}
-
-From the above graph, we conclude that 6 is the appropriate number of clusters 
-since it seems to be appearing at the bend in the elbow plot.
-
-Now, let us take k = 6 as our optimal cluster
-
-```{r, eval=FALSE, echo=TRUE}
-
-demo8_k6<-kmeans(demo_subset_8[,2:9],6,iter.max=100,nstart=50,algorithm="Lloyd")
-demo8_k6
-
-# Visualizing the Clustering Results using the First Two Principle Components
-
-pcclust=prcomp(demo_subset_8[,2:9],scale=TRUE) #principal component analysis
-summary(pcclust)
-pcclust$rotation[,1:2]
-
-set.seed(100)
-ggplot(demo_subset_8, aes(x =Gender, y = Age)) +
-  geom_point(stat = "identity", aes(color = as.factor(demo8_k6$cluster))) +
-  scale_color_discrete(name=" ",
-                       breaks=c("1", "2", "3", "4", "5","6"),
-                       labels=c("Cluster 1", "Cluster 2", "Cluster 3", "Cluster 4", "Cluster 5","Cluster 6")) +
-  ggtitle("Demographics Data ", subtitle = "Using K-means Clustering")
-
-
-```
-
-
-![](Figures/demo/demo8_K6_Age-Gender.png){width=500px}
-
-
- From the above visualization, we observe that in the clusters distribution both Male and female  have almost the same range of age 
-
-```{r, eval=FALSE, echo=TRUE}
-
-
-```
-
-
-## Applying machine learning models  {.tabset}
-
-In this section, we will combine all the datasets and perform clustering algorithms.  
-
-```{r, eval=FALSE, echo=TRUE}
-```
-###  PCA
-```{r, eval=FALSE, echo=TRUE}
-```
-###  K-means 
-```{r, eval=FALSE, echo=TRUE}
-```
-###  Hierarchical Agglomerative
-```{r, eval=FALSE, echo=TRUE}
-```
-##  Summary of models
-```{r, eval=FALSE, echo=TRUE}
-```
 
 
 ## Models for Shiny
