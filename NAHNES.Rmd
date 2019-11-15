@@ -51,17 +51,13 @@ The company, aware of our Machine Learning skills, approached us for help on the
 
 ##  First Problem: Reduce lab/data collection costs 
 
-With the healthcare dataset, the business has noted there are 1000s of attributes within the data.  There are also many missing values throughout the data.  The business would like to enrol more patients with their diabetes drugs, but they are unsure which attributes are the most meaningful in relation to diabetes.  Could there be a smaller subset of data could help predict diabetes, because data collection could be refined to only capture those elements.   
+With the healthcare dataset, the business has noted there are 1000s of attributes within the data.  There are also many missing values throughout the data.  The business has lot of old trail data and  would like to enrol more patients with their diabetes drugs, but they are unsure which attributes are the most meaningful in relation to diabetes.  They also be in the middle of cancer trail and are looking for future possible referrals for their diabetes trials.  Could there be a smaller subset of data could help te tell who has diabetes? Because data collection could be refined to only capture those elements.     
 
 The company would ask us about possible wraping the model as a robust, easy to use App that could be present to managment and corporate to assist with the decision making, based on a few user inputs.
 
 ## Second Problem: Marketing
 
 The marketing department is struggling with high costs of television advertisements and is interested in ways to reduce their costs while still hitting their target markets for both the advertisement of drugs and attracting candidates for trails.
-
-## Third Problem: Development of Drugs
-
-The company has a mature R&D function in relation to other pharmaceutical companies.  However, the researchers are looking for any type of edge or extra tidbit of information that might be beneficial to the researchers to develop their drugs for diabetes, hypertension, and cancer.   Also, the clinical trials are increasingly expensive for the development of new drugs for the treatment of diseases.  Is there anything in the data that could help us lower the costs? 
 
 
 
