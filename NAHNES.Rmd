@@ -3010,7 +3010,7 @@ We have found Random forest with the top five  features correlated to the TARGET
 The ShinyApp was built to assist to predict a patients condition based on the selected attribues.
 
 
-# Models against sub-datasets (PROBLEM 1.B)
+# Problem 1(b) Unsupervised Cluster Model for Demographic 
 
 ## Unsupervised Cluster Model for Demographic  {.tabset}
 
@@ -3169,9 +3169,9 @@ ggplot(demo_subset_8, aes(x =Gender, y = Age)) +
 
 
 
-# Problem 2 (a): Unsupervised Association 
+# Problem 2(a): Unsupervised Association 
 
-Find associations with diseases and diet/demographics data.  
+Find associations with diseases and diet/demographics data as per business problem.  
 
 ## Introduction
 Associating mining if often used with market basket analysis.  However, for healthcare dataset used NHANES, we will explore the associations between the data and attempt to provide value to addressing marketing business problems for the pharmedical company in adversiting their drugs and attracting individuals to clinical trails.  
