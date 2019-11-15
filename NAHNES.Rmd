@@ -69,12 +69,18 @@ The marketing department is struggling with high costs of television advertiseme
 
 # Analytical Reframing for the Business Case.  
 
-To address the **first business problem**, we will apply supervised and unsupervised machine learning.  From 1000s attribute across the dataset, we will flatten (PCA) the dataset and apply supervised machine learning algorithms to predict who has diabetes(a); this will hopefully improve the phramedical’s capability to find referrals using current or past trial data.  The key will be to use as few attributes as possible in order to maximize its portability. Secondly, we will use an unsupervised clustering approach on the demographics data to explore whether the data shows any significant findings for the company (b).  
+To address the **first business problem**, we will apply supervised and unsupervised machine learning.
+
+a) From thousands of attribute across the dataset, we will flatten the dataset using PCA and apply supervised machine learning algorithms to predict who has diabetes; this will hopefully improve the phramedical’s capability to find referrals using current or past trial data.  The key will be to use as few attributes as possible in order to maximize its portability.
+
+b) We will use an unsupervised clustering approach on the demographics data to explore whether the data shows any significant findings for the company. 
 
 
-The **second business problem** involves using “health condition” features and finding related features. We will apply 2 types of unsupervised machine learning approaches to address this problem. Firstly, we will use an association learning methods to discover what attributes are associated with health conditions (a).   We will borrow an approach that is traditionally used for market basket analysis.   
+The **second business problem** involves using “health condition” features and finding related features.
 
-Secondly, we will use machine learning unsupervised clustering techniques to look for meaningful insights in the data (b).     
+a) We will apply 2 types of unsupervised machine learning approaches to address this problem. Firstly, we will use an association learning methods to discover what attributes are associated with health conditions.   We will borrow an approach that is traditionally used for market basket analysis.   
+
+b) We will use machine learning unsupervised clustering techniques to look for meaningful insights in the data.
 
 Questions to consider during work: 
 
