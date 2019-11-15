@@ -1,33 +1,19 @@
 library(shiny)
-library(leaflet)
+#library(leaflet)
 ##library(RColorBrewer)
-library(scales)
-library(lattice)
-library(dplyr)
+#library(scales)
+#library(lattice)
+#library(dplyr)
 #library(ggplot2)
-#library(plotly)
+library(plotly)
 library(forcats)
-library(shinyalert)
-library(data.table)
+#library(shinyalert)
+#library(data.table)
 #library(ggplot2)
 #library(ggfortify)
 library(arules)
 library(arulesViz)
 
-
-m <- list(
-  l = 50,
-  r = 50,
-  b = 100,
-  t = 100,
-  pad = 4
-)
-
-#setwd('D:/ProjetosGIT/Assignment3/ShinyApp')
-
-has_cancer.association.rules <- readRDS("has_cancer.association.rules.rds")
-has_diabetes.association.rules <- readRDS("has_diabetes.association.rules.rds")
-has_hypertension.association.rules <- readRDS("has_hypertension.association.rules.rds")
 
 predict.model_rf <- function(data) {
 
@@ -115,9 +101,9 @@ ui <- navbarPage(
              h2("Cancer"),
              
              
-             plotly_arules(has_cancer.association.rules)
-             %>%
-               layout(autosize = F, width = "100%", height = 500, margin=m)
+             #plotly_arules(has_cancer.association.rules)
+             #%>%
+            #   layout( width = "100%", height = 500 ) #margin=m
              
            ))
            ,
@@ -125,9 +111,9 @@ ui <- navbarPage(
              12,
              h2("Diabetes"),
              
-             plotly_arules(has_diabetes.association.rules)
-             %>%
-               layout(autosize = F, width = "100%", height = 500, margin=m)
+            # plotly_arules(has_diabetes.association.rules)
+            # %>%
+            #  layout( width = "100%", height = 500)#margin=m
              
              
            ))
@@ -152,13 +138,47 @@ ui <- navbarPage(
   conditionalPanel("false", icon("crosshair"))
 )
 
+
+#has_cancer.association.rules <- readRDS("has_cancer.association.rules.rds")
+#has_diabetes.association.rules <- readRDS("has_diabetes.association.rules.rds")
+#has_hypertension.association.rules <- readRDS("has_hypertension.association.rules.rds")
+
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
+  
+  corr_rf = readRDS("model_corr_rf.rds")
+  
+  # Create the data frame.
+  test_data <- data.frame(
+    LBXGH =as.numeric("13.39"),
+    LBXSGL= as.numeric("504"),
+    RXDUSE= as.numeric("1"),
+    LBDHDDSI= as.numeric("1.68"),
+    RIDAGEYR = as.numeric("69"))
+  
+  
+  tests <- predict(corr_rf, test_data)
+  
+  result <- "Not SICK" # Default result
+  if (tests =="X1" ) {
+    result <- "SICK"
+  }
+  
+  
+  m <- list(
+    l = 50,
+    r = 50,
+    b = 100,
+    t = 100,
+    pad = 4
+  )
+  
+  #setwd('D:/ProjetosGIT/Assignment3/ShinyApp')
   
   # Reactive expression to create data frame of all input values ----
   
   output$frame <- renderUI({
-    my_test <- tags$iframe(src="./NAHNES.html", height=800, width="100%",frameBorder="0")
+    my_test <- tags$iframe(src="http://resilsim-uwo.ca/NAHNES-noEcho.html", height=800, width="100%",frameBorder="0")
     print(my_test)
     my_test
   })
@@ -168,7 +188,7 @@ server <- function(input, output, session) {
     pred <- predict.model_rf(data)
     
     result <- "Has no Diabetes" # Default result
-    if (pred =="Yes" ) {
+    if (pred =="YES" ) {
       result <- "Has Diabetes"
     }
     
