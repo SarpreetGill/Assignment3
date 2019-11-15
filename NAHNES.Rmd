@@ -147,8 +147,7 @@ Because this is a large amount of data, with over a thousand attributes cumulati
 
 Ideally, we would like to analyze and impute every attribute with missing values, but in this situation, it may not be practical due to the large volume of missing data. 
 
-
-```{eval=FALSE, r, warning = F, message=F}
+```{r, eval=F, echo=TRUE, warning = F, message=F}
 # Reading files
 demographic   = read.csv("Data/Raw/demographic.csv", header = TRUE, na.strings = c("NA","","#NA"))
 diet          = read.csv("Data/Raw/diet.csv", header = TRUE, na.strings = c("NA","","#NA"))
@@ -159,19 +158,21 @@ questionnaire = read.csv("Data/Raw/questionnaire.csv", header = TRUE, na.strings
 # Merging files
 data_list = list(demographic,examination,diet,labs,questionnaire,medications)
 data_joined = join_all(data_list)
-
 ```
+
+
 
 \pagebreak
 
 
-## Checking for missing data {.tabset}
+## Checking for missing data {.tabset .tabset-fade}
 
 It is always essentialto check for missing values and consider how to addreess them in the model.
 
 We decided to represent the Demographic and Diet datasets as they are mostly complete.
 
 We found that the percentage of missing data in four of the six spreadsheets is very significant. Almost all attributes/columns have varying degrees of missing values.
+
 
 ### Demographic
 ```{r, eval=F, echo=TRUE, warning = F, message=F}
@@ -299,7 +300,7 @@ ggsave(plot = questionnaire_MS_plot, width = 8, height = 4, dpi = 300,
 
 \pagebreak
 
-# Data Imputation {.tabset}
+## Data Imputation {.tabset .tabset-fade}
 
 As per our guidelines, we will select attributes/columns of interest based on our business/personal judgements. The full NHANES data dictionary/variable list is available at the following URL:
 
@@ -513,6 +514,7 @@ demo_subset_8_labeled  = read.csv("Data/Working/demo_subset_8_labeled.csv", head
 
 
 ### Diet
+
 <!-- https://wwwn.cdc.gov/nchs/nhanes/search/variablelist.aspx?Component=Dietary&CycleBeginYear=2013 -->
 
 First we would remove all the Near Zero Variance features from the data set, Cutt off being 45% :
@@ -1182,6 +1184,7 @@ str(meds_subset_labelled)
 write.csv(meds_subset_labelled,file = "meds_subset_labelled.csv")
 ```
 \pagebreak
+
 ### Questionnaire
 <!-- https://wwwn.cdc.gov/nchs/nhanes/search/variablelist.aspx?Component=Questionnaire&CycleBeginYear=2013 -->
 
