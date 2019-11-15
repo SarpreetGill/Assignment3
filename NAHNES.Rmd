@@ -1485,7 +1485,7 @@ Perform visualization against the clean datasets and the union of the cleaned da
 
 ##  Demographics Data 
 
-### Visualization  of key features {.tabset}
+### Visualization  of key features {.tabset .tabset-fade}
 
 
 
@@ -1511,7 +1511,7 @@ Gender_plot <- ggplot(Gender, aes(x = "", y =  round(100*count/sum(count), 1),
 #ggsave(plot = Gender_plot, width = 3, height = 3, dpi = 300, 
 #       filename = "Figures/Gender_plot.png")
 ```
-![](Figures/Gender_plot.png){width=300px}
+![](Figures/Gender_plot.png){width=800px}
 
 \pagebreak
 
@@ -1535,7 +1535,7 @@ Birth_plot <- ggplot(Country_of_birth, aes(x = reorder(Country_of_birth, -pct),y
 #ggsave(plot = Birth_plot, width = 3, height = 3, dpi = 300, 
  #      filename = "Figures/Birth_plot.png")
 ```
-![](Figures/Birth_plot.png){width=300px}
+![](Figures/Birth_plot.png){width=800px}
 
 \pagebreak
 
@@ -1560,7 +1560,7 @@ Marital_plot <- ggplot(Marital_status, aes(x = reorder(Marital_status, -pct),y =
 #ggsave(plot = Marital_plot, width = 3, height = 3, dpi = 300, 
 #       filename = "Figures/Marital_plot.png")
 ```
-![](Figures/Marital_plot.png){width=400px}
+![](Figures/Marital_plot.png){width=800px}
 
 \pagebreak
 
@@ -1585,21 +1585,8 @@ Race_plot <- ggplot(Race, aes(x = reorder(Race, -pct),y = pct)) +
 #ggsave(plot = Race_plot, width = 3, height = 3, dpi = 300, 
 #       filename = "Figures/Race_plot.png")
 ```
-![](Figures/Race_plot.png){width=400px}
+![](Figures/Race_plot.png){width=800px}
 
-
-
-#### Demographic: Correlation 
-
-#### Demographic: pick something
-
-### Conclusion
-
-Our samples is pretty representative of the US population: 
-
-* The  US age structure is 20% under 15, 67% between 15 and 64 years old, and 13% over 65 (https://countrymeters.info/en/United_States_of_America_(USA)). 
-* The Gender ratio is 51% for female and 49% for male (http://statisticstimes.com/demographics/countries-by-sex-ratio.php)
-* The Race and ethnicity are:  White 	72.4%, Hispanic and Latino Americans  16.3%, Black or African American 	12.6%, Asian 	4.8%, Native 1.1 %, and the others 9.1 %
 
 
 #### Diabetes and Age
@@ -1620,6 +1607,21 @@ ggplotly(p)
 
 ```
 
+#### Number of proxy users
+
+This graph shows the number of proxy users we have in our database:
+![](Figures/Demo/Proxy_used.png){width=800px}
+
+This graph shows the number of proxy users having Diabetes:
+![](Figures/Demo/Proxy_user.png){width=800px}
+
+#### Conclusion
+
+Our samples is pretty representative of the US population: 
+
+* The  US age structure is 20% under 15, 67% between 15 and 64 years old, and 13% over 65 (https://countrymeters.info/en/United_States_of_America_(USA)). 
+* The Gender ratio is 51% for female and 49% for male (http://statisticstimes.com/demographics/countries-by-sex-ratio.php)
+* The Race and ethnicity are:  White 	72.4%, Hispanic and Latino Americans  16.3%, Black or African American 	12.6%, Asian 	4.8%, Native 1.1 %, and the others 9.1 %
 
 
 
