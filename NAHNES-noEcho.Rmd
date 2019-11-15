@@ -3344,6 +3344,10 @@ has_hypertension.association.rules_smallitemset <- apriori(individuals_transacti
 # Association for having hypertension (small itemset allowed on LHS, maxlen=3)
 has_hypertension.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.8, maxlen=15), appearance=list(default="lhs", rhs="HAS HYPERTENSION"))
 
+saveRDS(has_diabetes.association.rules_smallitemset,"has_diabetes.association.rules_smallitemset")
+saveRDS(has_hypertension.association.rules_smallitemset,"has_hypertension.association.rules_smallitemset")
+saveRDS(has_cancer.association.rules_smallitemset,"has_cancer.association.rules_smallitemset")
+
 ```
 
 
@@ -4214,6 +4218,12 @@ individuals_transaction_class <- read.transactions('Data/Working/transactiondata
 has_cancer.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.4, maxlen=15), appearance=list(default="lhs", rhs="HAS CANCER"))
 has_diabetes.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.7, maxlen=15), appearance=list(default="lhs", rhs="HAS DIABETES"))
 has_hypertension.association.rules <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.8, maxlen=15), appearance=list(default="lhs", rhs="HAS HYPERTENSION"))
+
+saveRDS(has_cancer.association.rules,"has_cancer.association.rules")
+saveRDS(has_diabetes.association.rules,"has_diabetes.association.rules")
+
+saveRDS(has_hypertension.association.rules,"has_hypertension.association.rules")
+
 
 has_cancer.association.rules_smallitemset <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.1, maxlen=3), appearance=list(default="lhs", rhs="HAS CANCER"))
 has_diabetes.association.rules_smallitemset <- apriori(individuals_transaction_class, parameter = list(supp=0.001, conf=0.4, maxlen=3), appearance=list(default="lhs", rhs="HAS DIABETES"))
