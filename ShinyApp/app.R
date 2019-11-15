@@ -17,15 +17,22 @@ library(arulesViz)
 library(e1071)
 library(ranger)
 
-has_cancer.association.rules <- readRDS("has_cancer.association.rules.rds")
+has_cancer.association.rules <- readRDS("has_cancer.association.rules")
+has_diabetes.association.rules <- readRDS("has_diabetes.association.rules")
+has_hypertension.association.rules <- readRDS("has_hypertension.association.rules")
 
-has_diabetes.association.rules <- readRDS("has_diabetes.association.rules.rds")
+has_diabetes.association.rules_smallitemset <- readRDS("has_diabetes.association.rules_smallitemset")
+has_hypertension.association.rules_smallitemset <- readRDS("has_hypertension.association.rules_smallitemset")
+has_cancer.association.rules_smallitemset <- readRDS("has_cancer.association.rules_smallitemset")
+
 top20cancerrules <- head(has_cancer.association.rules, n=20, by="confidence")
+top20cancerrules_smallitemset <- head(has_cancer.association.rules_smallitemset, n=20, by="confidence")
+
 top20diabetesrules <- head(has_diabetes.association.rules, n=20, by="confidence")
+top20diabetesrules_smallitemset <- head(has_diabetes.association.rules_smallitemset, n=20, by="confidence")
 
-
-has_hypertension.association.rules <- readRDS("has_hypertension.association.rules.rds")
-
+top20hypertensionrules <- head(has_hypertension.association.rules, n=20, by="confidence")
+top20hypertensionrules_smallitemset <- head(has_hypertension.association.rules_smallitemset, n=20, by="confidence")
 
 mar <- list(
   l = 50,
@@ -130,6 +137,13 @@ ui <- navbarPage(
                      plotly_arules(has_diabetes.association.rules)
                      %>%
                        layout( width = "100%", height = 500,margin=mar))
+               ,
+               tabPanel("Hypertension",
+                        "The following is a graph for visualizing the top 20 association rules for Hypertion with large itemsets",
+                        plot(top20hypertensionrules, method= "graph", engine = "htmlwidget"),
+                        plotly_arules(has_hypertension.association.rules)
+                        %>%
+                          layout( width = "100%", height = 500,margin=mar))
              )
              
            ))
