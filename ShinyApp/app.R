@@ -50,17 +50,10 @@ m <- list(
 
 
 
-#model_rf
-model_corr_rf <- function() {
-  
-  # LR
-  model_corr_rf = readRDS("model_corr_rf.rds")
-  
-  return(model_corr_rf)
-}
 
 predict.model_rf <- function(data) {
 
+  model_corr_rf = readRDS("model_corr_rf.rds")
   pred <- predict(model_corr_rf, data)
   
   result <- "NO" # Default result
@@ -79,9 +72,8 @@ ui <- navbarPage(
   tabPanel(
     "Study patient",
         
-        # App title ----
-        #titlePanel("Investigate patient"),
-  
+    # App title ----
+    
     titlePanel("Enter the patients data. With only 5 parameters will tell you if the patient is at risk:"),
     
     sidebarLayout(
@@ -91,12 +83,14 @@ ui <- navbarPage(
           
           sliderInput("LBXGH", "Glycohemoglobin (%):",
                       min = 0, max = 100,
-                      value = 50),
+                      value = 50,
+                      animate = TRUE),
           
           # Input: Decimal interval with step value ----
           sliderInput("LBXSGL", "Glucose, refrigerated serum (mg/dL)",
                       min = 10, max = 1000,
-                      value = 500, step = 10),
+                      value = 500, step = 10,
+                      animate = TRUE),
           
           # Input: Specification of range within an interval ----
           selectizeInput('RXDUSE', 'In the past 30 days, did you take medication?',
@@ -122,7 +116,9 @@ ui <- navbarPage(
         mainPanel(
           
           h2("This patient is likely to:"),
-          textOutput("resHtml")
+          htmlOutput("resHtml"),
+          #tableOutput("values")
+          
           
         )
         
@@ -173,17 +169,36 @@ ui <- navbarPage(
   tabPanel("Technical Manual",
            fluidRow(column(
              12,
-             includeHTML("NAHNES.html")
+             ""#includeHTML("NAHNES.html")
            ))  ),
   conditionalPanel("false", icon("crosshair"))
 )
 
 # Define server logic required to draw a histogram
-server <- function(input, output,session) {
-  
-  output$resHtml <- "Test"
+server <- function(input, output, session) {
   
   # Reactive expression to create data frame of all input values ----
+  
+  
+  fncPredictModel <- function(data) {
+    
+    pred <- predict.model_rf(data)
+    
+    result <- "Has no Diabetes" # Default result
+    if (pred =="Yes" ) {
+      result <- "Has Diabetes"
+    }
+    
+    res <- paste(
+      sep = ,
+      "<h3><b>",result,"</b></h3>"
+    )
+    
+    output$resHtml <- renderText({
+      res
+    })
+    
+  }
   
   sliderValues <- reactive({
     
@@ -194,53 +209,23 @@ server <- function(input, output,session) {
       LBDHDDSI= as.numeric(input$LBDHDDSI),
       RIDAGEYR = as.numeric(input$RIDAGEYR))
     
-    #predic the model
     fncPredictModel(data)
-    
+   
   })
   
-  # Show the values in an HTML table ----
-  #output$values <- renderText({
-  #  sliderValues()
-  #})
   
-  #kmeans.select_data.rds = readRDS("kmeans.select_data.rds")
-  #kmeans.select_data.rds <- kmeans.select_data.rds %>%
-  #  select(Lat, Long, k_cluster)
-  
-  fncPredictModel <- function(data) {
+  observe({
     
-    pred_probs <- predict.model_rf(data)
-    
-    result <- "Has no Diabetes" # Default result
-    if (pred =="Yes" ) {
-      result <- "Has Diabetes"
-    }
-    
-    resHtml <- paste(
-      sep = ,
-      "<h3>",result,"</h3>",
-      "</b>"
-    )
-    
-    output$resHtml <- renderText({
-      resHtml
-    })
-    
-  }
-  
-  #observe({
-  #  
-  #  data = data.frame(
-  #    LBXGH =as.numeric(input$LBXGH),
-  #    LBXSGL= as.numeric(input$LBXSGL),
-  #    RXDUSE= as.numeric( ifelse(input$RXDUSE=='YES', 2, 1)),
-  #    LBDHDDSI= as.numeric(input$LBDHDDSI),
-  #    RIDAGEYR = as.numeric(input$RIDAGEYR))
-  #  #predic the model
-  #    
-  #  fncPredictModel(data)
-  #}) 
+    data = data.frame(
+      LBXGH =as.numeric(input$LBXGH),
+      LBXSGL= as.numeric(input$LBXSGL),
+      RXDUSE= as.numeric( ifelse(input$RXDUSE=='YES', 2, 1)),
+      LBDHDDSI= as.numeric(input$LBDHDDSI),
+      RIDAGEYR = as.numeric(input$RIDAGEYR))
+    #predic the model
+      
+    fncPredictModel(data)
+  }) 
   
   
 }
