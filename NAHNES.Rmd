@@ -4829,18 +4829,5 @@ give it best performance.
 The ShinyApp can be accessed from:
 https://ml1000-group6.shinyapps.io/NAHNES/
 
-# Conclusion 
 
-With our models, we aim to present the following to the business regarding applications of our models to assist with drug deployment: 
-
-Firstly, for different diseases, our models can help identify related attributes/values (clusters) for a given disease.  
-This will help select suitable patients for trials.  Trial process can be costly.  And we reduce the cost. 
- Additionally, this information can also be used to provide hints to researchers on drug treatments on the what might could helpful.    
-(PROVIDE EXAMPLE WHEN AVAILABLE)
-
-For different diseases, our app can different types of non-medical (diet/demographics) which are related.  
-- This can help with directed marketing of our current and future drugs for those diseases.    
-- This could also assist with marketing to attract potential candidates for trails.
-
-(PROVIDE EXAMPLE WHEN AVAILABLE)
 
