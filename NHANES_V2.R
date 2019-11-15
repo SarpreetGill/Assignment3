@@ -3495,10 +3495,16 @@ rm(mice)
 d = dist(demographic,method = "euclidean")
 h_clust = hclust(d, method = "ward.D2")
 h_clusters = cutree(h_clust,k=8)
+
 demographic$cluster = as.factor(h_clusters)
-rm(d, h_clust, h_clusters)
+rm(d, h_clusters)
 
 # Data Visualization
+# Clusters plot
+plot(h_clust) #dendrogram
+rect.hclust(h_clust,k=8)
+rm(h_clust)
+
 # General plot
 general_plot = ggplot(demographic, aes(x=cluster, fill=cluster)) +
   geom_bar(stat="count") +
